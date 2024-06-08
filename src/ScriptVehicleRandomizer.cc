@@ -13,13 +13,24 @@ RandomizeVehicle (class CRunningScript *scr, int *p2, int p3, int *params)
 {
     INITIALISE_RANDOMIZER (CutsceneRandomizer);
 
-    CStreaming::RequestModel (280, 0x3abccc);
+    CStreaming::RequestModel (173, 0x3abccc);
     CStreaming::LoadAllRequestedModels (false);
 
     int ret = CollectParams (scr, p2, p3, params);
-    params[0] = 280;
+    params[0] = 173;
 
     return ret;
+}
+
+template <auto &ChooseModel>
+static int
+RandomizeTrafficVehicle ()
+{
+    int model = 173;
+    CStreaming::RequestModel (model, 0x3abccc);
+    CStreaming::LoadAllRequestedModels (false);
+
+    return model;
 }
 
 void

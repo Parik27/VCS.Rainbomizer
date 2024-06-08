@@ -28,6 +28,7 @@ void
 InitialiseRandomizers (char *p1)
 {
     INITIALISE_RANDOMIZER (CutsceneRandomizer);
+    INITIALISE_RANDOMIZER (TrafficRandomizer);
     CGame__Initialise (p1);
 }
 
