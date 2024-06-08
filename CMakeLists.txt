@@ -22,6 +22,7 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 20)
 # we have two different gp values in game functions and in the prx module.
 # We must not use gp ourselves.
 target_compile_options(${PROJECT_NAME} PRIVATE
+  -fno-exceptions
   -mno-gpopt
   -fno-use-cxa-atexit
   -lgcc

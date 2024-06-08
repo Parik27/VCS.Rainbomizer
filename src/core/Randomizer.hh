@@ -26,16 +26,17 @@ public:
     }
 
 #define CREATE_GET_FUNCTION(className)                                         \
-    static className &Get () { return *g_##className; }
+    static className &Get ()                                                   \
+    {                                                                          \
+        CREATE_RANDOMIZER_WRAPPER (className);                                 \
+        return *g_##className;                                                 \
+    }
 
 // Put this in main.cc
 #define INITIALISE_RANDOMIZER(className)                                       \
     CREATE_RANDOMIZER_WRAPPER (className) Initialise##className ();
 
 #define BEGIN_RANDOMIZER(className)                                            \
-    CREATE_RANDOMIZER_WRAPPER (className);                                     \
-    class className                                                            \
-    {                                                                          \
     public:                                                                    \
         CREATE_GET_FUNCTION (className);                                       \
                                                                                \
@@ -44,4 +45,5 @@ public:
 #define END_RANDOMIZER(className)                                              \
     }                                                                          \
     ;                                                                          \
-    DEFINE_RANDOMIZER_WRAPPER (className);
+    DEFINE_RANDOMIZER_WRAPPER (className);				\
+    namespace {
