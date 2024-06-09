@@ -27,7 +27,8 @@ RandomizeTrafficVehicle ()
 
     TrafficRandomizer()
     {
-        REGISTER_HOOK_ADDR(0x8b47b94, RandomizeTrafficVehicle, int);
+        for (int addr : {0x8b47b94, 0x8b47478, 0x8b4729c, 0x08acbccc})
+            REGISTER_HOOK_ADDR(addr, RandomizeTrafficVehicle, int);
     }
 
     END_RANDOMIZER (TrafficRandomizer)

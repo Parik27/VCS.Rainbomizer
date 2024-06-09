@@ -29,6 +29,7 @@ InitialiseRandomizers (char *p1)
 {
     INITIALISE_RANDOMIZER (CutsceneRandomizer);
     INITIALISE_RANDOMIZER (TrafficRandomizer);
+    INITIALISE_RANDOMIZER (ParkedVehicleRandomizer);
     CGame__Initialise (p1);
 }
 
