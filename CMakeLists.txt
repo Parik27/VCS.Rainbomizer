@@ -9,6 +9,14 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
   #crt0_prx2.c
 )
 
+include(FetchContent)
+FetchContent_Declare(
+    tomlplusplus
+    GIT_REPOSITORY https://github.com/marzer/tomlplusplus.git
+    GIT_TAG v3.4.0
+)
+FetchContent_MakeAvailable(tomlplusplus)
+
 add_executable(${PROJECT_NAME} ${SOURCES})
 add_custom_command(
         TARGET ${PROJECT_NAME}
@@ -19,13 +27,17 @@ add_custom_command(
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 20)
 
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+  TOML_HEADER_ONLY=0
+)
+
 # we have two different gp values in game functions and in the prx module.
 # We must not use gp ourselves.
 target_compile_options(${PROJECT_NAME} PRIVATE
   -fno-exceptions
   -mno-gpopt
   -fno-use-cxa-atexit
-  -lgcc
+  -fno-threadsafe-statics
 )
 target_link_options(${PROJECT_NAME} PRIVATE
   -lgcc
@@ -38,4 +50,4 @@ target_link_options(${PROJECT_NAME} PRIVATE
   -L -Wl,-zmax-page-size=128
 )
 target_include_directories(${PROJECT_NAME} PUBLIC lib psp)
-target_link_libraries(${PROJECT_NAME} PRIVATE psp_thirteenag_utils)
+target_link_libraries(${PROJECT_NAME} PRIVATE psp_thirteenag_utils tomlplusplus::tomlplusplus)
