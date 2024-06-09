@@ -1,7 +1,7 @@
 #include "CCarGenerator.hh"
 
 void
-CCarGenerator::DoInternalProcessing(CCarGenerator* gen)
+CCarGenerator::DoInternalProcessing()
 {
-    ((void (*) (CCarGenerator*)) (0x8aed9d8)) (gen);
+    ((void (*) (CCarGenerator*)) (0x8aed9d8)) (this);
 }

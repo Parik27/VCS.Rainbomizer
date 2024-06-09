@@ -21,7 +21,7 @@ RandomizeParkedVehicle (CCarGenerator* gen)
     int newModel = 244;
 
     gen->m_nModelId = newModel;
-    gen->DoInternalProcessing(gen);
+    DoInternalProcessing();
     gen->m_nModelId = origModel;
 }
 
