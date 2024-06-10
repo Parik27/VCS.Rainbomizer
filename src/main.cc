@@ -30,7 +30,7 @@ SetupInitialisationHooks ()
 {
     ScriptVehicleRandomizer::Initialise ();
 
-    REGISTER_HOOK_ADDR (0x8935e7c, InitialiseRandomizers, void, char*);
+    HOOK (Jal, (0x8935e7c), InitialiseRandomizers, void (char *));
 }
 
 int main(int argc, char** argv)

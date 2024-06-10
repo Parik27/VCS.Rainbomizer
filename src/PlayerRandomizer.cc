@@ -61,11 +61,13 @@ public:
 
         // "02 ? ? ? ? 25 28 00 01 ? ? ? ? 00 00 00 00 ? ? ? ? 25 20 00 00 ? ? ?
         // ? 00 00 00 00", 1
-        REGISTER_HOOK_ADDR (0x08b2a76c, RandomizePed, void, class CPed *,
-                            const char *);
-        REGISTER_HOOK_ADDR (0x8968524, RandomizePed, void, class CPed *,
-                            const char *);
-        REGISTER_HOOK_ADDR (0x089de070, RandomizePlayer, void,
-                            class CRunningScript *, int *, int, int *);
+        HOOK (Jal, (0x08b2a76c), RandomizePed,
+              void (class CPed *, const char *));
+
+        HOOK (Jal, (0x8968524), RandomizePed,
+              void (class CPed *, const char *));
+
+        HOOK (Jal, (0x089de070), RandomizePlayer,
+              void (class CRunningScript *, int *, int, int *));
     }
 } g_playerRando;

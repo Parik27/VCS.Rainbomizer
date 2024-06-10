@@ -71,7 +71,7 @@ public:
         RB_C_DO_CONFIG ("CutsceneRandomizer", ForcedModel);
 
         ReadModelsFile ();
-        REGISTER_HOOK_MEMBER_ADDR (0x8b3d0a0, RandomizeCutsceneObject,
-                                   const char *, char *, char *);
+        HOOK_MEMBER (Jal, (0x8b3d0a0), RandomizeCutsceneObject,
+                     const char *(char *, char *) );
     }
 } g_cutsRando;

@@ -1,5 +1,6 @@
 
 #include "Hooks.hh"
+#include "core/Logger.hh"
 #include "core/Randomizer.hh"
 #include "log.h"
 #include <CStreaming.hh>
@@ -17,6 +18,7 @@ public:
     RandomizeTrafficVehicle ()
     {
         int model = 244;
+
         CStreaming::RequestModel (model, 0x3abccc);
         CStreaming::LoadAllRequestedModels (false);
 
@@ -26,6 +28,6 @@ public:
     TrafficRandomizer ()
     {
         for (int addr : {0x8b47b94, 0x8b47478, 0x8b4729c, 0x08acbccc})
-            REGISTER_HOOK_ADDR (addr, RandomizeTrafficVehicle, int);
+            HOOK (Jal, (addr), RandomizeTrafficVehicle, int ());
     }
 } g_TrafficRando;
