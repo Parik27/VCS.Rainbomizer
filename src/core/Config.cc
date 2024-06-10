@@ -66,6 +66,9 @@ void
 ConfigManager::ReadValue (const std::string &tableName, const std::string &key,
                           T &out, bool tmp)
 {
+    if (!m_pConfig)
+        return;
+
     auto table    = m_pConfig->get_table (tableName);
 
     if (table && table->contains (key))

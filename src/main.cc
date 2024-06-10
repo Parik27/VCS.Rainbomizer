@@ -4,6 +4,7 @@
 #include <pspctrl.h>
 #include <string.h>
 
+#include "core/Logger.hh"
 #include "injector.h"
 #include "patterns.h"
 
@@ -15,7 +16,7 @@
 #define GAME_INTERNAL_NAME "GTA3"
 
 PSP_MODULE_INFO (MODULE_NAME, PSP_MODULE_USER, 1, 0);
-PSP_HEAP_SIZE_KB (0x5000);
+PSP_HEAP_SIZE_KB (0x3000);
 
 template <auto &CGame__Initialise>
 void
@@ -40,6 +41,8 @@ int main(int argc, char** argv)
     SceUID modules[10];
     int    count  = 0;
     int    result = 0;
+
+    Rainbomizer::Logger::LogMessage("Memory remaining: %03x", sceKernelMaxFreeMemSize());
 
 
     if (sceKernelGetModuleIdList (modules, sizeof (modules), &count) >= 0)
