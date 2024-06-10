@@ -1,25 +1,22 @@
 #pragma once
 
+#include <cstdio>
 #include <string>
-#include "Stream.hh"
 
-namespace Rainbomizer
+namespace Rainbomizer {
+class Common
 {
-  namespace Common {
-    inline std::string GetRainbomizerFileName (const std::string &fileName) {
-      return "ms0:/PSP/PLUGINS/VCS.PPSSPP.Rainbomizer/" + fileName;
-    }
+public:
+    static std::string GetRainbomizerFileName (const std::string &name,
+                                               const std::string &subdirs = "",
+                                               bool               temp = false);
 
-    template<typename ... Args>
-    inline PSPifstream OpenFileForReading (const std::string& fileName, Args... args)
-    {
-      return PSPifstream (GetRainbomizerFileName(fileName), args...);
-    }
+    static FILE *GetRainbomizerFile (const std::string &name,
+                                     const std::string &mode,
+                                     const std::string &subdirs      = "",
+                                     bool               tempFallback = false);
 
-    template<typename ... Args>
-    inline PSPofstream OpenFileForWriting (const std::string& fileName, Args... args)
-    {
-      return PSPofstream (GetRainbomizerFileName(fileName), args...);
-    }
-  }
+    static FILE *GetRainbomizerDataFile (const std::string &name,
+                                         const std::string &mode = "r");
 };
+} // namespace Rainbomizer

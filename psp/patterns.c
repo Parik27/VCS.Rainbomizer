@@ -86,7 +86,7 @@ uintptr_t range_get(size_t count, uintptr_t range_start, size_t range_size, cons
 {
     if (pattern_str[0] == '\0')
         return 0;
-    char str[strlen(pattern_str)];
+    char str[strlen(pattern_str)+1];
     strcpy(str, pattern_str);
     pattern_str = str;
     uint8_t wc[strlen(pattern_str)];

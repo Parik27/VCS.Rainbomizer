@@ -1,8 +1,5 @@
 #include "core/Randomizer.hh"
-#include "log.h"
 #include <cstdio>
-#include <cstdlib>
-#include <iterator>
 #include <vector>
 #include <string>
 #include <Utils.hh>
@@ -11,12 +8,8 @@
 #include "core/Config.hh"
 #include "core/Logger.hh"
 
-#include <limits>
-
-class CutsceneRandomizer
+class CutsceneRandomizer : public Randomizer<CutsceneRandomizer>
 {
-    BEGIN_RANDOMIZER (CutsceneRandomizer)
-
     std::vector<std::vector<std::string>> m_Models;
 
     // config
@@ -26,19 +19,25 @@ class CutsceneRandomizer
     ReadModelsFile ()
     {
         m_Models.push_back (std::vector<std::string> ());
-        PSPifstream modelsFile
-            = Rainbomizer::Common::OpenFileForReading ("CutsceneModels.txt");
+
+        FILE *modelsFile = Rainbomizer::Common::GetRainbomizerDataFile (
+            "CutsceneModels.txt");
 
         if (!modelsFile)
             return;
 
-        for (std::string line; std::getline (modelsFile, line);)
+        char line[256] = {};
+        while (fgets (line, 256, modelsFile))
             {
-                if (line.size () < 2) {
-                    m_Models.push_back ({});
-                    continue;
-                }
+                if (strlen(line) < 2)
+                    {
+                        Rainbomizer::Logger::LogMessage("New group");
+                        m_Models.push_back ({});
+                        continue;
+                    }
 
+                line[strcspn (line, "\n")] = 0;
+                Rainbomizer::Logger::LogMessage("Pushing: %s", line);
                 m_Models.back ().push_back (line);
             }
     }
@@ -52,11 +51,9 @@ class CutsceneRandomizer
         for (auto &modelList : m_Models)
             if (DoesElementExist(modelList, model)) {
                 auto ret = GetRandomElement(modelList).c_str();
-                LogMessage ("Randomizing {} to {}", model, ret);
                 return ret;
             }
 
-        LogMessage ("Couldn't find model to randomize: {}", model);
         return model;
     }
 
@@ -77,6 +74,4 @@ public:
         REGISTER_HOOK_MEMBER_ADDR (0x8b3d0a0, RandomizeCutsceneObject,
                                    const char *, char *, char *);
     }
-
-    END_RANDOMIZER (CutsceneRandomizer)
-};
+} g_cutsRando;

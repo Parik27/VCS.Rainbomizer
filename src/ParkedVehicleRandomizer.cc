@@ -8,27 +8,23 @@
 #include <set>
 #include <string>
 
-class ParkedVehicleRandomizer
+class ParkedVehicleRandomizer : public Randomizer<ParkedVehicleRandomizer>
 {
-    BEGIN_RANDOMIZER(ParkedVehicleRandomizer)
-
 public:
-template <auto &DoInternalProcessing>
-static void
-RandomizeParkedVehicle (CCarGenerator* gen)
-{
-    int origModel = gen->m_nModelId;
-    int newModel = 244;
-
-    gen->m_nModelId = newModel;
-    DoInternalProcessing();
-    gen->m_nModelId = origModel;
-}
-
-    ParkedVehicleRandomizer()
+    template <auto &DoInternalProcessing>
+    static void
+    RandomizeParkedVehicle (CCarGenerator *gen)
     {
-        REGISTER_HOOK_ADDR(0x8aed784, RandomizeParkedVehicle, CCarGenerator);
+        int origModel = gen->m_nModelId;
+        int newModel  = 244;
+
+        gen->m_nModelId = newModel;
+        DoInternalProcessing ();
+        gen->m_nModelId = origModel;
     }
 
-    END_RANDOMIZER(ParkedVehicleRandomizer)
-};
+    ParkedVehicleRandomizer ()
+    {
+        REGISTER_HOOK_ADDR (0x8aed784, RandomizeParkedVehicle, CCarGenerator);
+    }
+} g_parkedRando;

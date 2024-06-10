@@ -1,10 +1,18 @@
-#include "log.h"
-#include <format>
+#pragma once
 
-template <typename... Args>
-static void
-LogMessage (std::format_string<Args...> fmt, Args &&...args)
+#include <cstdio>
+
+namespace Rainbomizer {
+
+class Logger
 {
-    logger.WriteF ("%s\n",
-                   std::format (fmt, std::forward<Args> (args)...).c_str ());
-}
+    static inline FILE *mFile = nullptr;
+    static FILE        *GetLogFile ();
+
+public:
+    static void LogMessage (const char *format, ...)
+        __attribute__ ((format (printf, 1, 2)));
+    ;
+};
+
+} // namespace Rainbomizer

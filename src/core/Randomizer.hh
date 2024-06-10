@@ -2,48 +2,14 @@
  * this class */
 template <typename T> class Randomizer
 {
+    inline static T* instance;
+
 public:
+    Randomizer () { instance = static_cast<T *> (this); }
+
     static T &
     Get ()
     {
-        static T instance;
-        return instance;
+        return *instance;
     }
 };
-
-#define CREATE_RANDOMIZER_WRAPPER(className)                                   \
-  extern class className *g_##className;					\
-  void Initialise##className ();
-
-// Put this in your randomizer class to make sure it can be initialised
-#define DEFINE_RANDOMIZER_WRAPPER(className)                                   \
-    class className *g_##className;                                            \
-    CREATE_RANDOMIZER_WRAPPER (className)                                      \
-    void Initialise##className ()                                              \
-    {                                                                          \
-        if (!g_##className)                                                    \
-            g_##className = new className ();                                  \
-    }
-
-#define CREATE_GET_FUNCTION(className)                                         \
-    static className &Get ()                                                   \
-    {                                                                          \
-        CREATE_RANDOMIZER_WRAPPER (className);                                 \
-        return *g_##className;                                                 \
-    }
-
-// Put this in main.cc
-#define INITIALISE_RANDOMIZER(className)                                       \
-    CREATE_RANDOMIZER_WRAPPER (className) Initialise##className ();
-
-#define BEGIN_RANDOMIZER(className)                                            \
-    public:                                                                    \
-        CREATE_GET_FUNCTION (className);                                       \
-                                                                               \
-    private:
-
-#define END_RANDOMIZER(className)                                              \
-    }                                                                          \
-    ;                                                                          \
-    DEFINE_RANDOMIZER_WRAPPER (className);				\
-    namespace {

@@ -1,6 +1,6 @@
 #include "injector.h"
 #include "patterns.h"
-#include "log.h"
+#include "core/Logger.hh"
 #include <utility>
 
 //
@@ -29,7 +29,8 @@ RegisterHook (void *addr, O &originalFunc, F hookedFunc)
     ReadCall (addr, originalFunc);
     RegisterHook<Jmp> (addr, hookedFunc);
 
-    logger.WriteF("Hooking function: %p -> %p at address %p", originalFunc, hookedFunc, addr);
+    Rainbomizer::Logger::LogMessage ("Hooking function: %p -> %p at address %p",
+                                     originalFunc, hookedFunc, addr);
 }
 
 template <bool Jmp = false, typename F, typename O>

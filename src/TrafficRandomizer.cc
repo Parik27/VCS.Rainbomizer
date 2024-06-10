@@ -9,27 +9,23 @@
 #include <set>
 #include <string>
 
-class TrafficRandomizer
+class TrafficRandomizer : public Randomizer<TrafficRandomizer>
 {
-    BEGIN_RANDOMIZER (TrafficRandomizer)
-
 public:
-template <auto &ChooseModel>
-static int
-RandomizeTrafficVehicle ()
-{
-    int model = 244;
-    CStreaming::RequestModel (model, 0x3abccc);
-    CStreaming::LoadAllRequestedModels (false);
-
-    return model;
-}
-
-    TrafficRandomizer()
+    template <auto &ChooseModel>
+    static int
+    RandomizeTrafficVehicle ()
     {
-        for (int addr : {0x8b47b94, 0x8b47478, 0x8b4729c, 0x08acbccc})
-            REGISTER_HOOK_ADDR(addr, RandomizeTrafficVehicle, int);
+        int model = 244;
+        CStreaming::RequestModel (model, 0x3abccc);
+        CStreaming::LoadAllRequestedModels (false);
+
+        return model;
     }
 
-    END_RANDOMIZER (TrafficRandomizer)
-};
+    TrafficRandomizer ()
+    {
+        for (int addr : {0x8b47b94, 0x8b47478, 0x8b4729c, 0x08acbccc})
+            REGISTER_HOOK_ADDR (addr, RandomizeTrafficVehicle, int);
+    }
+} g_TrafficRando;

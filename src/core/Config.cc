@@ -1,32 +1,43 @@
-#include "Common.hh"
-#include "log.h"
-#include <type_traits>
-#define TOML_IMPLEMENTATION
+#include <string>
+#define CPPTOML_NO_RTTI
 
 #include "Config.hh"
-#include "Stream.hh"
+#include <limits>
+#include "cpptoml/cpptoml.h"
+#include "Common.hh"
+#include "Logger.hh"
+#include <string>
 
-ConfigManager::ConfigManager ()
+#ifdef ENABLE_DEBUG_MENU
+#include <debug/config.hh>
+#endif
+
+/*******************************************************/
+ConfigManager::ConfigManager (const std::string &file)
 {
-    auto f = Rainbomizer::Common::OpenFileForReading ("config.toml");
-    if (!f)
+    try
         {
-            logger.WriteF ("Failed to open config file for reading");
+            m_pConfig = cpptoml::parse_file (
+                Rainbomizer::Common::GetRainbomizerFileName (file));
         }
-
-    m_Config = toml::parse (f);
-
-    if (!m_Config)
+    catch (const std::exception &e)
         {
-            logger.WriteF ("Failed to read config file: %s (at line %d)",
-                           m_Config.error ().description ().data(),
-                           m_Config.error ().source ().begin.line);
+            Rainbomizer::Logger::LogMessage ("%s", e.what ());
+            m_pConfig.reset ();
         }
 }
 
 /*******************************************************/
+ConfigManager *
+ConfigManager::GetInstance ()
+{
+    static ConfigManager mgr{"config.toml"};
+    return &mgr;
+}
+
+/*******************************************************/
 bool
-ConfigManager::GetIsEnabled (const char* name)
+ConfigManager::GetIsEnabled (const std::string &name)
 {
     // Finds "name" key in the main table. Also allows an "Enabled" key in the
     // table for the randomizer/whatever.
@@ -44,7 +55,8 @@ ConfigManager::GetIsEnabled (const char* name)
     ReadValue ("Randomizers", name, enabled, true);
     ReadValue (name, "Enabled", enabled, true);
 
-    logger.WriteF ("%s: %s", name, (enabled) ? "Yes" : "No");
+    Rainbomizer::Logger::LogMessage ("%s: %s", name.c_str (),
+                                     (enabled) ? "Yes" : "No");
 
     return enabled;
 }
@@ -54,7 +66,29 @@ void
 ConfigManager::ReadValue (const std::string &tableName, const std::string &key,
                           T &out, bool tmp)
 {
-    out = m_Config[tableName][key].value_or (out);
+    auto table    = m_pConfig->get_table (tableName);
+
+    if (table && table->contains (key))
+        out = table->get_as<T> (key).value_or (out);
+
+#ifdef DEBUG_CONFIG_OPTIONS
+    std::ostringstream ss;
+    ss << "\nConfig option: " << tableName << "." << key;
+    ss << "\nChosen value : " << out;
+    ss << "\nHas config table : " << table;
+    ss << "\nHas default table : " << defTable;
+    ss << "\nConfig has key: " << (table ? table->contains (key) : false);
+    ss << "\nDefault has key: "
+       << (defTable ? defTable->contains (key) : false);
+    if (table && table->contains (key))
+        ss << "\nConfig value: " << table->get_as<T> (key).value_or (out);
+    if (defTable && defTable->contains (key))
+        ss << "\nDefault Config value: "
+           << defTable->get_as<T> (key).value_or (out);
+    ss << "\n";
+
+    Rainbomizer::Logger::LogMessage ("%s", ss.str ().c_str ());
+#endif
 }
 
 #define READ_VALUE_ADD_TYPE(type)                                              \

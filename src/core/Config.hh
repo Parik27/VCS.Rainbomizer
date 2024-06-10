@@ -1,40 +1,43 @@
 #pragma once
 
-#include "inireader.h"
+#include <string>
+#include <memory>
+#include <vector>
 #include "ConfigMacros.hh"
 
-#include <string>
-#include "toml++/toml.hpp"
+namespace cpptoml {
+class table;
+} // namespace cpptoml
 
 /*******************************************************/
 class ConfigManager
 {
-    decltype(toml::parse_file("")) m_Config{};
+    std::shared_ptr<cpptoml::table> m_pConfig;
+    std::shared_ptr<cpptoml::table> m_pDefaultConfig;
 
-    ConfigManager ();
+    ConfigManager (){};
 
     template <typename T>
     void ReadValue (const std::string &tableName, const std::string &key,
                     T &out, bool tmp = false);
 
-    bool GetIsEnabled (const char *name);
+    bool GetIsEnabled (const std::string &name);
 
 public:
     /// Returns the static instance for ConfigManager.
-    static ConfigManager* Get ()
-    {
-        static ConfigManager config;
-        return &config;
-    }
+    static ConfigManager *GetInstance ();
+
+    /// Initialises
+    ConfigManager (const std::string &file = "config.toml");
 
     template <typename... Args>
     static bool
-    ReadConfig (const char *table, Args... params)
+    ReadConfig (const std::string &table, Args... params)
     {
-        if (!Get ()->GetIsEnabled (table))
+        if (!GetInstance ()->GetIsEnabled (table))
             return false;
 
-        (Get ()->ReadValue (table, params.first, *params.second), ...);
+        (GetInstance ()->ReadValue (table, params.first, *params.second), ...);
         return true;
     }
 };
