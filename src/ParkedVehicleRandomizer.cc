@@ -2,6 +2,7 @@
 #include "core/Randomizer.hh"
 #include "log.h"
 #include "CCarGenerator.hh"
+#include "Random.hh"
 #include <cstdio>
 #include <cstdlib>
 #include <iterator>
@@ -16,15 +17,14 @@ public:
     RandomizeParkedVehicle (CCarGenerator *gen)
     {
         int origModel = gen->m_nModelId;
-        int newModel  = 244;
 
-        gen->m_nModelId = newModel;
-        DoInternalProcessing ();
+        gen->m_nModelId = RandomInt(170, 280);
+        DoInternalProcessing (gen);
         gen->m_nModelId = origModel;
     }
 
     ParkedVehicleRandomizer ()
     {
-        REGISTER_HOOK_ADDR (0x8aed784, RandomizeParkedVehicle, CCarGenerator);
+        REGISTER_HOOK_ADDR (0x8aed784, RandomizeParkedVehicle, void, CCarGenerator*);
     }
 } g_parkedRando;
