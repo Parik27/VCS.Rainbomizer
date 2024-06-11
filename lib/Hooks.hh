@@ -3,6 +3,8 @@
 #include "injector.h"
 #include "patterns.h"
 #include "core/Logger.hh"
+#include <cstdint>
+#include <mutex>
 #include <utility>
 
 // Replaces an entire function with another
@@ -20,17 +22,17 @@ template <typename... Args>
 using func_pointer_type_v = func_pointer_type_t<Args...>::type;
 
 namespace Jmp {
-template <int **OrigAddr, int *OrigBytes, int *HookedBytes, auto func>
+template <int **OrigAddr, uint64_t *OrigBytes, uint64_t *HookedBytes, auto func>
 struct wrapper_t;
 
-template <int **OrigAddr, int *OrigBytes, int *HookedBytes, typename Ret,
+template <int **OrigAddr, uint64_t *OrigBytes, uint64_t *HookedBytes, typename Ret,
           typename... Ts, Ret (*func) (Ts...)>
 struct wrapper_t<OrigAddr, OrigBytes, HookedBytes, func>
 {
     static Ret
     functor (Ts... args)
     {
-        **OrigAddr = *OrigBytes;
+        **(uint64_t**)OrigAddr = *OrigBytes;
         if constexpr (std::is_void_v<Ret>)
             {
                 func (std::forward<Ts> (args)...);
@@ -38,11 +40,11 @@ struct wrapper_t<OrigAddr, OrigBytes, HookedBytes, func>
         else
             {
                 auto ret            = func (std::forward<Ts> (args)...);
-                **(int **) OrigAddr = *HookedBytes;
+                **(uint64_t **) OrigAddr = *HookedBytes;
                 return ret;
             }
 
-        **OrigAddr = *HookedBytes;
+        **(uint64_t**)OrigAddr = *HookedBytes;
     }
 };
 
@@ -51,14 +53,16 @@ void
 RegisterHook (void *addr, O &originalFunc)
 {
     static int *OrigAddr;
-    static int  OrigBytes;
-    static int  HookedBytes;
+    static uint64_t  OrigBytes;
+    static uint64_t  HookedBytes;
+
     originalFunc = (O) addr;
 
     OrigAddr  = (int *) originalFunc;
     OrigBytes = *OrigAddr;
 
-    injector.MakeJMP (uintptr_t (addr),
+    // need to nop because of delay slot nonsense
+    injector.MakeJMPwNOP (uintptr_t (addr),
                       uintptr_t (wrapper_t<&OrigAddr, &OrigBytes, &HookedBytes,
                                            hookedFunc>::functor));
 

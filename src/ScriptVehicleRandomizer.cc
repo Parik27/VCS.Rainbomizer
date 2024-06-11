@@ -12,7 +12,7 @@ RandomizeVehicle (class CRunningScript *scr, int *p2, int p3, int *params)
     CStreaming::LoadAllRequestedModels (false);
 
     int ret   = CollectParams (scr, p2, p3, params);
-    params[0] = 244;
+    params[0] = 270;
 
     return ret;
 }

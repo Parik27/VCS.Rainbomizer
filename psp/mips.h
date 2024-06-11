@@ -1,6 +1,10 @@
 #pragma once
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef enum Register {
     r0 = 0,
     r1,
@@ -344,3 +348,6 @@ uint32_t moveq(RegisterID rd, RegisterID rs);
   * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
   * THE SOFTWARE.
   */
+#ifdef __cplusplus
+}
+#endif

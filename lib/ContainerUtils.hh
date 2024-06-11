@@ -5,7 +5,7 @@
 
 /*******************************************************/
 template <typename T, typename V>
-bool
+constexpr bool
 DoesElementExist (const T &container, const V val)
 {
     return std::find (std::begin (container), std::end (container), val)
@@ -13,7 +13,7 @@ DoesElementExist (const T &container, const V val)
 }
 
 template <typename Map, typename Key>
-auto
+constexpr auto
 LookupMap (Map &m, const Key &k)
 {
     auto it = m.find (k);

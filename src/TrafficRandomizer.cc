@@ -17,7 +17,7 @@ public:
     static int
     RandomizeTrafficVehicle ()
     {
-        int model = 244;
+        int model = 270;
 
         CStreaming::RequestModel (model, 0x3abccc);
         CStreaming::LoadAllRequestedModels (false);
