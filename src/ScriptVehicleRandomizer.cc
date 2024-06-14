@@ -8,7 +8,7 @@ template <auto &CollectParams>
 static int
 RandomizeVehicle (class CRunningScript *scr, int *p2, int p3, int *params)
 {
-    CStreaming::RequestModel (244, 0x3abccc);
+    CStreaming::RequestModel (270, 0x3abccc);
     CStreaming::LoadAllRequestedModels (false);
 
     int ret   = CollectParams (scr, p2, p3, params);

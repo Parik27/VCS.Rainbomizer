@@ -7,18 +7,23 @@
 #include "core/Config.hh"
 #include "CStreaming.hh"
 #include "CVector.hh"
-
-std::vector<int> m_Pickups = { 474, 466, 468, 354, 355, 348, 346, 337, 331, 332, 336, 349, 342, 338, 339, 355, 351, 
-334, 368, 344, 353, 363, 352, 340, 360, 347, 361, 333, 358, 350, 351, 341, 356, 465, 467, 481, 505, 7490 };
+#include "CPickups.hh"
+#include <array>
 
 class PickupsRandomizer : public Randomizer<PickupsRandomizer>
 {
+    static constexpr std::array m_Pickups = {PICKUP_BRIBE, PICKUP_HEALTH, PICKUP_ARMOUR, PICKUP_MICRO_SMG, PICKUP_KNIFE, PICKUP_AK47, PICKUP_PISTOL,
+    PICKUP_AXE, PICKUP_BRASS_KNUCKLES, PICKUP_BUTTERFLY_KNIFE, PICKUP_BASEBALL_BAT, PICKUP_SHOTGUN, PICKUP_GRENADE, PICKUP_GAFF_HOOK, PICKUP_MACHETTE,
+    PICKUP_MAC_10, PICKUP_NIGHTSTICK, PICKUP_BINOCULARS, PICKUP_MOLOTOV, PICKUP_SCORPION, PICKUP_REMOTE_EXPLOSIVE, PICKUP_ASSAULT_RIFLE,
+    PICKUP_KATANA, PICKUP_FLAMETHROWER, PICKUP_PYTHON, PICKUP_M249, PICKUP_GOLF_CLUB, PICKUP_COMBAT_SNIPER, PICKUP_COMBAT_SHOTGUN,
+    PICKUP_STUBBY_SHOTGUN, PICKUP_CHAINSAW, PICKUP_SMG, PICKUP_INFORMATION, PICKUP_ADRENALINE, PICKUP_MOVIE, PICKUP_BUY_VEHICLE};
+
 public:
     template <auto &CPickups__GenerateNewOne>
     static int
     RandomizePickups (CVector* pos, int modelId, char arg3, int arg4, int arg5, bool arg6, char arg7)
     {
-        for (auto &model : m_Pickups)
+         for (auto &model : m_Pickups)
             if (model == modelId)
             {
                 modelId = GetRandomElement(m_Pickups);
