@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ContainerUtils.hh"
 #include <cstdint>
 #include <vector>
 
@@ -10,6 +11,19 @@ float        RandomFloat (float min, float max);
 float        RandomFloat (float max);
 unsigned int RandomWeighed (const std::vector<double> &weights);
 bool         RandomBool (float Odds, float Precision = 1.0f);
+
+template <auto Exclude>
+int
+RandomIntExcept (int min, int max)
+{
+    int ret;
+    do
+        {
+            ret = RandomInt (min, max);
+    } while (DoesElementExist (Exclude, ret));
+
+    return ret;
+}
 
 template <typename T>
 auto &

@@ -31,12 +31,13 @@ class WeaponRandomizer : public Randomizer<WeaponRandomizer>
         CWeaponInfo *newWeaponInfo = CWeaponInfo::GetWeaponInfo (newWeapon);
         int          newWeaponOriginalSlot = newWeaponInfo->nSlot;
 
-        if (ped != FindPlayerPed())
+        if (ped != FindPlayerPed ())
             newWeaponInfo->nSlot = targetSlot;
 
         int ret = CPed__GiveWeapon (ped, newWeapon, ammo, p4);
 
         newWeaponInfo->nSlot = newWeaponOriginalSlot;
+
         return ret;
     }
 
@@ -45,7 +46,7 @@ class WeaponRandomizer : public Randomizer<WeaponRandomizer>
     FixProjectileThrowingThird (CWeapon *weap, class CPed *ped,
                                  class CVector *src)
     {
-        if (!WeaponsCommon::IsProjectile(Weapon(weap->Type)))
+        if (!WeaponsCommon::IsProjectile(eWeapon(weap->Type)))
             return CWeapon__FireWeapon (weap, ped, src);
 
         auto prevSeekTarget = ped->pSeekTarget;
@@ -90,7 +91,6 @@ public:
 
         HOOK (Jmp, (0x08a456cc), FixProjectileThrowingThird,
               int (CWeapon* weaon, CPed* shooter, CVector* src));
-
         static constexpr const float thing = 0.1;
         static constexpr const uint32_t thing_ieee = std::bit_cast<uint32_t>(thing);
         static constexpr const uint32_t lower_bytes = (thing_ieee >> 16) & 0xFFFF;

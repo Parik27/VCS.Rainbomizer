@@ -3,7 +3,13 @@
 
 #include "Config.hh"
 #include <limits>
+
+#define NO_CPPTOML
+
+#ifndef NO_CPPTOML
 #include "cpptoml/cpptoml.h"
+#endif
+
 #include "Common.hh"
 #include "Logger.hh"
 #include <string>
@@ -15,6 +21,7 @@
 /*******************************************************/
 ConfigManager::ConfigManager (const std::string &file)
 {
+#ifndef NO_CPPTOML
     try
         {
             m_pConfig = cpptoml::parse_file (
@@ -25,6 +32,7 @@ ConfigManager::ConfigManager (const std::string &file)
             Rainbomizer::Logger::LogMessage ("%s", e.what ());
             m_pConfig.reset ();
         }
+#endif
 }
 
 /*******************************************************/
@@ -69,10 +77,12 @@ ConfigManager::ReadValue (const std::string &tableName, const std::string &key,
     if (!m_pConfig)
         return;
 
+#ifndef NO_CPPTOML
     auto table    = m_pConfig->get_table (tableName);
 
     if (table && table->contains (key))
         out = table->get_as<T> (key).value_or (out);
+#endif
 
 #ifdef DEBUG_CONFIG_OPTIONS
     std::ostringstream ss;

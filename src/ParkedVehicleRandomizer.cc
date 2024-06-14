@@ -1,3 +1,5 @@
+#include "vehicle/Common.hh"
+
 #include "ContainerUtils.hh"
 #include "Hooks.hh"
 #include "core/Logger.hh"
@@ -8,6 +10,7 @@
 #include "CStreaming.hh"
 
 #include <map>
+
 
 //#define DONT_USE_MAP // decreases randomness, but decreases memory usage.
 
@@ -29,8 +32,9 @@ public:
         if (currentVeh == 242)
             currentVeh++;
 
-        gen->m_nModelId
-            = ForcedVehicle == -1 ? RandomInt (170, 280) : ForcedVehicle;
+        gen->m_nModelId = ForcedVehicle == -1
+                              ? VehicleCommon::GetRandomUsableVehicle ()
+                              : ForcedVehicle;
 
 #ifndef DONT_USE_MAP
         if (int *id = LookupMap (m_LoadingCarGens, gen))
@@ -41,8 +45,6 @@ public:
 #endif
 
         DoInternalProcessing (gen);
-
-        Rainbomizer::Logger::LogMessage("Spawning: %d", gen->m_nModelId);
 
 #ifndef DONT_USE_MAP
         // Model is currently loading, let it load.

@@ -1,4 +1,4 @@
-add_library(psp_thirteenag_utils
+add_library(psp_thirteenag_utils STATIC
   injector.c
   patterns.c
   mips.c

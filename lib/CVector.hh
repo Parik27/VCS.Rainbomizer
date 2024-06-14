@@ -1,4 +1,9 @@
+#pragma once
+
 class CVector
 {
-    float x, y, z;
+public:
+  float x;
+  float y;
+  float z;
 };

@@ -32,11 +32,14 @@ target_compile_options(${PROJECT_NAME} PRIVATE
 )
 target_link_options(${PROJECT_NAME} PRIVATE
   -specs=${PSPDEV}/psp/sdk/lib/prxspecs
-  -Wl,-q,-T${PSPDEV}/psp/sdk/lib/linkfile.prx
+  -Wl,-q,-T${PROJECT_SOURCE_DIR}/linkfile.prx
+  #-Wl,-q,-T${PSPDEV}/psp/sdk/lib/linkfile.prx
   ${PSPDEV}/psp/sdk/lib/prxexports.o
   -L -Wl,-zmax-page-size=128
   -flto
 
+  #-Wl,-static
+  -Wl,--gc-sections
 )
 target_include_directories(${PROJECT_NAME} PUBLIC lib psp src)
 target_link_libraries(${PROJECT_NAME} PRIVATE psp_thirteenag_utils)
