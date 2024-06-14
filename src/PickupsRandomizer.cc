@@ -8,6 +8,9 @@
 #include "CStreaming.hh"
 #include "CVector.hh"
 
+std::vector<int> m_Pickups = { 474, 466, 468, 354, 355, 348, 346, 337, 331, 332, 336, 349, 342, 338, 339, 355, 351, 
+334, 368, 344, 353, 363, 352, 340, 360, 347, 361, 333, 358, 350, 351, 341, 356, 465, 467, 481, 505, 7490 };
+
 class PickupsRandomizer : public Randomizer<PickupsRandomizer>
 {
 public:
@@ -15,14 +18,18 @@ public:
     static int
     RandomizePickups (CVector* pos, int modelId, char arg3, int arg4, int arg5, bool arg6, char arg7)
     {
-        int newModel = 342; // Grenades
-        return CPickups__GenerateNewOne(pos, newModel, arg3, arg4, arg5, arg6, arg7);
+        for (auto &model : m_Pickups)
+            if (model == modelId)
+            {
+                modelId = GetRandomElement(m_Pickups);
+                break;
+            }
+    
+        return CPickups__GenerateNewOne(pos, modelId, arg3, arg4, arg5, arg6, arg7);
     }
 
     PickupsRandomizer()
     {
-        for (int addr : {0x88f2b94, 0x88f7ab8, 0x8938a78, 0x8946a2c, 0x8946a2c, 0x8947db8, 
-        0x8947e0c, 0x8947e54, 0x89e1dd8, 0x89e1dd8, 0x89e214c, 0x89e2404, 0x8a0a764})
-            HOOK (Jal, (addr), RandomizePickups, int (CVector*, int, char, int, int, bool, char));
+        HOOK (Jmp, (0x88f5a3c), RandomizePickups, int (CVector*, int, char, int, int, bool, char));
     }
 } g_pickupsRando;
