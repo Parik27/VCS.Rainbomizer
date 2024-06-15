@@ -22,17 +22,17 @@ template <typename... Args>
 using func_pointer_type_v = func_pointer_type_t<Args...>::type;
 
 namespace Jmp {
-template <int **OrigAddr, uint64_t *OrigBytes, uint64_t *HookedBytes, auto func>
+template <uint64_t **OrigAddr, uint64_t *OrigBytes, uint64_t *HookedBytes, auto func>
 struct wrapper_t;
 
-template <int **OrigAddr, uint64_t *OrigBytes, uint64_t *HookedBytes, typename Ret,
+template <uint64_t **OrigAddr, uint64_t *OrigBytes, uint64_t *HookedBytes, typename Ret,
           typename... Ts, Ret (*func) (Ts...)>
 struct wrapper_t<OrigAddr, OrigBytes, HookedBytes, func>
 {
     static Ret
     functor (Ts... args)
     {
-        **(uint64_t**)OrigAddr = *OrigBytes;
+        **OrigAddr = *OrigBytes;
         if constexpr (std::is_void_v<Ret>)
             {
                 func (std::forward<Ts> (args)...);
@@ -44,7 +44,7 @@ struct wrapper_t<OrigAddr, OrigBytes, HookedBytes, func>
                 return ret;
             }
 
-        **(uint64_t**)OrigAddr = *HookedBytes;
+        **OrigAddr = *HookedBytes;
     }
 };
 
@@ -52,13 +52,13 @@ template <auto hookedFunc, typename O>
 void
 RegisterHook (void *addr, O &originalFunc)
 {
-    static int *OrigAddr;
+    static uint64_t *OrigAddr;
     static uint64_t  OrigBytes;
     static uint64_t  HookedBytes;
 
     originalFunc = (O) addr;
 
-    OrigAddr  = (int *) originalFunc;
+    OrigAddr  = (uint64_t*) originalFunc;
     OrigBytes = *OrigAddr;
 
     // need to nop because of delay slot nonsense
