@@ -16,20 +16,21 @@ class PickupsRandomizer : public Randomizer<PickupsRandomizer>
     PICKUP_AXE, PICKUP_BRASS_KNUCKLES, PICKUP_BUTTERFLY_KNIFE, PICKUP_BASEBALL_BAT, PICKUP_SHOTGUN, PICKUP_GRENADE, PICKUP_GAFF_HOOK, PICKUP_MACHETTE,
     PICKUP_MAC_10, PICKUP_NIGHTSTICK, PICKUP_BINOCULARS, PICKUP_MOLOTOV, PICKUP_SCORPION, PICKUP_REMOTE_EXPLOSIVE, PICKUP_ASSAULT_RIFLE,
     PICKUP_KATANA, PICKUP_FLAMETHROWER, PICKUP_PYTHON, PICKUP_M249, PICKUP_GOLF_CLUB, PICKUP_COMBAT_SNIPER, PICKUP_COMBAT_SHOTGUN,
-    PICKUP_STUBBY_SHOTGUN, PICKUP_CHAINSAW, PICKUP_SMG, PICKUP_INFORMATION, PICKUP_ADRENALINE, PICKUP_MOVIE, PICKUP_BUY_VEHICLE};
+    PICKUP_STUBBY_SHOTGUN, PICKUP_CHAINSAW, PICKUP_SMG, PICKUP_INFORMATION, PICKUP_ADRENALINE, PICKUP_MOVIE, PICKUP_BUY_VEHICLE, PICKUP_BRIEFCASE, 
+    PICKUP_KEYCARD, PICKUP_GD_DILDO, PICKUP_NDC_DRUGPACKET, PICKUP_GD_BRIEFCASE_RED, PICKUP_GD_BRIEFCASE_BLUE, PICKUP_GD_BRIEFCASE_BROWN, PICKUP_PINATA_MAN};
 
 public:
     template <auto &CPickups__GenerateNewOne>
     static int
     RandomizePickups (CVector* pos, int modelId, char arg3, int arg4, int arg5, bool arg6, char arg7)
     {
-         for (auto &model : m_Pickups)
+        for (auto &model : m_Pickups)
             if (model == modelId)
             {
                 modelId = GetRandomElement(m_Pickups);
                 break;
             }
-    
+
         return CPickups__GenerateNewOne(pos, modelId, arg3, arg4, arg5, arg6, arg7);
     }
 
