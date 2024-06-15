@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 enum eWeapon
 {
     WEAPON_UNARMED,
@@ -59,9 +61,25 @@ public:
     }
 };
 
-class CWeapon
-{
-    int unk;
+
+class CWeapon {
 public:
-    int Type;
+    uint8_t field0_0x0;
+    uint8_t field1_0x1;
+    uint8_t field2_0x2;
+    uint8_t field3_0x3;
+    uint32_t Type; /* Created by retype action */
+    int field5_0x8;
+    uint8_t field6_0xc;
+    uint8_t field7_0xd;
+    uint8_t field8_0xe;
+    uint8_t field9_0xf;
+    uint32_t Ammo; /* Created by retype action */
+    uint32_t nTimer;
+    uint8_t field12_0x18;
+    uint8_t field13_0x19;
+    uint8_t field14_0x1a;
+    uint8_t field15_0x1b;
 };
+
+static_assert(sizeof(CWeapon) == 0x1c);

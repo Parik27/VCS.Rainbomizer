@@ -19,6 +19,7 @@ class WeaponRandomizer : public Randomizer<WeaponRandomizer>
     static int
     RandomizeWeapon (CPed *ped, int weaponType, int ammo, int p4)
     {
+        Rainbomizer::Logger::LogMessage("CWeapon::GiveWeapon (%p, %d, %d, %d)", ped, weaponType, ammo, p4);
         if (weaponType == 0)
             return CPed__GiveWeapon (ped, weaponType, ammo, p4);
 
@@ -61,13 +62,13 @@ class WeaponRandomizer : public Randomizer<WeaponRandomizer>
                             "Checking pointing: %f %f %f to %f %f %f", start.x,
                             start.y, start.z, end.x, end.y, end.z);
 
-                        if (!((int (*) (CVector *, CVector *, bool, bool, bool,
-                                        bool, bool, bool, bool,
-                                        bool)) 0x88967ac) (&start, &end, true,
-                                                           true, false, true,
-                                                           false, false, false,
-                                                           false))
-                            return 0;
+                        // if (!((int (*) (CVector *, CVector *, bool, bool, bool,
+                        //                 bool, bool, bool, bool,
+                        //                 bool)) 0x88967ac) (&start, &end, true,
+                        //                                    true, false, true,
+                        //                                    false, false, false,
+                        //                                    false))
+                        //     return 0;
                     }
                 ped->pSeekTarget = ped->pPointGunAt;
             }
@@ -81,13 +82,37 @@ class WeaponRandomizer : public Randomizer<WeaponRandomizer>
         return ret;
     }
 
+ template<auto& CPed__SetActiveWeaponSlot>
+ static void RandomizeSelectedWeapon (CPed* ped, int slot)
+    {
+        static std::array<uint32_t, 10> usedSlots;
+
+        size_t numSlots = 0;
+        for (size_t i = 0; i < 10; i++)
+            if (ped->Weapons[i].Type && ped->Weapons[i].Ammo)
+                usedSlots[numSlots++] = i;
+
+        if (!numSlots)
+            return CPed__SetActiveWeaponSlot (ped, slot);
+
+        CPed__SetActiveWeaponSlot (ped, usedSlots[RandomInt (numSlots - 1)]);
+    }
+
 public:
     WeaponRandomizer ()
     {
         RB_C_DO_CONFIG ("WeaponRandomizer", ForcedWeapon)
 
         HOOK (Jmp, (0x0891b7dc), RandomizeWeapon,
-              int (class CPed *, int, int, int));
+              int (class CPed *, int, int, bool));
+
+        HOOK (Jmp, (0x08908080), RandomizeSelectedWeapon,
+              void (class CPed *, int));
+
+        injector.MakeNOP (0x08911e6c);
+        injector.MakeNOP (0x08949b50);
+        injector.MakeNOP (0x0894b934);
+        injector.MakeNOP (0x089511a4);
 
         HOOK (Jmp, (0x08a456cc), FixProjectileThrowingThird,
               int (CWeapon* weaon, CPed* shooter, CVector* src));

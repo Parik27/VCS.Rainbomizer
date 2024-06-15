@@ -2,8 +2,10 @@
 
 #include <cstddef>
 #include <CVector.hh>
+#include <CWeaponInfo.hh>
 
 #define ATOFFSET(offset, type, name) struct { char _##name[offset]; type name; };
+#define ATOFFSETARR(offset, type, name, size) struct { char _##name[offset]; type name[size]; };
 
 class CPed
 {
@@ -13,6 +15,7 @@ public:
         ATOFFSET (0x30, CVector, vecPosition);
         ATOFFSET (0x81c, CPed *, pPointGunAt)
         ATOFFSET (0x450, CPed *, pSeekTarget)
+        ATOFFSETARR (0x574, CWeapon, Weapons, 10)
     };
 
     int
@@ -26,3 +29,4 @@ public:
 static_assert (offsetof (CPed, pPointGunAt) == 0x81c);
 static_assert (offsetof (CPed, pSeekTarget) == 0x450);
 static_assert (offsetof (CPed, vecPosition) == 0x30);
+static_assert (offsetof (CPed, Weapons) == 0x574);
