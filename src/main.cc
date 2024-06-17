@@ -15,7 +15,7 @@
 #define MODULE_NAME "VCS.PPSSPP.Rainbomizer"
 #define GAME_INTERNAL_NAME "GTA3"
 
-PSP_MODULE_INFO (MODULE_NAME, PSP_MODULE_USER, 1, 0);
+PSP_MODULE_INFO (VCS.Rainbomizer, PSP_MODULE_USER, 1, 0);
 PSP_HEAP_SIZE_KB (0x3000);
 
 template <auto &CGame__Initialise>

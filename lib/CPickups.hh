@@ -1,5 +1,9 @@
 #pragma once
 
+#include "CVector.hh"
+#include <cstddef>
+#include <cstdint>
+
 enum ePickup
 {
     // WEAPONS
@@ -75,3 +79,39 @@ enum ePickup
     PICKUP_RAMPAGECOMPLETED = 7401,
     PICKUP_BUY_VEHICLE = 7490,
 };
+
+class CPickup
+{
+public:
+    CVector                    m_vecPos;
+    float                      field1_0x10;
+    uint8_t                    field2_0x14;
+    uint8_t                    field3_0x15;
+    uint8_t                    field4_0x16;
+    uint8_t                    field5_0x17;
+    uint8_t                    field6_0x18;
+    uint8_t                    field7_0x19;
+    uint8_t                    field8_0x1a;
+    uint8_t                    field9_0x1b;
+    uint8_t                    field10_0x1c;
+    uint8_t                    field11_0x1d;
+    uint8_t                    field12_0x1e;
+    uint8_t                    field13_0x1f;
+    struct CPickup            *m_pObject;
+    float                      m_pExtraObject;
+    struct CMultiplayerPickup *pMultiplayerPickup;
+    uint32_t                   m_nQuantity;
+    uint8_t                   *m_nTimer;
+    uint16_t                   m_modelIndex;
+    uint16_t                   m_nIndex;
+    uint8_t                    m_eType;
+    bool                       m_bRemoved;
+    uint8_t                    m_nFlags;
+    uint8_t                    field24_0x3b;
+    char                       field25_0x3c;
+    uint8_t                    field26_0x3d;
+    uint8_t                    field27_0x3e;
+    uint8_t                    field28_0x3f;
+};
+
+static_assert(offsetof(CPickup, m_modelIndex) == 0x34);

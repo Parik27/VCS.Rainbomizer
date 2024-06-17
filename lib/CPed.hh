@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CMatrix.hh"
 #include <cstddef>
 #include <CVector.hh>
 #include <CWeaponInfo.hh>
@@ -12,6 +13,7 @@ class CPed
 public:
     union
     {
+        ATOFFSET (0x0, CMatrix, m_matrix);
         ATOFFSET (0x30, CVector, vecPosition);
         ATOFFSET (0x81c, CPed *, pPointGunAt)
         ATOFFSET (0x450, CPed *, pSeekTarget)

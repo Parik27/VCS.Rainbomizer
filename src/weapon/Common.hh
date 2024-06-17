@@ -13,7 +13,8 @@ class WeaponsCommon
 
     static constexpr std::array Projectiles
         = {WEAPON_ROCKET,  WEAPON_ROCKETLAUNCHER, WEAPON_MOLOTOV,
-           WEAPON_TEARGAS, WEAPON_SEAMINE,        WEAPON_LANDMINE};
+           WEAPON_TEARGAS, WEAPON_SEAMINE,        WEAPON_LANDMINE,
+           WEAPON_GRENADE};
 
 public:
     static constexpr bool

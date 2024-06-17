@@ -30,14 +30,61 @@ public:
             if (model == modelId)
             {
                 modelId = GetRandomElement(m_Pickups);
+                modelId = PICKUP_REGENHEALTH;
                 break;
             }
 
         return CPickups__GenerateNewOne(pos, modelId, arg3, arg4, arg5, arg6, arg7);
     }
 
+    template<auto &CPickups__PickupTheDamnPickup>
+    static bool
+    PickupPicked (class CPickup *pickup, class CPed* player, bool inVeh, int playerInFocus, int p5, int p6)
+    {
+        if (pickup->m_modelIndex == PICKUP_REGENHEALTH || pickup->m_modelIndex == PICKUP_MEGADAMAGE || pickup->m_modelIndex == PICKUP_INVISIBLE)
+            {
+                static struct PowerupParam
+                {
+                    uint8_t unk[3] = {};
+                    uint8_t pupType = 0;
+                    uint8_t pupTime = 0;
+                    uint8_t unk2 = 0;
+                    uint8_t unk3[2 + 8];
+                } param;
+
+                static_assert(offsetof(PowerupParam, pupType) == 3);
+                static_assert(sizeof(PowerupParam) == 16);
+
+                *(bool*) 0x08bb0578 = true;
+                param.pupTime = 255;
+
+                if (pickup->m_modelIndex == PICKUP_REGENHEALTH)
+                    param.pupType = 2;
+                if (pickup->m_modelIndex == PICKUP_MEGADAMAGE)
+                    param.pupType = 1;
+                if (pickup->m_modelIndex == PICKUP_INVISIBLE)
+                    param.pupType = 4;
+
+                ((void (*) (PowerupParam *, uint32_t, uint32_t)) (
+                    0x8a0b5a8)) (&param, 0, 0);
+
+                *(bool*) 0x08bb0578 = false;
+            }
+
+        return CPickups__PickupTheDamnPickup (pickup, player, inVeh, playerInFocus, p5, p6);
+    }
+
     PickupsRandomizer()
     {
         HOOK (Jmp, (0x88f5a3c), RandomizePickups, int (CVector*, int, char, int, int, bool, char));
+        HOOK (Jal, (0x088f47bc), PickupPicked, bool (class CPickup*, class CPed*, bool, int, int, int));
+
+        // Powerups
+        injector.MakeNOP (0x08a0b608);
+        injector.MakeNOP (0x08a0b60c);
+        injector.MakeNOP (0x089bd2d4); // draw powerup timers
+        injector.MakeNOP (0x08a0b62c); // ped state check
+        //injector.MakeNOP (0x08947af8);
+        injector.MakeNOP (0x0894ad94);
     }
 } g_pickupsRando;

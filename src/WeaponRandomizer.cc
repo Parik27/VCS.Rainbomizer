@@ -1,3 +1,4 @@
+#include "CVehicle.hh"
 #include "core/Logger.hh"
 #include "core/Randomizer.hh"
 #include "core/Config.hh"
@@ -19,27 +20,16 @@ class WeaponRandomizer : public Randomizer<WeaponRandomizer>
     static int
     RandomizeWeapon (CPed *ped, int weaponType, int ammo, int p4)
     {
-        Rainbomizer::Logger::LogMessage("CWeapon::GiveWeapon (%p, %d, %d, %d)", ped, weaponType, ammo, p4);
         if (weaponType == 0)
             return CPed__GiveWeapon (ped, weaponType, ammo, p4);
-
-        int targetSlot = CWeaponInfo::GetWeaponInfo(weaponType)->nSlot;
 
         int newWeapon = WeaponsCommon::GetRandomUsableWeapon ();
         if (ForcedWeapon != -1)
             newWeapon = ForcedWeapon;
 
-        CWeaponInfo *newWeaponInfo = CWeaponInfo::GetWeaponInfo (newWeapon);
-        int          newWeaponOriginalSlot = newWeaponInfo->nSlot;
+        //newWeapon = WEAPON_CHAINSAW;
 
-        if (ped != FindPlayerPed ())
-            newWeaponInfo->nSlot = targetSlot;
-
-        int ret = CPed__GiveWeapon (ped, newWeapon, ammo, p4);
-
-        newWeaponInfo->nSlot = newWeaponOriginalSlot;
-
-        return ret;
+        return CPed__GiveWeapon (ped, newWeapon, ammo, p4);
     }
 
     template <auto &CWeapon__FireWeapon>
@@ -98,6 +88,40 @@ class WeaponRandomizer : public Randomizer<WeaponRandomizer>
         CPed__SetActiveWeaponSlot (ped, usedSlots[RandomInt (numSlots - 1)]);
     }
 
+    template <auto &CWeapon__FireInstantHitFromCar>
+    static void
+    FireProjectilesDuringDriveby (CWeapon *weapon, CVehicle *veh,
+                                  bool left, bool right)
+    {
+
+        if (WeaponsCommon::IsProjectile(eWeapon(weapon->Type)))
+            {
+                CPed* ped = FindPlayerPed();
+
+                static CVector pos;
+                uint32_t type = weapon->Type;
+
+                if (weapon->Type == WEAPON_ROCKETLAUNCHER)
+                    type = WEAPON_ROCKET;
+
+                pos = FindPlayerPed ()->vecPosition;
+
+                if (left)
+                    pos -= ped->m_matrix.right * 3;
+
+                else if (right)
+                    pos += ped->m_matrix.right * 10;
+
+                else
+                    pos += ped->m_matrix.forward * 3;
+
+                CProjectileInfo::AddProjectile (3.0f, FindPlayerPed (),
+                                                type, &pos, false);
+            }
+
+        CWeapon__FireInstantHitFromCar (weapon, veh, left, right);
+    }
+
 public:
     WeaponRandomizer ()
     {
@@ -109,6 +133,8 @@ public:
         HOOK (Jmp, (0x08908080), RandomizeSelectedWeapon,
               void (class CPed *, int));
 
+        // Projectile throwing fixes
+        // ===========================================
         injector.MakeNOP (0x08911e6c);
         injector.MakeNOP (0x08949b50);
         injector.MakeNOP (0x0894b934);
@@ -123,5 +149,14 @@ public:
 
         injector.WriteMemory32 (0x8a45d50, lui(a0, lower_bytes));
         injector.WriteMemory32 (0x8a45d54, ori(a0, a0, higher_bytes));
+
+        // Custom drive-by
+        // ==============================================
+        injector.WriteMemory32 (0x8a52270, li(a0, 5));
+        injector.WriteMemory32 (0x08a43d98, li(a0, 5));
+        injector.WriteMemory32 (0x08a52764, li(a0, 5));
+
+        HOOK (Jal, (0x08a411b4), FireProjectilesDuringDriveby,
+              void (CWeapon*, class CVehicle*, bool, bool));
     }
 } g_WeaponRandomizer;

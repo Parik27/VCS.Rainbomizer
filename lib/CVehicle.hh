@@ -1,5 +1,7 @@
 #pragma once
 
+#include "CPed.hh"
+#include "CVector.hh"
 enum eVehicle
 {
     VEHICLE_6ATV     = 170,
@@ -113,4 +115,10 @@ enum eVehicle
     VEHICLE_SKIMMER  = 278,
     VEHICLE_CHOPPER  = 279,
     VEHICLE_AIRTRAIN = 280,
+};
+
+class CVehicle
+{
+public:
+    ATOFFSET(0x140, CVector, m_vecSpeed);
 };

@@ -82,4 +82,16 @@ public:
     uint8_t field15_0x1b;
 };
 
-static_assert(sizeof(CWeapon) == 0x1c);
+static_assert (sizeof (CWeapon) == 0x1c);
+
+class CProjectileInfo
+{
+public:
+    static int
+    AddProjectile (float speed, class CPed *shooter, int type, class CVector *pos,
+                   bool quadDamage)
+    {
+        return ((int (*) (float, class CPed *, int, CVector *,
+                   bool)) 0x088809f8) (speed, shooter, type, pos, quadDamage);
+    }
+};
