@@ -2,7 +2,7 @@
 #include "Common.hh"
 #include <cstdlib>
 #include <ctime>
-#include <Utils.hh>
+#include <utils/Utils.hh>
 
 #ifndef NDEBUG
 #define RAINBOMIZER_BUILD "Debug Build: " __DATE__ " " __TIME__
@@ -20,6 +20,7 @@ GetTimeNow ()
     time_t currentTime;
     char   str[256];
 
+    sceKernelLibcTime (&currentTime);
     time (&currentTime);
 
     auto tm = std::localtime (&currentTime);
@@ -43,7 +44,7 @@ Logger::GetLogFile ()
                 }
 
             fprintf (mFile, "===========================================\n");
-            fprintf (mFile, "%d\n", (int) time (NULL));
+            fprintf (mFile, "%d\n", (int) sceKernelLibcTime (NULL));
             fprintf (mFile, "Rainbomizer VCS (PPSSPP) Build: %s \n", RAINBOMIZER_BUILD);
             fprintf (mFile, "===========================================\n");
         }
@@ -56,7 +57,7 @@ void
 Logger::LogMessage (const char *format, ...)
 {
     FILE *file = GetLogFile ();
-    fprintf (file, "[%d]: ", int (time (NULL)));
+    fprintf (file, "[%d]: ", int (sceKernelLibcTime (NULL)));
 
     va_list args;
     va_start (args, format);

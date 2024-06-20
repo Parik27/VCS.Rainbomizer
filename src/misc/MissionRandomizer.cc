@@ -1,9 +1,10 @@
 #include <array>
 
-#include "ContainerUtils.hh"
 #include <core/Randomizer.hh>
 #include <core/Config.hh>
-#include <Utils.hh>
+
+#include <utils/ContainerUtils.hh>
+#include <utils/Utils.hh>
 
 class MissionRandomizer : public Randomizer<MissionRandomizer>
 {
@@ -14,8 +15,9 @@ class MissionRandomizer : public Randomizer<MissionRandomizer>
            85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98};
 
     template <auto &CRunningScript__CollectParams>
-    static uint32_t RandomizeMission (class CRunningScript * scr, int *data,
-                                      int numParams, int *params)
+    static uint32_t
+    RandomizeMission (class CRunningScript *scr, int *data, int numParams,
+                      int *params)
     {
         uint32_t ret
             = CRunningScript__CollectParams (scr, data, numParams, params);
@@ -26,14 +28,14 @@ class MissionRandomizer : public Randomizer<MissionRandomizer>
         return ret;
     }
 
-  public:
-  MissionRandomizer ()
-  {
-      RB_C_DO_CONFIG_NO_OPTIONS ("MissionRandomizer");
+public:
+    MissionRandomizer ()
+    {
+        RB_C_DO_CONFIG_NO_OPTIONS ("MissionRandomizer");
 
-      HOOK (Jal, (0x08abc41c), RandomizeMission,
-            uint32_t (class CRunningScript*, int *data, int numParams,
-                      int *params));
-  }
+        HOOK (Jal, (0x08abc41c), RandomizeMission,
+              uint32_t (class CRunningScript *, int *data, int numParams,
+                        int *params));
+    }
 
 } g_missionRandomizer;

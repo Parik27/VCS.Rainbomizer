@@ -1,16 +1,19 @@
-#include "CVehicle.hh"
+#include <cstdint>
+
+#include <memory/Memory.hh>
+#include <hooks/Hooks.hh>
+
 #include "core/Logger.hh"
 #include "core/Randomizer.hh"
 #include "core/Config.hh"
 
-#include "Hooks.hh"
 #include "weapon/Common.hh"
 
-#include "CWeaponInfo.hh"
-#include "CPlayer.hh"
-#include "CPed.hh"
-#include <bit>
-#include <cstdint>
+ #include <vcs/CVehicle.hh>
+#include <vcs/CWeaponInfo.hh>
+#include <vcs/CPlayer.hh>
+#include <vcs/CPed.hh>
+
 
 class WeaponRandomizer : public Randomizer<WeaponRandomizer>
 {
@@ -27,7 +30,7 @@ class WeaponRandomizer : public Randomizer<WeaponRandomizer>
         if (ForcedWeapon != -1)
             newWeapon = ForcedWeapon;
 
-        //newWeapon = WEAPON_CHAINSAW;
+        newWeapon = WEAPON_ROCKETLAUNCHER;
 
         return CPed__GiveWeapon (ped, newWeapon, ammo, p4);
     }
@@ -127,6 +130,8 @@ public:
     {
         RB_C_DO_CONFIG ("WeaponRandomizer", ForcedWeapon)
 
+        MemoryManager::Get ();
+
         HOOK (Jmp, (0x0891b7dc), RandomizeWeapon,
               int (class CPed *, int, int, bool));
 
@@ -135,28 +140,24 @@ public:
 
         // Projectile throwing fixes
         // ===========================================
-        injector.MakeNOP (0x08911e6c);
-        injector.MakeNOP (0x08949b50);
-        injector.MakeNOP (0x0894b934);
-        injector.MakeNOP (0x089511a4);
+        GameAddress<0x08911e6c>::Nop ();
+        GameAddress<0x08949b50>::Nop ();
+        GameAddress<0x0894b934>::Nop ();
+        GameAddress<0x089511a4>::Nop ();
 
         HOOK (Jmp, (0x08a456cc), FixProjectileThrowingThird,
-              int (CWeapon* weaon, CPed* shooter, CVector* src));
-        static constexpr const float thing = 0.1;
-        static constexpr const uint32_t thing_ieee = std::bit_cast<uint32_t>(thing);
-        static constexpr const uint32_t lower_bytes = (thing_ieee >> 16) & 0xFFFF;
-        static constexpr const uint32_t higher_bytes = thing_ieee & 0xFFFF;
+              int (CWeapon * weaon, CPed * shooter, CVector * src));
 
-        injector.WriteMemory32 (0x8a45d50, lui(a0, lower_bytes));
-        injector.WriteMemory32 (0x8a45d54, ori(a0, a0, higher_bytes));
+        // patch to increase their throwing power
+        GameAddress<0x8a45d50>::LuiOri (a0, 0.1);
 
         // Custom drive-by
         // ==============================================
-        injector.WriteMemory32 (0x8a52270, li(a0, 5));
-        injector.WriteMemory32 (0x08a43d98, li(a0, 5));
-        injector.WriteMemory32 (0x08a52764, li(a0, 5));
+        GameAddress<0x08a52270>::Write (li (a0, 5));
+        GameAddress<0x08a43d98>::Write (li (a0, 5));
+        GameAddress<0x08a52764>::Write (li (a0, 5));
 
         HOOK (Jal, (0x08a411b4), FireProjectilesDuringDriveby,
-              void (CWeapon*, class CVehicle*, bool, bool));
+              void (CWeapon *, class CVehicle *, bool, bool));
     }
 } g_WeaponRandomizer;

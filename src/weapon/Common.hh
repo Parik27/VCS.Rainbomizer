@@ -1,10 +1,12 @@
 #pragma once
 
-#include "CWeaponInfo.hh"
-#include "ContainerUtils.hh"
-#include "Random.hh"
+#include <vcs/CWeaponInfo.hh>
+
 #include <array>
-#include <Utils.hh>
+
+#include <utils/Utils.hh>
+#include <utils/ContainerUtils.hh>
+#include <utils/Random.hh>
 
 class WeaponsCommon
 {

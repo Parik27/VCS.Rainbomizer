@@ -1,9 +1,11 @@
 #pragma once
 
 #include "CMatrix.hh"
+#include "memory/Memory.hh"
 #include <cstddef>
-#include <CVector.hh>
-#include <CWeaponInfo.hh>
+
+#include "CVector.hh"
+#include "CWeaponInfo.hh"
 
 #define ATOFFSET(offset, type, name) struct { char _##name[offset]; type name; };
 #define ATOFFSETARR(offset, type, name, size) struct { char _##name[offset]; type name[size]; };
@@ -23,8 +25,8 @@ public:
     int
     GiveWeapon (int weaponType, unsigned int ammo)
     {
-        return ((int (*) (CPed *, int, unsigned int)) (
-            0x891b7dc)) (this, weaponType, ammo);
+        return GameFunction<0x891b7dc, int (CPed *, int, unsigned int)>::Call (
+            this, weaponType, ammo);
     }
 };
 

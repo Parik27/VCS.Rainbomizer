@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CVector.hh"
+
 #include <cstddef>
 #include <cstdint>
 

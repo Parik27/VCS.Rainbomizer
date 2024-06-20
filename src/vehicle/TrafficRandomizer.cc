@@ -1,14 +1,8 @@
-
-#include "Hooks.hh"
-#include "core/Logger.hh"
+#include <hooks/Hooks.hh>
 #include "core/Randomizer.hh"
-#include "log.h"
-#include <CStreaming.hh>
-#include <cstdio>
-#include <cstdlib>
-#include <iterator>
-#include <set>
-#include <string>
+
+#include <vcs/CStreaming.hh>
+
 
 class TrafficRandomizer : public Randomizer<TrafficRandomizer>
 {
@@ -27,7 +21,6 @@ public:
 
     TrafficRandomizer ()
     {
-        for (int addr : {0x8b47b94, 0x8b47478, 0x8b4729c, 0x08acbccc})
-            HOOK (Jal, (addr), RandomizeTrafficVehicle, int ());
+        HOOK (Jmp, (0x08b4275c), RandomizeTrafficVehicle, int ());
     }
 } g_TrafficRando;

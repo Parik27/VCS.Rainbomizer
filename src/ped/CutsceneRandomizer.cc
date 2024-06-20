@@ -1,9 +1,10 @@
-#include "core/Randomizer.hh"
 #include <cstdio>
 #include <vector>
 #include <string>
-#include <Utils.hh>
 
+#include <utils/Utils.hh>
+
+#include "core/Randomizer.hh"
 #include "core/Common.hh"
 #include "core/Config.hh"
 #include "core/Logger.hh"

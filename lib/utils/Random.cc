@@ -1,13 +1,15 @@
 #include "Random.hh"
+#include "psputils.h"
 
 #include <random>
 #include <ctime>
+#include <pspsdk.h>
 
 /*******************************************************/
 std::mt19937 &
 RandEngine ()
 {
-    static std::mt19937 engine{(unsigned int) time (NULL)};
+    static std::mt19937 engine{(unsigned int) sceKernelLibcTime (NULL)};
 
     return engine;
 }

@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.14)
 project(VCS.Rainbomizer)
 
 add_subdirectory(psp)
+add_subdirectory(kernel)
 
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
   src/*.cc

@@ -1,10 +1,12 @@
 #pragma once
 
 #include <array>
-#include "CVehicle.hh"
-#include "ContainerUtils.hh"
-#include "Random.hh"
-#include <Utils.hh>
+
+#include <vcs/CVehicle.hh>
+
+#include <utils/ContainerUtils.hh>
+#include <utils/Random.hh>
+#include <utils/Utils.hh>
 
 class VehicleCommon
 {

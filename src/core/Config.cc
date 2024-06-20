@@ -10,7 +10,6 @@
 #include "cpptoml/cpptoml.h"
 #endif
 
-#include "Common.hh"
 #include "Logger.hh"
 #include <string>
 

@@ -2,6 +2,7 @@
 
 #include "CPed.hh"
 #include "CVector.hh"
+
 enum eVehicle
 {
     VEHICLE_6ATV     = 170,

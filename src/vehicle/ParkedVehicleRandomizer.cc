@@ -1,16 +1,19 @@
-#include "vehicle/Common.hh"
+#include <hooks/Hooks.hh>
 
-#include "ContainerUtils.hh"
-#include "Hooks.hh"
-#include "core/Logger.hh"
-#include "core/Randomizer.hh"
-#include "CCarGenerator.hh"
-#include "Random.hh"
-#include "core/Config.hh"
-#include "CStreaming.hh"
+#include <core/Logger.hh>
+#include <core/Randomizer.hh>
+#include <core/Config.hh>
+
+#include <vcs/CVehicle.hh>
+#include <vcs/CCarGenerator.hh>
+#include <vcs/CStreaming.hh>
+
+#include "Common.hh"
 
 #include <map>
 
+#include <utils/ContainerUtils.hh>
+#include <utils/Random.hh>
 
 //#define DONT_USE_MAP // decreases randomness, but decreases memory usage.
 
@@ -26,11 +29,7 @@ public:
     void
     RandomizeParkedVehicle (CCarGenerator *gen)
     {
-        static int currentVeh = 170;
         int origModel = gen->m_nModelId;
-
-        if (currentVeh == 242)
-            currentVeh++;
 
         gen->m_nModelId = ForcedVehicle == -1
                               ? VehicleCommon::GetRandomUsableVehicle ()

@@ -1,13 +1,7 @@
 #include "core/Randomizer.hh"
-#include <cstdio>
-#include <vector>
-#include <string>
-#include <Utils.hh>
-#include "Random.hh"
-#include "CStreaming.hh"
-#include "core/Common.hh"
-#include "core/Config.hh"
-#include "core/Logger.hh"
+#include <utils/Utils.hh>
+#include <utils/Random.hh>
+#include <vcs/CStreaming.hh>
 
 class PedRandomizer
 {

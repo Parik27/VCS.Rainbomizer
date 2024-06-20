@@ -1,9 +1,12 @@
-#include "Random.hh"
+#include <string>
+
+#include <memory/Memory.hh>
+#include <utils/Random.hh>
+#include <utils/Utils.hh>
+
 #include "core/Config.hh"
 #include "core/Randomizer.hh"
 #include "core/Logger.hh"
-#include "Utils.hh"
-#include <string>
 
 class PlayerRandomizer : public Randomizer<PlayerRandomizer>
 {
@@ -52,7 +55,6 @@ class PlayerRandomizer : public Randomizer<PlayerRandomizer>
     static void
     RandomizePlayer (class CRunningScript *scr, int *p1, int p2, int *p3)
     {
-        strcpy ((char *) (0x8badca0), "plr2");
         CollectParams (scr, p1, p2, p3);
     }
 
@@ -61,8 +63,6 @@ public:
     {
         RB_C_DO_CONFIG ("PlayerRandomizer", ForcedModel);
 
-        // "02 ? ? ? ? 25 28 00 01 ? ? ? ? 00 00 00 00 ? ? ? ? 25 20 00 00 ? ? ?
-        // ? 00 00 00 00", 1
         HOOK (Jal, (0x08b2a76c), RandomizePed,
               void (class CPed *, const char *));
 

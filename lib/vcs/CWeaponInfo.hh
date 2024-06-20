@@ -1,5 +1,7 @@
 #pragma once
 
+#include "memory/GameAddress.hh"
+
 #include <cstdint>
 
 enum eWeapon
@@ -57,10 +59,9 @@ public:
     static CWeaponInfo *
     GetWeaponInfo (int id)
     {
-        return ((CWeaponInfo * (*) (int, int) ) 0x8b20150) (0, id);
+        return GameFunction<0x8b20150, CWeaponInfo *(int, int)>::Call (0, id);
     }
 };
-
 
 class CWeapon {
 public:
@@ -88,10 +89,11 @@ class CProjectileInfo
 {
 public:
     static int
-    AddProjectile (float speed, class CPed *shooter, int type, class CVector *pos,
-                   bool quadDamage)
+    AddProjectile (float speed, class CPed *shooter, int type,
+                   class CVector *pos, bool quadDamage)
     {
-        return ((int (*) (float, class CPed *, int, CVector *,
-                   bool)) 0x088809f8) (speed, shooter, type, pos, quadDamage);
+        return GameFunction<0x88809f8, int (float, class CPed *, int, CVector *,
+                                            bool)>::Call (speed, shooter, type,
+                                                          pos, quadDamage);
     }
 };
