@@ -12,3 +12,9 @@ CStreaming::LoadAllRequestedModels (bool p1)
 {
     return GameFunction<0x8ad39f0, void (bool)>::Call (p1);
 }
+
+bool
+CStreaming::HadModelLoaded(int id)
+{
+    return GameFunction<0x8ad3a78, bool (int)>::Call (id);
+}
