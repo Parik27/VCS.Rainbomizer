@@ -11,7 +11,7 @@ struct Pattern
     {
         NONE,
         BRANCH,
-        GP_DATA
+        GPOFFSET
     } resolver
         = NONE;
 };

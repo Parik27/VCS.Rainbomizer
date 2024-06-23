@@ -11,7 +11,7 @@
  - BRANCH: the pattern must resolve to an address that is a Jal/J instruction
  and the resolver will return the address of the branch the instruction points
  to.
- - GPADDR: the pattern points to a two byte offset of the required address from
+ - GPOFFSET: the pattern points to a two byte offset of the required address from
  $gp.
  */
 
@@ -55,4 +55,11 @@ inline static constexpr std::array s_Patterns = {
     Pattern{0x08a411b4, "25 30 60 02 ? ? 40 14 01 00 13 34 ? ? 00 10", -4},
     Pattern{0x08b20150, "C0 39 04 00 ? ? 86 93", 0},
     Pattern{0x088809f8, "10 FE BD 27 ? ? B4 E7 ? ? B6 E7 ? ? B8 E7 ? ? BA E7 ? ? BC E7", 0},
+    Pattern{0x08bb0578, "80 50 56 00 e4 86 25 20 e0 02 ? ? ? ? 25 28 00 00 ? ? ? ? ff 00 05 30", -6, Pattern::GPOFFSET},
+    Pattern{0x08947b38, "C0 10 00 00 00 00 ? ? 86 8C ? ? C0 10 00 00 00 00", -2},
+    Pattern{0x088625e8, "F0 FF BD 27 ? ? BF AF ? ? 85 8F ? ? 86 8C"},
+    Pattern{0x08947b90, "AA 3F 04 3C 71 3D 84 34"},
+    Pattern{0x08baaf44, "94 8F ? ? 00 10 00 00 14 34", -2, Pattern::GPOFFSET},
+    Pattern{0x08ad2b44, "D0 FD BD 27 ? ? B4 E7 ? ? B6 E7 ? ? B8 E7 ? ? BA E7 ? ? BC E7 ? ? B0 AF", 0},
+    Pattern{0x08869b00, "25 20 c0 00 25 30 20 02 ? ? c0 10", -4}
 };

@@ -1,5 +1,6 @@
 #include <hooks/Hooks.hh>
 #include "core/Randomizer.hh"
+#include "vcs/CVehicle.hh"
 
 #include <vcs/CStreaming.hh>
 
@@ -11,7 +12,7 @@ public:
     static int
     RandomizeTrafficVehicle ()
     {
-        int model = 270;
+        int model = VEHICLE_ANGEL;
 
         CStreaming::RequestModel (model, 0x3abccc);
         CStreaming::LoadAllRequestedModels (false);

@@ -4,6 +4,7 @@
 #include <pspctrl.h>
 
 #include "core/Logger.hh"
+#include "scm/Command.hh"
 
 #define MODULE_NAME "VCS.PPSSPP.Rainbomizer"
 #define GAME_INTERNAL_NAME "GTA3"

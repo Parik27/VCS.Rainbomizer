@@ -4,6 +4,7 @@
 #include "core/Logger.hh"
 #include "core/Randomizer.hh"
 #include "memory/GameAddress.hh"
+#include "mips.h"
 
 #include <vcs/CCarGenerator.hh>
 #include <vcs/CStreaming.hh>
@@ -83,6 +84,7 @@ public:
             if (model == modelId)
                 {
                     modelId = GetRandomElement (m_Pickups);
+                    modelId = PICKUP_RACEBAD;
                     break;
                 }
 
@@ -145,5 +147,8 @@ public:
         GameAddress<0x089bd2d4>::Nop (); // draw powerup timers
         GameAddress<0x08a0b62c>::Nop (); // ped state check
         GameAddress<0x0894ad94>::Nop ();
+
+        GameAddress<0x08947b38>::Nop ();
+        GameAddress<0x08947b90>::LuiOri(a0, 10.0f);
     }
 } g_pickupsRando;

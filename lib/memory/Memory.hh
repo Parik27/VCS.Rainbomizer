@@ -1,29 +1,32 @@
 #pragma once
 
 #include <cstdint>
-#include <array>
-#include <utility>
 
 #include "GameAddress.hh"
 
 class MemoryManager
 {
-    uint32_t m_gameTextAddress;
-    uint32_t m_gameTextSize;
+    uint32_t m_gameTextAddress = 0;
+    uint32_t m_gameTextSize = 0;
+    uint32_t m_gameGpAddress = 0;
     bool     m_initialised = false;
 
     void Init ();
 
-    std::array<std::pair<uint32_t, uint32_t>, 16> m_jmpHooks;
-    int                                           m_numJmpHooks;
-
 public:
-    MemoryManager () { Init (); }
+    //constexpr MemoryManager () { Init (); }
+
+    uint32_t
+    GetGpAddress ()
+    {
+        return m_gameGpAddress;
+    }
 
     static MemoryManager &
     Get ()
     {
-        static MemoryManager s_memoryMan;
+        static constinit MemoryManager s_memoryMan;
+        s_memoryMan.Init ();
         return s_memoryMan;
     }
 

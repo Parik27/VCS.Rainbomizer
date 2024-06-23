@@ -95,6 +95,14 @@ public:
         injector.WriteMemory32 (Get () + 4, ori (reg, reg, higher_bytes));
     }
 
+    template<typename ... Args>
+    static void
+    WriteInstructions (Args ...instructions)
+    {
+        size_t i = 0;
+        (..., (injector.WriteMemory32 (Get () + i, instructions), i += 4));
+    }
+
     GameAddress () = delete;
 };
 
@@ -104,13 +112,33 @@ template <uint32_t Address, typename Ret, typename... Args>
 class GameFunction<Address, Ret (Args...)>
 {
 public:
-    static Ret
+    inline static Ret
     Call (Args... args)
     {
         return ((Ret (*) (Args...)) (GameAddress<Address>::Get ())) (args...);
     }
 
-    GameFunction () = delete;
+    // This can be made static in C++23 for guaranteed inlining
+    inline Ret operator () (Args ...args) const
+    {
+        return Call (args...);
+    }
+};
+
+template <typename T, uint32_t Address> class GameVariable
+{
+public:
+    static T &
+    Get ()
+    {
+        return GameAddress<Address>::template Read<T> ();
+    }
+
+    operator T & () const { return GameAddress<Address>::template Read<T> (); }
+
+    auto operator -> () const {
+        return Get();
+    }
 };
 
 #define GAMEADDR(x) GameAddress<x>::Get ()
