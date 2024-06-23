@@ -63,7 +63,7 @@ public:
 
     static void RequestModel (int id, int flags = 0x3abccc);
     static void LoadAllRequestedModels (bool p1);
-    static bool HadModelLoaded(int id);
+    static bool HasModelLoaded(int id);
 
     inline constexpr static auto sm_Instance
         = GameVariable<CStreaming *, 0x8bb1ea8>{};

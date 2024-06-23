@@ -17,13 +17,13 @@ public:
         for (int i = 0; i < 21; i++)
         {
             model = VehicleCommon::GetRandomUsableVehicle();
-            if (CStreaming::HadModelLoaded(model))
+            if (CStreaming::HasModelLoaded(model))
                 continue;
 
             return model;
         }
 
-        return 0;
+        return -1;
     }
 
     template <auto &ChooseModel>
@@ -35,13 +35,13 @@ public:
         for (int i = 0; i < 21; i++)
         {
             model = CStreaming::sm_Instance->m_vehiclesLoaded[RandomInt(0, CStreaming::sm_Instance->m_numVehiclesLoaded)];
-            if (!CStreaming::HadModelLoaded(model))
+            if (!CStreaming::HasModelLoaded(model))
                 continue;
 
             return model;
         }
 
-        return 0;
+        return -1;
     }
 
     TrafficRandomizer ()
