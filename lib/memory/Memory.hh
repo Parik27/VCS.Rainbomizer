@@ -3,9 +3,12 @@
 #include <cstdint>
 
 #include "GameAddress.hh"
+#include "memory/MemorySignature.hh"
 
 class MemoryManager
 {
+public:
+
     uint32_t m_gameTextAddress = 0;
     uint32_t m_gameTextSize = 0;
     uint32_t m_gameGpAddress = 0;
@@ -13,7 +16,6 @@ class MemoryManager
 
     void Init ();
 
-public:
     //constexpr MemoryManager () { Init (); }
 
     uint32_t
@@ -47,5 +49,38 @@ public:
     ReadMemory (T addr)
     {
         return *reinterpret_cast<Ret *> (addr);
+    }
+
+    template <uint32_t N>
+    uintptr_t
+    SignatureSearch (const MemorySignature::Signature<N> &sig, size_t start,
+                     size_t size)
+    {
+        for (size_t i = start; i < start + size - N; i++)
+            {
+                bool found = true;
+
+                for (size_t j = 0; j < N; j++)
+                    {
+                        if ((ReadMemory<uint8_t> (i + j) & ~sig.masks[j])
+                            != sig.bytes[j])
+                            {
+                                found = false;
+                                break;
+                            }
+                    }
+
+                if (found)
+                    return i;
+            }
+
+        return 0;
+    }
+
+    template <uint32_t N>
+    inline uintptr_t
+    SignatureSearch (const MemorySignature::Signature<N> &sig)
+    {
+        return SignatureSearch (sig, m_gameTextAddress, m_gameTextSize);
     }
 };

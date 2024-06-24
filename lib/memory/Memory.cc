@@ -1,6 +1,7 @@
 #include "Memory.hh"
 #include "core/Logger.hh"
 #include "memory/GameAddress.hh"
+#include "memory/MemorySignature.hh"
 #include "memory/Pattern.hh"
 #include <cstring>
 #include <injector.h>
@@ -8,16 +9,32 @@
 #include <pspsdk.h>
 #include <string_view>
 
+#include <chrono>
+#include <regex>
+
 #define GAME_INTERNAL_NAME "GTA3"
 
 template <std::size_t NUM = 0>
 inline void
 InitialisePattern (MemoryManager& manager)
 {
+    using namespace MemorySignature;
+
     constexpr const auto &currentPattern = s_Patterns[NUM];
 
-    auto addr
-        = pattern.get_first (currentPattern.pattern_str, currentPattern.offset);
+    auto t1 = std::chrono::high_resolution_clock::now ();
+
+    static constinit const Signature<GetMemorySignatureSize (
+        currentPattern.pattern_str)>
+        sig{currentPattern.pattern_str};
+
+    auto addr = manager.SignatureSearch (sig) + currentPattern.offset;
+
+    auto t2 = std::chrono::high_resolution_clock::now ();
+
+    Rainbomizer::Logger::LogMessage (
+        "[PATTERN] Found address %lu in %lu microseconds", currentPattern.address,
+        std::chrono::duration_cast<std::chrono::microseconds> (t2 - t1).count ());
 
     if constexpr (currentPattern.resolver == Pattern::BRANCH)
         {
@@ -30,7 +47,7 @@ InitialisePattern (MemoryManager& manager)
 
     GameAddress<currentPattern.address>::SetResolvedAddress (addr);
     Rainbomizer::Logger::LogMessage (
-        "[PATTERN] Resolved address %lu to %lu", currentPattern.address,
+        "[PATTERN] Resolved address %x to %x", currentPattern.address,
         GameAddress<currentPattern.address>::Get ());
 
     if constexpr (NUM < std::size (s_Patterns) - 1)
@@ -70,8 +87,6 @@ MemoryManager::Init ()
 
                             injector.SetGameBaseAddress (info.text_addr,
                                                          info.text_size);
-                            pattern.SetGameBaseAddress (info.text_addr,
-                                                        info.text_size);
 
                             InitialisePattern (*this);
                         }
