@@ -72,4 +72,4 @@ public:
         HOOK (Jal, (0x089de070), RandomizePlayer,
               void (class CRunningScript *, int *, int, int *));
     }
-} g_playerRando;
+};

@@ -3,12 +3,12 @@
 #include "memory/Memory.hh"
 template <typename T> class Randomizer
 {
-    inline static T* instance;
+    inline static T  sm_Instance;
 
 public:
     Randomizer ()
     {
-        instance = static_cast<T *> (this);
+        sm_Instance;
 
         // Initialise memory manager
         MemoryManager::Get ().Init ();
@@ -17,6 +17,6 @@ public:
     static T &
     Get ()
     {
-        return *instance;
+        return sm_Instance;
     }
 };

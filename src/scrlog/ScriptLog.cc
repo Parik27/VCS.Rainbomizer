@@ -187,4 +187,4 @@ public:
         HOOK_MEMBER (Jmp, 0x08862890, DumpReturn,
                      void (CRunningScript *, int*, int));
     }
-} g_scrLog;
+};

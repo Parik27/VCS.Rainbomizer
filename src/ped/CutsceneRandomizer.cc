@@ -44,10 +44,11 @@ class CutsceneRandomizer : public Randomizer<CutsceneRandomizer>
             return ForcedModel.c_str ();
 
         for (auto &modelList : m_Models)
-            if (DoesElementExist(modelList, model)) {
-                auto ret = GetRandomElement(modelList).c_str();
-                return ret;
-            }
+            if (DoesElementExist (modelList, model))
+                {
+                    auto ret = GetRandomElementMut (modelList).c_str ();
+                    return ret;
+                }
 
         return model;
     }
@@ -69,4 +70,4 @@ public:
         HOOK_MEMBER (Jal, (0x8b3d0a0), RandomizeCutsceneObject,
                      const char *(char *, char *) );
     }
-} g_cutsRando;
+};

@@ -5,7 +5,6 @@
 #include "memory/Pattern.hh"
 #include <cstring>
 #include <injector.h>
-#include <patterns.h>
 #include <pspsdk.h>
 #include <string_view>
 #include <utility>

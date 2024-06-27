@@ -1740,4 +1740,4 @@ public:
         HOOK (Jal, (0x08a8d730), RandomizeVoiceLine,
               void (void *, uint8_t, const char *, uint32_t, const char *));
     }
-} g_vorando;
+};

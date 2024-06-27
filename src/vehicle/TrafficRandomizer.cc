@@ -38,4 +38,4 @@ public:
         HOOK (Jmp, (0x08b4275c), RandomizeTrafficVehicle, int (class CZoneInfo*, int*));
         HOOK (Jmp, (0x08b42198), ChooseModelToLoad, int ());
     }
-} g_TrafficRandomizer;
+};

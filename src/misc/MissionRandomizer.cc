@@ -59,4 +59,4 @@ public:
         GameAddress<0x8ad2b44>::WriteInstructions (li (v0, 0), jr (ra));
     }
 
-}; //g_missionRandomizer;
+};

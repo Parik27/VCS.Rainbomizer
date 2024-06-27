@@ -7,6 +7,7 @@
 #include "core/Randomizer.hh"
 #include "core/Config.hh"
 
+#include "memory/GameAddress.hh"
 #include "weapon/Common.hh"
 
  #include <vcs/CVehicle.hh>
@@ -18,12 +19,13 @@
 class WeaponRandomizer : public Randomizer<WeaponRandomizer>
 {
     inline static int ForcedWeapon = -1;
+    inline static bool DisableWeaponRandomizer = false;
 
     template <auto &CPed__GiveWeapon>
     static int
     RandomizeWeapon (CPed *ped, int weaponType, int ammo, int p4)
     {
-        if (weaponType == 0)
+        if (weaponType == 0 || DisableWeaponRandomizer)
             return CPed__GiveWeapon (ped, weaponType, ammo, p4);
 
         int newWeapon = WeaponsCommon::GetRandomUsableWeapon ();
@@ -83,7 +85,7 @@ class WeaponRandomizer : public Randomizer<WeaponRandomizer>
             if (ped->Weapons[i].Type && ped->Weapons[i].Ammo)
                 usedSlots[numSlots++] = i;
 
-        if (!numSlots)
+        if (!numSlots || (FindPlayerPed () == ped))
             return CPed__SetActiveWeaponSlot (ped, slot);
 
         CPed__SetActiveWeaponSlot (ped, usedSlots[RandomInt (numSlots - 1)]);
@@ -123,6 +125,15 @@ class WeaponRandomizer : public Randomizer<WeaponRandomizer>
         CWeapon__FireInstantHitFromCar (weapon, veh, left, right);
     }
 
+ template<auto& CPickups__Update>
+ static void
+ SkipWeaponRandomizationForPickups ()
+    {
+        DisableWeaponRandomizer = true;
+        CPickups__Update ();
+        DisableWeaponRandomizer = false;
+    }
+ 
 public:
     WeaponRandomizer ()
     {
@@ -152,8 +163,11 @@ public:
         GameAddress<0x08a52270>::Write (li (a0, 5));
         GameAddress<0x08a43d98>::Write (li (a0, 5));
         GameAddress<0x08a52764>::Write (li (a0, 5));
+        GameAddress<0x089b3a20>::Nop ();
 
         HOOK (Jal, (0x08a411b4), FireProjectilesDuringDriveby,
               void (CWeapon *, class CVehicle *, bool, bool));
+
+        HOOK (Jal, 0x08ac53f8, SkipWeaponRandomizationForPickups, void ());
     }
-} g_WeaponRandomizer;
+};

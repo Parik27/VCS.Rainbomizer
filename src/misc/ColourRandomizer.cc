@@ -125,4 +125,4 @@ GetTimeNow ()
 
     //HOOK (Jmp, (0x089f6724), RandomizeText, char* (void*, char*));
   }
-} g_color;
+};

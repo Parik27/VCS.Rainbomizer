@@ -1,6 +1,5 @@
 #pragma once
 
-#include "patterns.h"
 #include <cstdint>
 
 #include <core/Common.hh>

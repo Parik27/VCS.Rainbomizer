@@ -150,4 +150,4 @@ public:
         GameAddress<0x08947b38>::Nop ();
         GameAddress<0x08947b90>::LuiOri(a0, 10.0f);
     }
-} g_pickupsRando;
+};

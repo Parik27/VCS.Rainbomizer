@@ -90,4 +90,4 @@ public:
 
         ThreadUtils::Initialise ();
     }
-} g_scriptVehicleRandomizer;
+};

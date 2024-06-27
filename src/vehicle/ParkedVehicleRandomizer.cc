@@ -62,4 +62,4 @@ public:
         RB_C_DO_CONFIG ("ParkedVehicleRandomizer", ForcedVehicle);
         HOOK_MEMBER (Jal, (0x8aed784), RandomizeParkedVehicle, void(CCarGenerator *));
     }
-} g_parkedRando;
+};
