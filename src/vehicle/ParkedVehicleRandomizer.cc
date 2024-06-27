@@ -31,9 +31,12 @@ public:
     {
         int origModel = gen->m_nModelId;
 
-        gen->m_nModelId = ForcedVehicle == -1
-                              ? VehicleCommon::GetRandomUsableVehicle ()
-                              : ForcedVehicle;
+        if (CStreaming::sm_Instance->m_numVehiclesLoaded < 15)
+            gen->m_nModelId = ForcedVehicle == -1
+                                  ? VehicleCommon::GetRandomUsableVehicle ()
+                                  : ForcedVehicle;
+        else
+            gen->m_nModelId = VehicleCommon::GetRandomUsableLoadedVehicle ();
 
 #ifndef DONT_USE_MAP
         if (int *id = LookupMap (m_LoadingCarGens, gen))

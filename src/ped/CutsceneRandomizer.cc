@@ -21,26 +21,20 @@ class CutsceneRandomizer : public Randomizer<CutsceneRandomizer>
     {
         m_Models.push_back (std::vector<std::string> ());
 
-        FILE *modelsFile = Rainbomizer::Common::GetRainbomizerDataFile (
+        auto modelsFile = Rainbomizer::Common::GetRainbomizerDataFile (
             "CutsceneModels.txt");
 
-        if (!modelsFile)
-            return;
+        modelsFile.ReadLines ([this] (const char *line) {
+            if (strlen (line) < 2)
+                {
+                    Rainbomizer::Logger::LogMessage ("New group");
+                    m_Models.push_back ({});
+                    return;
+                }
 
-        char line[256] = {};
-        while (fgets (line, 256, modelsFile))
-            {
-                if (strlen(line) < 2)
-                    {
-                        Rainbomizer::Logger::LogMessage("New group");
-                        m_Models.push_back ({});
-                        continue;
-                    }
-
-                line[strcspn (line, "\n")] = 0;
-                Rainbomizer::Logger::LogMessage("Pushing: %s", line);
-                m_Models.back ().push_back (line);
-            }
+            Rainbomizer::Logger::LogMessage ("Pushing: %s", line);
+            m_Models.back ().push_back (line);
+        });
     }
 
     const char *

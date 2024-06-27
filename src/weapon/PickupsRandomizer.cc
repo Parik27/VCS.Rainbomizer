@@ -84,7 +84,6 @@ public:
             if (model == modelId)
                 {
                     modelId = GetRandomElement (m_Pickups);
-                    modelId = PICKUP_RACEBAD;
                     break;
                 }
 

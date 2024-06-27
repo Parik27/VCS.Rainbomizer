@@ -2,7 +2,7 @@
 
 // define this if you want to get logs if a pattern is used before
 // initialisation
-#define DEBUG_GAME_ADDRESSES
+//#define DEBUG_GAME_ADDRESSES
 
 #ifdef DEBUG_GAME_ADDRESSES
 #include <utility>

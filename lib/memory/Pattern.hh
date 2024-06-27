@@ -12,7 +12,10 @@ struct Pattern
     {
         NONE,
         BRANCH,
-        GPOFFSET
+        GPOFFSET,
+        UPPER_AND_ADD
     } resolver
-        = NONE;
+    = NONE;
+
+    int8_t offset2 = 0;
 };

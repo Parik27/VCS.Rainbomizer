@@ -1,52 +1,41 @@
 #include <hooks/Hooks.hh>
+#include "core/Logger.hh"
 #include "core/Randomizer.hh"
-#include "vcs/CVehicle.hh"
+#include "utils/Random.hh"
 #include "Common.hh"
+#include "vcs/CModelInfo.hh"
 
+#include <ranges>
 #include <vcs/CStreaming.hh>
-
 
 class TrafficRandomizer : public Randomizer<TrafficRandomizer>
 {
 public:
-    template <auto &ChooseCarModelToLoad>
+    template <auto &CCarCtrl__ChooseCarModelToLoad>
     static int
     ChooseModelToLoad ()
     {
-        int model = 0;
-        for (int i = 0; i < 21; i++)
-        {
-            model = VehicleCommon::GetRandomUsableVehicle();
-            if (CStreaming::HasModelLoaded(model))
-                continue;
-
-            return model;
-        }
-
-        return -1;
+        return VehicleCommon::GetRandomUsableVehicle();
     }
 
-    template <auto &ChooseModel>
+    template <auto &CCarCtrl__ChooseModel>
     static int
-    RandomizeTrafficVehicle ()
+    RandomizeTrafficVehicle (class CZoneInfo* zone, int* pClass)
     {
-        int model = 0;
+        int model = CCarCtrl__ChooseModel (zone, pClass);
 
-        for (int i = 0; i < 21; i++)
-        {
-            model = CStreaming::sm_Instance->m_vehiclesLoaded[RandomInt(0, CStreaming::sm_Instance->m_numVehiclesLoaded)];
-            if (!CStreaming::HasModelLoaded(model))
-                continue;
+        model = GetRandomElement (
+            VehicleCommon::LoadedUsableVehicles ()
+            | std::views::filter (
+                VehicleCommon::IsVehicleOfType<VEHICLE_TYPE_AUTOMOBILE,
+                                               VEHICLE_TYPE_BIKE>));
 
-            return model;
-        }
-
-        return -1;
+        return model;
     }
 
     TrafficRandomizer ()
     {
-        HOOK (Jmp, (0x08b4275c), RandomizeTrafficVehicle, int ());
-        HOOK (Jmp, (0x8b42198), ChooseModelToLoad, int ());
+        HOOK (Jmp, (0x08b4275c), RandomizeTrafficVehicle, int (class CZoneInfo*, int*));
+        HOOK (Jmp, (0x08b42198), ChooseModelToLoad, int ());
     }
-} g_TrafficRando;
+} g_TrafficRandomizer;

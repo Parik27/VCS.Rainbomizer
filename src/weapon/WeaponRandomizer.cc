@@ -30,8 +30,6 @@ class WeaponRandomizer : public Randomizer<WeaponRandomizer>
         if (ForcedWeapon != -1)
             newWeapon = ForcedWeapon;
 
-        newWeapon = WEAPON_ROCKETLAUNCHER;
-
         return CPed__GiveWeapon (ped, newWeapon, ammo, p4);
     }
 
@@ -129,8 +127,6 @@ public:
     WeaponRandomizer ()
     {
         RB_C_DO_CONFIG ("WeaponRandomizer", ForcedWeapon)
-
-        MemoryManager::Get ();
 
         HOOK (Jmp, (0x0891b7dc), RandomizeWeapon,
               int (class CPed *, int, int, bool));

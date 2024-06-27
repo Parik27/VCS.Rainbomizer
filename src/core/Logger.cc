@@ -37,7 +37,8 @@ Logger::GetLogFile ()
     if (!mFile)
         {
             mFile = Common::GetRainbomizerFile (GetTimeNow () + ".txt", "a+",
-                                                "logs/", true);
+                                                "logs/", true)
+                        .Release ();
             if (!mFile)
                 {
                     mFile = stdout;
@@ -57,7 +58,7 @@ void
 Logger::LogMessage (const char *format, ...)
 {
     FILE *file = GetLogFile ();
-    fprintf (file, "[%d]: ", int (sceKernelLibcTime (NULL)));
+    fprintf (file, "[%d | MEM = %u]: ", int (sceKernelLibcTime (NULL)), pspSdkTotalFreeUserMemSize ());
 
     va_list args;
     va_start (args, format);

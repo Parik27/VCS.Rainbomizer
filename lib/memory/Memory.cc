@@ -8,9 +8,7 @@
 #include <patterns.h>
 #include <pspsdk.h>
 #include <string_view>
-
-#include <chrono>
-#include <regex>
+#include <utility>
 
 #define GAME_INTERNAL_NAME "GTA3"
 
@@ -22,19 +20,11 @@ InitialisePattern (MemoryManager& manager)
 
     constexpr const auto &currentPattern = s_Patterns[NUM];
 
-    auto t1 = std::chrono::high_resolution_clock::now ();
-
     static constinit const Signature<GetMemorySignatureSize (
         currentPattern.pattern_str)>
         sig{currentPattern.pattern_str};
 
     auto addr = manager.SignatureSearch (sig) + currentPattern.offset;
-
-    auto t2 = std::chrono::high_resolution_clock::now ();
-
-    Rainbomizer::Logger::LogMessage (
-        "[PATTERN] Found address %lu in %lu microseconds", currentPattern.address,
-        std::chrono::duration_cast<std::chrono::microseconds> (t2 - t1).count ());
 
     if constexpr (currentPattern.resolver == Pattern::BRANCH)
         {
@@ -43,6 +33,12 @@ InitialisePattern (MemoryManager& manager)
     if constexpr (currentPattern.resolver == Pattern::GPOFFSET)
         {
             addr = manager.GetGpAddress () + manager.ReadMemory<int16_t> (addr);
+        }
+    if constexpr (currentPattern.resolver == Pattern::UPPER_AND_ADD)
+        {
+            addr
+                = (manager.ReadMemory<uint16_t> (addr) << 16)
+                  + manager.ReadMemory<int16_t> (addr + currentPattern.offset2);
         }
 
     GameAddress<currentPattern.address>::SetResolvedAddress (addr);

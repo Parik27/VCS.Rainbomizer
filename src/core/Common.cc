@@ -20,27 +20,27 @@ Common::GetRainbomizerFileName (const std::string &name,
 }
 
 /*******************************************************/
-FILE *
+FileWrapper
 Common::GetRainbomizerFile (const std::string &name, const std::string &mode,
                             const std::string &subdirs, bool tempFallback)
 {
     FILE *file = fopen (GetRainbomizerFileName (name, subdirs).c_str (),
                         mode.c_str ());
 
-    return file;
+    return std::move(FileWrapper{file});
 }
 
 /*******************************************************/
-FILE *
+FileWrapper
 Common::GetRainbomizerDataFile (const std::string &name,
                                 const std::string &mode)
 {
-    FILE *f = GetRainbomizerFile (name, mode, "data/");
+    FILE *f = GetRainbomizerFile (name, mode, "data/").Release ();
 
     if (!f)
         Logger::LogMessage ("Failed to read Rainbomizer data file: data/%s: %s",
                             name.c_str (), std::strerror (errno));
 
-    return f;
+    return std::move(FileWrapper{f});
 }
 } // namespace Rainbomizer

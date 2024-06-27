@@ -27,17 +27,17 @@ RandomIntExcept (int min, int max)
 }
 
 template <typename T>
-auto &
-GetRandomElement (const T &container)
+inline auto
+GetRandomElement (T &&container)
 {
-    auto it = std::begin (container);
-    std::advance (it, RandomSize (std::size (container) - 1));
+    auto it = std::ranges::begin (container);
+    std::ranges::advance (it, RandomSize (std::ranges::distance (container) - 1));
 
     return *it;
 }
 
 template <typename T>
-auto &
+inline auto &
 GetRandomElementMut (T &container)
 {
     auto it = std::begin (container);

@@ -26,7 +26,25 @@ class CSimpleModelInfo : public CBaseModelInfo
 
 class CClumpModelInfo : public CSimpleModelInfo
 {
+    void *m_clump;
+    union
+    {
+        uint32_t m_animFileIndex;
+        char    *m_animFileName;
+    };
+};
 
+enum eVehicleType : uint32_t
+{
+    VEHICLE_TYPE_AUTOMOBILE = 0,
+    VEHICLE_TYPE_BOAT       = 1,
+    VEHICLE_TYPE_JETSKI     = 2,
+    VEHICLE_TYPE_TRAIN      = 3,
+    VEHICLE_TYPE_HELI       = 4,
+    VEHICLE_TYPE_PLANE      = 5,
+    VEHICLE_TYPE_BIKE       = 6,
+    VEHICLE_TYPE_BMX        = 8,
+    VEHICLE_TYPE_QUAD       = 9
 };
 
 class CVehicleModelInfo : public CClumpModelInfo
@@ -34,6 +52,22 @@ class CVehicleModelInfo : public CClumpModelInfo
 public:
     static constexpr auto GetMaximumNumberOfPassengersFromNumberOfDoors
         = GameFunction<0x8aa2670, int (int)>{};
+
+    char         field1_0x30[8];
+    void        *field2_0x38;
+    void        *field3_0x3c;
+    void        *field4_0x40;
+    void        *field5_0x44;
+    void        *field6_0x48;
+    void        *field7_0x4c;
+    float        field8_0x50;
+    eVehicleType m_vehicleType;
+    float        m_wheelScale;
+    float        m_wheelScaleRear;
+    uint8_t      field12_0x60;
+    uint8_t      field13_0x61;
+    uint8_t      field14_0x62;
+    uint8_t      field15_0x63;
 };
 
 class ModelInfo
@@ -41,4 +75,11 @@ class ModelInfo
 public:
     static constexpr auto ms_modelInfoPtrs
         = GameVariable<CBaseModelInfo **, 0x08bb2158>{};
+
+    template <typename T>
+    static T *
+    GetModelInfo (uint32_t Id)
+    {
+        return static_cast<T *> (ms_modelInfoPtrs[Id]);
+    }
 };

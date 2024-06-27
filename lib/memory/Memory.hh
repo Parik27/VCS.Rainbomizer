@@ -16,8 +16,6 @@ public:
 
     void Init ();
 
-    //constexpr MemoryManager () { Init (); }
-
     uint32_t
     GetGpAddress ()
     {
@@ -28,7 +26,6 @@ public:
     Get ()
     {
         static constinit MemoryManager s_memoryMan;
-        s_memoryMan.Init ();
         return s_memoryMan;
     }
 
