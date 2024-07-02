@@ -43,6 +43,36 @@ public:
         return model;
     }
 
+    template <auto &CCarCtrl__ChoosePoliceCarModel>
+    static int
+    RandomizePoliceTraffic ()
+    {
+        int model = CCarCtrl__ChoosePoliceCarModel ();
+
+        model = GetRandomElement (VehicleCommon::LoadedUsableVehicles ());
+
+        if (ForcedVehicle != -1)
+            {
+                if (VehicleCommon::AttemptToLoadVehicle (ForcedVehicle))
+                    {
+                        return ForcedVehicle;
+                    }
+            }
+
+        return model;
+    }
+
+    template <auto &CCarAI__AddPoliceCarOccupants>
+    static void 
+    FixEmptyPoliceCars(CVehicle* vehicle)
+    {       
+        auto origModel = vehicle->m_nModelIndex;
+        vehicle->m_nModelIndex = VEHICLE_POLICEM;
+
+        CCarAI__AddPoliceCarOccupants(vehicle);
+        vehicle->m_nModelIndex = origModel;
+    }
+
     template <auto &CAutomobile__CAutomobile>
     static CVehicle *
     AddMisingVehicleConstructors (CVehicle *vehicle, int modelId,
@@ -77,8 +107,13 @@ public:
 
         HOOK (Jmp, (0x08b4275c), RandomizeTrafficVehicle,
               int (class CZoneInfo *, int *));
+        HOOK (Jmp, (0x8b45350), RandomizePoliceTraffic, int());
         HOOK (Jmp, (0x08b42198), ChooseModelToLoad, int ());
         HOOK (Jal, (0x08b48060), AddMisingVehicleConstructors,
               CVehicle * (CVehicle *, int, uint8_t, uint32_t));
+        HOOK (Jmp, (0x8b0e2f0), FixEmptyPoliceCars, 
+            void (CVehicle*));
+
+            
     }
 };

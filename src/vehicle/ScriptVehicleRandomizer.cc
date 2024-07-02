@@ -94,6 +94,9 @@ public:
         // We don't want pop boot to crash the game in case car has no boot
         GameAddress<0x08832e04>::WriteInstructions (jr (ra));
 
+        // Unlock scripted police vehicles
+        GameAddress<0x8835298>::Write (li (a0, 1));
+
         ThreadUtils::Initialise ();
     }
 };
