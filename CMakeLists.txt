@@ -18,7 +18,7 @@ add_custom_command(
         COMMAND psp-prxgen ${PROJECT_NAME} ${PROJECT_NAME}.prx
 )
 
-set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 20)
+set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 23)
 
 # explanation for compile flags:
 # -mno-gpopt: we have two different gp values in game functions

@@ -4,18 +4,13 @@
 #include "Config.hh"
 #include <limits>
 
-#define NO_CPPTOML
-
 #ifndef NO_CPPTOML
 #include "cpptoml/cpptoml.h"
+#include <core/Common.hh>
 #endif
 
 #include "Logger.hh"
 #include <string>
-
-#ifdef ENABLE_DEBUG_MENU
-#include <debug/config.hh>
-#endif
 
 /*******************************************************/
 ConfigManager::ConfigManager (const std::string &file)

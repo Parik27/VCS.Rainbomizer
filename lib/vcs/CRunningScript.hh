@@ -41,6 +41,12 @@ class CTheScripts
 {
 public:
     static constexpr GameVariable<unsigned char *, 0x8baaf44> ScriptSpace{};
+
+    template<typename T>
+    static T& GetGlobal (size_t index)
+    {
+        return *reinterpret_cast<T*>(&ScriptSpace[index * 4]);
+    }
 };
 
 static_assert (offsetof (CRunningScript, m_bIsMission) == 0x217);
