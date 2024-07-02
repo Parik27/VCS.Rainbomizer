@@ -111,7 +111,7 @@ public:
         HOOK (Jmp, (0x08b42198), ChooseModelToLoad, int ());
         HOOK (Jal, (0x08b48060), AddMisingVehicleConstructors,
               CVehicle * (CVehicle *, int, uint8_t, uint32_t));
-        HOOK (Jmp, (0x8b0e2f0), FixEmptyPoliceCars, 
+        HOOK (Jal, (0x8b49444), FixEmptyPoliceCars, 
             void (CVehicle*));
 
             
