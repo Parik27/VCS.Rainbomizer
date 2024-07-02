@@ -67,7 +67,7 @@ class ScriptVehicleRandomizer : public Randomizer<ScriptVehicleRandomizer>
     static void
     ReloadPatternsCheck (CRunningScript *scr)
     {
-        if (PPSSPPUtils::CheckKeyDown<NKCODE_F5> ())
+        if (PPSSPPUtils::CheckKeyUp<NKCODE_F5> ())
             {
                 CallCommand<PRINT_BIG>("AU_ST2", 1000, 8);
                 Get ().m_Patterns.ReadPatterns ("VehiclePatterns.txt");

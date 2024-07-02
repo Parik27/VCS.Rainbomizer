@@ -10,7 +10,7 @@
 #define GAME_INTERNAL_NAME "GTA3"
 
 PSP_MODULE_INFO (VCS.Rainbomizer, PSP_MODULE_USER, 1, 0);
-PSP_HEAP_SIZE_KB (1000);
+PSP_HEAP_SIZE_KB (2000);
 
 int main(int argc, char** argv)
 {

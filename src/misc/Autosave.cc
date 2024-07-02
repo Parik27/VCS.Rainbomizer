@@ -3,6 +3,7 @@
 #include "ppsspp/KeyCodes.h"
 #include "ppsspp/Keyboard.hh"
 #include "psploadcore.h"
+#include "psputils.h"
 #include "vcs/CPlayer.hh"
 #include "vcs/CRunningScript.hh"
 #include <core/Randomizer.hh>
@@ -14,10 +15,6 @@
 
 #include <pspsdk.h>
 #include <psputility.h>
-
-extern "C" {
-#include <kubridge.h>
-}
 
 class AutoSave : public Randomizer<AutoSave>
 {
@@ -37,6 +34,7 @@ class AutoSave : public Randomizer<AutoSave>
         if (State == AUTOSAVE_AUTOSAVING
             && param->mode == PSP_UTILITY_SAVEDATA_LISTSAVE)
             {
+                State            = AUTOSAVE_WAIT_FOR_MISSION_PASS;
                 param->mode      = PSP_UTILITY_SAVEDATA_AUTOSAVE;
                 param->focus     = PSP_UTILITY_SAVEDATA_FOCUS_LASTEMPTY;
                 param->overwrite = 1;
@@ -98,7 +96,6 @@ class AutoSave : public Randomizer<AutoSave>
     {
         if (State == AUTOSAVE_AUTOSAVING)
             {
-                State = AUTOSAVE_WAIT_FOR_MISSION_PASS;
                 return;
             }
 
@@ -111,8 +108,7 @@ public:
         HOOK_MEMBER (Jal, 0x08ab5a3c, OverrideSave,
                      int (SceUtilitySavedataParam *));
         HOOK_MEMBER (Jal, 0x08869b00, ProcessAutosave, void (CRunningScript *));
-        HOOK_MEMBER (Jal, 0x0882e2a8, DontDoGameSpecificStuffBeforeAutosave, void ());
-
-        kuKernelIcacheInvalidateAll();
+        HOOK_MEMBER (Jal, 0x0882e2a8, DontDoGameSpecificStuffBeforeAutosave,
+                     void ());
     }
 };
