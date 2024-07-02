@@ -7,8 +7,9 @@
 
 class VoiceLineRandomizer : public Randomizer<VoiceLineRandomizer>
 {
-    static constexpr int SUBTITLE_BUFFER_SIZE = 128;
+    static constexpr int SUBTITLE_BUFFER_SIZE = 128+3;
 
+#pragma pack(16)
     struct VoiceLine
     {
         char audioName[8] = {};
@@ -109,7 +110,6 @@ class VoiceLineRandomizer : public Randomizer<VoiceLineRandomizer>
                         buffer[i * 2] = subtitle[i];
                     }
 
-                Rainbomizer::Logger::LogMessage("Unresolved: %s", subtitle);
                 line.resolved = true;
                 memcpy (line.subtitle, buffer, SUBTITLE_BUFFER_SIZE);
             }
@@ -130,12 +130,16 @@ class VoiceLineRandomizer : public Randomizer<VoiceLineRandomizer>
 public:
     VoiceLineRandomizer ()
     {
-        HOOK_MEMBER (Jal, (0x08a8d730), RandomizeVoiceLine,
-                     void (void *, uint8_t, const char *, uint32_t,
-                           const char *));
-
         LoadVoiceLines ();
 
-        HOOK_MEMBER (Jal, (0x89f6b60), InitialiseSubtitles, void(CText*, int));
+        if (m_voiceLines.size ())
+            {
+                HOOK_MEMBER (Jal, (0x08a8d730), RandomizeVoiceLine,
+                             void (void *, uint8_t, const char *, uint32_t,
+                                   const char *));
+
+                HOOK_MEMBER (Jal, (0x89f6b60), InitialiseSubtitles,
+                             void (CText *, int));
+            }
     }
 };

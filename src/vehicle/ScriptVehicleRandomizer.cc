@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <ranges>
 #include <vcs/CRunningScript.hh>
 #include <vcs/CStreaming.hh>
@@ -6,6 +7,7 @@
 
 #include <core/Logger.hh>
 #include <core/Randomizer.hh>
+#include <core/Config.hh>
 
 #include <hooks/Hooks.hh>
 
@@ -14,11 +16,18 @@
 #include "memory/GameAddress.hh"
 #include "ppsspp/KeyCodes.h"
 #include "ppsspp/Keyboard.hh"
+#include "psploadcore.h"
+#include "scm/Command.hh"
+#include "scm/Opcodes.hh"
 #include "vehicle/VehiclePatterns.hh"
+
+#include <pspsdk.h>
+#include <psputility.h>
 
 class ScriptVehicleRandomizer : public Randomizer<ScriptVehicleRandomizer>
 {
     VehiclePatternManager m_Patterns;
+    int ForcedVehicle = -1;
 
     template <auto &CollectParams>
     int
@@ -30,21 +39,9 @@ class ScriptVehicleRandomizer : public Randomizer<ScriptVehicleRandomizer>
         m_Patterns.GetRandomVehicle (eVehicle (params[0]), scr, result);
 
         int originalVehicle = params[0];
-        int newVehicle      = result.vehId;
+        int newVehicle = ForcedVehicle == -1 ? result.vehId : ForcedVehicle;
 
-        Rainbomizer::Logger::LogMessage("Num Vehicles Loaded vehicles: %d", CStreaming::sm_Instance->m_numVehiclesLoaded);
-
-        if (!VehicleCommon::AttemptToLoadVehicle(newVehicle))
-            {
-                Rainbomizer::Logger::LogMessage("Failed to load model: %d", newVehicle);
-                newVehicle = originalVehicle;
-            }
-
-        Rainbomizer::Logger::LogMessage (
-            "Num Vehicles Loaded vehicles: %d",
-            CStreaming::sm_Instance->m_numVehiclesLoaded);
-
-        if (!CStreaming::HasModelLoaded (newVehicle))
+        if (!VehicleCommon::AttemptToLoadVehicle (newVehicle))
             newVehicle = originalVehicle;
 
         params[0] = newVehicle;
@@ -70,8 +67,9 @@ class ScriptVehicleRandomizer : public Randomizer<ScriptVehicleRandomizer>
     static void
     ReloadPatternsCheck (CRunningScript *scr)
     {
-        if (PPSSPPUtils::CheckKeyDown<NKCODE_F4> ())
+        if (PPSSPPUtils::CheckKeyDown<NKCODE_F5> ())
             {
+                CallCommand<PRINT_BIG>("AU_ST2", 1000, 8);
                 Get ().m_Patterns.ReadPatterns ("VehiclePatterns.txt");
             }
 
@@ -81,12 +79,20 @@ class ScriptVehicleRandomizer : public Randomizer<ScriptVehicleRandomizer>
 public:
     ScriptVehicleRandomizer ()
     {
+        RB_C_DO_CONFIG("ScriptVehicleRandomizer", ForcedVehicle);
+
         m_Patterns.ReadPatterns ("VehiclePatterns.txt");
         HOOK_MEMBER (Jal, (0x08aec324), RandomizeVehicle,
                      int (class CRunningScript *, int *, int, int *));
 
         // Remove vehicle checks in several missions (hopefully no side-effects BlessRNG)
         GameAddress<0x8ae4efc>::WriteInstructions (li (a0, 1));
+
+        HOOK (Jal, 0x08869b00, ReloadPatternsCheck,
+              void (class CRunningScript *));
+
+        // We don't want pop boot to crash the game in case car has no boot
+        GameAddress<0x08832e04>::WriteInstructions (jr (ra));
 
         ThreadUtils::Initialise ();
     }
