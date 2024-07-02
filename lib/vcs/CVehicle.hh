@@ -122,5 +122,5 @@ class CVehicle
 {
 public:
     ATOFFSET(0x140, CVector, m_vecSpeed);
-    ATOFFSET(0x5, short, m_nModelIndex);
+    ATOFFSET(0x56, short, m_nModelIndex);
 };
