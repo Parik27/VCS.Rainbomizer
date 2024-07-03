@@ -136,6 +136,12 @@ public:
 
     operator T & () const { return GameAddress<Address>::template Read<T> (); }
 
+    auto
+    operator& () const
+    {
+        return &Get ();
+    }
+
     auto operator -> () const {
         return Get();
     }

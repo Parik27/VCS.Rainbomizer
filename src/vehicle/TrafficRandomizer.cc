@@ -24,13 +24,10 @@ public:
         return VehicleCommon::GetRandomUsableVehicle ();
     }
 
-    template <auto &CCarCtrl__ChooseModel>
     static int
-    RandomizeTrafficVehicle (class CZoneInfo *zone, int *pClass)
+    GetRandomVehicle ()
     {
-        int model = CCarCtrl__ChooseModel (zone, pClass);
-
-        model = GetRandomElement (VehicleCommon::LoadedUsableVehicles ());
+        int model = GetRandomElement (VehicleCommon::LoadedUsableVehicles ());
 
         if (ForcedVehicle != -1)
             {
@@ -41,31 +38,28 @@ public:
             }
 
         return model;
+    }
+
+    template <auto &CCarCtrl__ChooseModel>
+    static int
+    RandomizeTrafficVehicle (class CZoneInfo *zone, int *pClass)
+    {
+        CCarCtrl__ChooseModel (zone, pClass);
+        *pClass = 0x18;
+        return GetRandomVehicle ();
     }
 
     template <auto &CCarCtrl__ChoosePoliceCarModel>
     static int
     RandomizePoliceTraffic ()
     {
-        int model = CCarCtrl__ChoosePoliceCarModel ();
-
-        model = GetRandomElement (VehicleCommon::LoadedUsableVehicles ());
-
-        if (ForcedVehicle != -1)
-            {
-                if (VehicleCommon::AttemptToLoadVehicle (ForcedVehicle))
-                    {
-                        return ForcedVehicle;
-                    }
-            }
-
-        return model;
+        return GetRandomVehicle ();
     }
 
     template <auto &CCarAI__AddPoliceCarOccupants>
     static void 
     FixEmptyPoliceCars(CVehicle* vehicle)
-    {       
+    {
         auto origModel = vehicle->m_nModelIndex;
         vehicle->m_nModelIndex = VEHICLE_POLICEM;
 

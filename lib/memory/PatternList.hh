@@ -76,10 +76,15 @@ inline static constexpr std::array s_Patterns = {
     Pattern{0x08a65fe8, "? ? ? ? 00 00 00 00 ? ? 40 10 00 00 00 00 ? ? ? ? 01 00 84 24"},
     Pattern{0x08bb40d0, "? ? 8d c7 03 6b 0c 46 7a 44 04 3c", 0, Pattern::GPOFFSET},
     Pattern{0x08bb31b6, "01 00 84 24 ? ? ? ? ? ? ? ? 00 00 00 00 00 a0 80 44", -8, Pattern::GPOFFSET},
-    Pattern{0x08ab5a3c, "? ? ? ? ? ? ? 24 25 20 40 00 ? ? 81 04"},
+    //Pattern{0x08ab5a3c, "? ? ? ? ? ? ? 24 25 20 40 00 ? ? 81 04"},
     Pattern{0x0882e2a8, "? ? ? ? 00 00 00 00 ? ? ? ? 00 00 00 00 ? ? 00 10 00 00 00 00 ? ? ? ? 25 20 00 02 ? ? 00 10 00 00 00 00 28 00 04 92"},
     Pattern{0x08b48060, "? ? ? ? 01 00 07 34 25 b0 e0 02"},
     Pattern{0x089edce0, "f0 ff bd 27 ? ? b0 af 25 80 80 00 ff 00 c6 30"},
     Pattern{0x089d9a48, "c0 ff bd 27 ? ? b0 af ? ? b3 af 25 98 a0 00"},
     Pattern{0x08832e04, "80 FF BD 27 ? ? B0 AF 25 80 80 00 B0 03 04 26"},
+    Pattern{0x08835298, "05 00 04 34 ? ? 44 AE"},
+    Pattern{0x08b45350, "f0 ff bd 27 ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? 00 00 00 00 ? ? ? ? f0 08 44 24 ? ? 40 10"},
+    Pattern{0x08b49444, "? ? ? ? 25 20 c0 02 ? ? 00 10 00 00 00 00 ? ? ? ? 25 20 c0 02"},
+    Pattern{0x0886589c, "1c 00 e4 48 1d 00 e5 48"},
+    Pattern{0x08b84ab0, "ff 7f a5 30 ? ? 07 3c c0 30 05 00", 4, Pattern::UPPER_AND_ADD, 0xC}
 };

@@ -8,6 +8,7 @@
 // Internal hook types
 #include "Jal.hh"
 #include "Jmp.hh"
+#include "Opcode.hh"
 
 #define HOOK(type, address, function, ...)                                     \
     {                                                                          \

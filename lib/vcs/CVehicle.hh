@@ -121,6 +121,9 @@ enum eVehicle
 class CVehicle
 {
 public:
-    ATOFFSET(0x140, CVector, m_vecSpeed);
-    ATOFFSET(0x56, short, m_nModelIndex);
+    union
+    {
+        ATOFFSET (0x140, CVector, m_vecSpeed);
+        ATOFFSET (0x56, short, m_nModelIndex);
+    };
 };

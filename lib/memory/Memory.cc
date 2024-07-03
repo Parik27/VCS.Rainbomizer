@@ -35,9 +35,9 @@ InitialisePattern (MemoryManager& manager)
         }
     if constexpr (currentPattern.resolver == Pattern::UPPER_AND_ADD)
         {
-            addr
-                = (manager.ReadMemory<uint16_t> (addr) << 16)
-                  + manager.ReadMemory<int16_t> (addr + currentPattern.offset2);
+            addr = (manager.ReadMemory<uint16_t> (addr) << 16)
+                   + manager.ReadMemory<int16_t> (
+                       addr + (currentPattern.offset2 - currentPattern.offset));
         }
 
     GameAddress<currentPattern.address>::SetResolvedAddress (addr);

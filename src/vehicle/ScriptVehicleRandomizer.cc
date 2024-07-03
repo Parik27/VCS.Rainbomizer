@@ -67,6 +67,9 @@ class ScriptVehicleRandomizer : public Randomizer<ScriptVehicleRandomizer>
     static void
     ReloadPatternsCheck (CRunningScript *scr)
     {
+        if (scr->m_bIsMission)
+            CallCommand<PRINT_WITH_NUMBER_NOW>("NUMBER", CStreaming::sm_Instance->m_numVehiclesLoaded, 100, 1);
+
         if (PPSSPPUtils::CheckKeyUp<NKCODE_F5> ())
             {
                 CallCommand<PRINT_BIG>("AU_ST2", 1000, 8);
@@ -74,6 +77,45 @@ class ScriptVehicleRandomizer : public Randomizer<ScriptVehicleRandomizer>
             }
 
         CRunningScript__Process (scr);
+    }
+
+    template <auto &op_REQUEST_MODEL>
+    static int
+    RequestModelHook (CRunningScript *script)
+    {
+        int      model     = 10;
+        uint32_t currentIp = script->m_pCurrentIP;
+
+        script->CollectParams (&currentIp, 1, &model);
+
+        if (model > 0
+            && ModelInfo::GetModelInfo<CBaseModelInfo> (model)->type == 6)
+            {
+                script->CollectParams (&script->m_pCurrentIP, 1, &model);
+                return 0;
+            }
+
+        return op_REQUEST_MODEL (script);
+    }
+
+    template <auto &op_HAS_MODEL_LOADED>
+    static int
+    HasModelLoadedHook (CRunningScript *script)
+    {
+        int      model;
+        uint32_t currentIp = script->m_pCurrentIP;
+
+        script->CollectParams (&currentIp, 1, &model);
+
+        if (model > 0
+            && ModelInfo::GetModelInfo<CBaseModelInfo> (model)->type == 6)
+            {
+                script->m_bNotFlag = !script->m_bNotFlag;
+                return CTheScripts::ScriptCommands[BUILD_WORLD_GEOMETRY]
+                    .handler (script);
+            }
+
+        return op_HAS_MODEL_LOADED (script);
     }
 
 public:
@@ -85,11 +127,16 @@ public:
         HOOK_MEMBER (Jal, (0x08aec324), RandomizeVehicle,
                      int (class CRunningScript *, int *, int, int *));
 
-        // Remove vehicle checks in several missions (hopefully no side-effects BlessRNG)
-        GameAddress<0x8ae4efc>::WriteInstructions (li (a0, 1));
+        HOOK (Opcode, REQUEST_MODEL, RequestModelHook, int (CRunningScript *));
+        HOOK (Opcode, HAS_MODEL_LOADED, HasModelLoadedHook,
+              int (CRunningScript *));
 
         HOOK (Jal, 0x08869b00, ReloadPatternsCheck,
               void (class CRunningScript *));
+
+        // Remove vehicle checks in several missions (hopefully no side-effects BlessRNG)
+        GameAddress<0x8ae4efc>::WriteInstructions (li (a0, 1));
+
 
         // We don't want pop boot to crash the game in case car has no boot
         GameAddress<0x08832e04>::WriteInstructions (jr (ra));

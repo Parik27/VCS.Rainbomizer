@@ -10,6 +10,8 @@
 #include "vehicle/Common.hh"
 #include <cstdio>
 
+constexpr int STREAMING_THRESHOLD = 17;
+
 bool
 ScriptVehiclePattern::VehicleTypes::GetValue (eVehicleType type) const
 {
@@ -61,7 +63,7 @@ ScriptVehiclePattern::GetRandom (PatternResult &result) const
 {
     auto patternFilter
         = [this] (int id) { return IsValidVehicleForPattern (eVehicle (id)); };
-    bool streamingOverloaded = CStreaming::sm_Instance->m_numVehiclesLoaded > 15;
+    bool streamingOverloaded = CStreaming::sm_Instance->m_numVehiclesLoaded > STREAMING_THRESHOLD;
 
     if (streamingOverloaded)
         {
@@ -152,7 +154,7 @@ VehiclePatternManager::GetRandomVehicle (eVehicle        original,
             patternId++;
         }
 
-    if (CStreaming::sm_Instance->m_numVehiclesLoaded < 15)
+    if (CStreaming::sm_Instance->m_numVehiclesLoaded < STREAMING_THRESHOLD)
         result.vehId = VehicleCommon::GetRandomUsableVehicle ();
     else
         {
