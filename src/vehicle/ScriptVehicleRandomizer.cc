@@ -24,6 +24,8 @@
 #include <pspsdk.h>
 #include <psputility.h>
 
+#include <ranges>
+
 class ScriptVehicleRandomizer : public Randomizer<ScriptVehicleRandomizer>
 {
     VehiclePatternManager m_Patterns;
@@ -61,6 +63,43 @@ class ScriptVehicleRandomizer : public Randomizer<ScriptVehicleRandomizer>
             std::bit_cast<float> (params[3]), originalVehicle, params[0]);
 
         return ret;
+    }
+
+    template <auto &CAutomobile__CAutomobile>
+    static CVehicle* 
+    CreateRandomizedCab (CVehicle *vehicle, int modelId,
+                                  uint8_t createdBy, uint32_t a4)
+    {
+        int originalVehicle = modelId;
+        while ((modelId = VehicleCommon::GetRandomUsableVehicle ()),
+            CVehicleModelInfo::GetMaximumNumberOfPassengersFromNumberOfDoors(modelId) + 1 != 4);
+
+        if (!VehicleCommon::AttemptToLoadVehicle (modelId))
+            modelId = originalVehicle;
+
+        int type = ModelInfo::GetModelInfo<CVehicleModelInfo> (modelId)
+                       ->m_vehicleType;
+
+        static constexpr auto CHeli__CHeli
+            = GameFunction<0x89edce0, CVehicle *(CVehicle *, int, uint8_t)>{};
+        
+        static constexpr auto CBike__CBike
+            = GameFunction<0x8a5ab90, CVehicle *(CVehicle *, int, uint8_t)>{};
+
+        Rainbomizer::Logger::LogMessage ("Cabbie Vehicle ID: %d", modelId);
+
+        switch (type)
+            {
+            case VEHICLE_TYPE_AUTOMOBILE:
+                return CAutomobile__CAutomobile (vehicle, modelId, createdBy,
+                                                 a4);
+            case VEHICLE_TYPE_BIKE:
+                return CBike__CBike (vehicle, modelId, createdBy);
+            case VEHICLE_TYPE_HELI:
+                return CHeli__CHeli (vehicle, modelId, createdBy);
+            };
+
+        return vehicle;
     }
 
     template <auto &CRunningScript__Process>
@@ -133,6 +172,9 @@ public:
 
         HOOK (Jal, 0x08869b00, ReloadPatternsCheck,
               void (class CRunningScript *));
+
+        HOOK (Jal, 0x8968930, CreateRandomizedCab,
+              CVehicle* (CVehicle*, int , uint8_t , uint32_t));
 
         // Remove vehicle checks in several missions (hopefully no side-effects BlessRNG)
         GameAddress<0x8ae4efc>::WriteInstructions (li (a0, 1));
