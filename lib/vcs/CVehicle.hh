@@ -125,5 +125,6 @@ public:
     {
         ATOFFSET (0x140, CVector, m_vecSpeed);
         ATOFFSET (0x56, short, m_nModelIndex);
+        ATOFFSET (0x27C, float, m_fHealth);
     };
 };

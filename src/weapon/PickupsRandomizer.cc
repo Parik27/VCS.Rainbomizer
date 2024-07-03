@@ -10,6 +10,7 @@
 #include <vcs/CStreaming.hh>
 #include <vcs/CVector.hh>
 #include <vcs/CPickups.hh>
+#include <vcs/CPlayer.hh>
 
 #include <array>
 
@@ -133,12 +134,30 @@ public:
                                               playerInFocus, p5, p6);
     }
 
+    template <auto &CPickups__GivePlayerGoodiesWithPickUpMI>
+    static bool
+    FixCollectedPickups (int modelId, int p2)
+    {
+        if (modelId == PICKUP_RACEGOOD)
+        {
+            CVehicle* vehicle = FindPlayerVehicle ();
+            if (vehicle)
+                vehicle->m_fHealth += 1000;
+
+            // Return here to prevent crashing
+            return false;
+        }
+        return CPickups__GivePlayerGoodiesWithPickUpMI(modelId, p2);
+    }
+
     PickupsRandomizer ()
     {
         HOOK (Jmp, (0x088f5a3c), RandomizePickups,
               int (CVector *, int, char, int, int, bool, char));
         HOOK (Jal, (0x088f47bc), PickupPicked,
               bool (class CPickup *, class CPed *, bool, int, int, int));
+        HOOK (Jmp, (0x088f74ec), FixCollectedPickups, 
+              bool (int, int));
 
         // Powerups
         GameAddress<0x08a0b608>::Nop ();
