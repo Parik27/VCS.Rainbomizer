@@ -72,7 +72,8 @@ class ScriptVehicleRandomizer : public Randomizer<ScriptVehicleRandomizer>
     {
         int originalVehicle = modelId;
         while ((modelId = VehicleCommon::GetRandomUsableVehicle ()),
-            CVehicleModelInfo::GetMaximumNumberOfPassengersFromNumberOfDoors(modelId) + 1 != 4);
+            CVehicleModelInfo::GetMaximumNumberOfPassengersFromNumberOfDoors(modelId) + 1 != 4
+            && VehicleCommon::IsVehicleOfType(VEHICLE_TYPE_BOAT));
 
         if (!VehicleCommon::AttemptToLoadVehicle (modelId))
             modelId = originalVehicle;
@@ -82,19 +83,14 @@ class ScriptVehicleRandomizer : public Randomizer<ScriptVehicleRandomizer>
 
         static constexpr auto CHeli__CHeli
             = GameFunction<0x89edce0, CVehicle *(CVehicle *, int, uint8_t)>{};
-        
-        static constexpr auto CBike__CBike
-            = GameFunction<0x8a5ab90, CVehicle *(CVehicle *, int, uint8_t)>{};
 
-        Rainbomizer::Logger::LogMessage ("Cabbie Vehicle ID: %d", modelId);
+        Rainbomizer::Logger::LogMessage ("New cab model: %d", modelId);
 
         switch (type)
             {
             case VEHICLE_TYPE_AUTOMOBILE:
                 return CAutomobile__CAutomobile (vehicle, modelId, createdBy,
                                                  a4);
-            case VEHICLE_TYPE_BIKE:
-                return CBike__CBike (vehicle, modelId, createdBy);
             case VEHICLE_TYPE_HELI:
                 return CHeli__CHeli (vehicle, modelId, createdBy);
             };
