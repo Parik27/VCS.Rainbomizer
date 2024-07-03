@@ -4,6 +4,7 @@
 #include "core/Randomizer.hh"
 #include "core/Config.hh"
 
+#include "memory/GameAddress.hh"
 #include "utils/Random.hh"
 #include "Common.hh"
 #include "vcs/CModelInfo.hh"
@@ -101,13 +102,10 @@ public:
 
         HOOK (Jmp, (0x08b4275c), RandomizeTrafficVehicle,
               int (class CZoneInfo *, int *));
-        HOOK (Jmp, (0x8b45350), RandomizePoliceTraffic, int());
+        HOOK (Jmp, (0x8b45350), RandomizePoliceTraffic, int ());
         HOOK (Jmp, (0x08b42198), ChooseModelToLoad, int ());
         HOOK (Jal, (0x08b48060), AddMisingVehicleConstructors,
               CVehicle * (CVehicle *, int, uint8_t, uint32_t));
-        HOOK (Jal, (0x8b49444), FixEmptyPoliceCars, 
-            void (CVehicle*));
-
-            
+        HOOK (Jal, (0x8b49444), FixEmptyPoliceCars, void (CVehicle *));
     }
 };

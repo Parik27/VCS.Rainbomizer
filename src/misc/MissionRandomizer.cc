@@ -27,6 +27,7 @@ class MissionRandomizer : public Randomizer<MissionRandomizer>
     struct MissionInfo
     {
         int8_t id;
+        char gxtName[8];
         CVector startPos;
         CVector endPos;
     };
@@ -36,6 +37,8 @@ class MissionRandomizer : public Randomizer<MissionRandomizer>
 
     MissionInfo* OriginalMission;
     MissionInfo* RandomMission;
+
+    int Seed;
 
     MissionInfo *
     GetMissionInfoForId (uint8_t id)
@@ -89,9 +92,10 @@ class MissionRandomizer : public Randomizer<MissionRandomizer>
                 return;
 
             MissionInfo info;
-            sscanf (sv.data (), "%hhd %f %f %f %f %f %f", &info.id,
-                    &info.startPos.x, &info.startPos.y, &info.startPos.z,
-                    &info.endPos.x, &info.endPos.y, &info.endPos.z);
+            sscanf (sv.data (), "%hhd %8s %f %f %f %f %f %f", &info.id,
+                    info.gxtName, &info.startPos.x, &info.startPos.y,
+                    &info.startPos.z, &info.endPos.x, &info.endPos.y,
+                    &info.endPos.z);
             Missions.push_back (info);
         });
     }
@@ -113,8 +117,19 @@ class MissionRandomizer : public Randomizer<MissionRandomizer>
     }
 
     void
-    OnMissionPass (CRunningScript* script)
+    OnMissionPass (CRunningScript *script)
     {
+        // Restore original mission gxt name for save files
+        char *gxtName = (char *) (CTheScripts::ScriptSpace
+                                  + script->GetLocalVariable (0));
+
+        if (strncmp (gxtName, RandomMission->gxtName, 8) == 0)
+            {
+                memcpy (gxtName, OriginalMission->gxtName,
+                        strlen (OriginalMission->gxtName) + 1);
+            }
+
+        // Teleport player to the original mission end position
         CallCommand<SET_CHAR_COORDINATES> (Global{782},
                                            OriginalMission->endPos.x,
                                            OriginalMission->endPos.y,
@@ -165,11 +180,11 @@ class MissionRandomizer : public Randomizer<MissionRandomizer>
 public:
     MissionRandomizer ()
     {
-        RB_C_DO_CONFIG ("MissionRandomizer");
+        RB_C_DO_CONFIG ("MissionRandomizer", Seed);
         Missions.reserve (64);
 
         InitialiseMissionsArray ();
-        InitialiseMissionsMap (123);
+        InitialiseMissionsMap (Seed);
 
         HOOK_MEMBER (Jal, (0x08abc41c), RandomizeMission,
               uint32_t (class CRunningScript *, unsigned char *data,

@@ -16,7 +16,7 @@ public:
     int             m_apStack[16]        = {}; /* Created by retype action */
     int             m_aLocalVars[104]    = {}; /* Created by retype action */
     int             m_aTimers[2]         = {};
-    uint32_t        field8_0x1fc         = 0;
+    uint32_t        m_nFrameBase         = 0;
     uint32_t        m_nWakeTime          = 0;
     uint16_t        m_nSP                = 0;
     uint16_t        field11_0x206        = 0;
@@ -34,6 +34,13 @@ public:
     ProcessOneCommand ()
     {
         return GameFunction<0x88625e8, int (CRunningScript*)>::Call (this);
+    }
+
+    template <typename T = int32_t>
+    T &
+    GetLocalVariable (int index)
+    {
+        return *reinterpret_cast<T *> (&m_aLocalVars[m_nFrameBase + index]);
     }
 
     int
