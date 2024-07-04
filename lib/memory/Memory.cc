@@ -41,50 +41,58 @@ InitialisePattern (MemoryManager& manager)
         }
 
     GameAddress<currentPattern.address>::SetResolvedAddress (addr);
+
     Rainbomizer::Logger::LogMessage (
         "[PATTERN] Resolved address %x to %x", currentPattern.address,
         GameAddress<currentPattern.address>::Get ());
+}
 
-    if constexpr (NUM < std::size (s_Patterns) - 1)
-        return InitialisePattern<NUM + 1> (manager);
+void
+MemoryManager::InitialiseAllPatterns ()
+{
+    Rainbomizer::Logger::FunctionBenchmark benchmark;
+
+    [this]<std::size_t... I> (std::index_sequence<I...>) {
+        (..., InitialisePattern<I> (*this));
+    }(std::make_index_sequence<std::size (s_Patterns)>{});
 }
 
 void
 MemoryManager::Init ()
 {
-    if (std::exchange(m_initialised, true))
+    if (std::exchange (m_initialised, true))
         return;
 
     SceUID modules[10];
     int    count  = 0;
     int    result = 0;
 
-    if (sceKernelGetModuleIdList (modules, sizeof (modules), &count) >= 0)
+    if (sceKernelGetModuleIdList (modules, sizeof (modules), &count) < 0)
+        return;
+
+    SceKernelModuleInfo info;
+    for (int i = 0; i < count; ++i)
         {
-            SceKernelModuleInfo info;
-            for (int i = 0; i < count; ++i)
+            info.size = sizeof (SceKernelModuleInfo);
+            if (sceKernelQueryModuleInfo (modules[i], &info) < 0)
                 {
-                    info.size = sizeof (SceKernelModuleInfo);
-                    if (sceKernelQueryModuleInfo (modules[i], &info) < 0)
-                        {
-                            continue;
-                        }
+                    continue;
+                }
 
-                    if (strcmp (info.name, GAME_INTERNAL_NAME) == 0)
-                        {
-                            Rainbomizer::Logger::LogMessage (
-                                "Found game base address: %x (size: %x), gp: %u",
-                                info.text_addr, info.text_size, info.gp_value);
+            if (strcmp (info.name, GAME_INTERNAL_NAME) == 0)
+                {
+                    Rainbomizer::Logger::LogMessage (
+                        "Found game base address: %x (size: %x), gp: %u",
+                        info.text_addr, info.text_size, info.gp_value);
 
-                            m_gameTextAddress = info.text_addr;
-                            m_gameTextSize    = info.text_size;
-                            m_gameGpAddress   = info.gp_value;
+                    m_gameTextAddress = info.text_addr;
+                    m_gameTextSize    = info.text_size;
+                    m_gameGpAddress   = info.gp_value;
 
-                            injector.SetGameBaseAddress (info.text_addr,
-                                                         info.text_size);
+                    injector.SetGameBaseAddress (info.text_addr,
+                                                 info.text_size);
 
-                            InitialisePattern (*this);
-                        }
+                    InitialiseAllPatterns ();
                 }
         }
 }

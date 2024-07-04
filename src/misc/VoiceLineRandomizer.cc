@@ -9,12 +9,11 @@ class VoiceLineRandomizer : public Randomizer<VoiceLineRandomizer>
 {
     static constexpr int SUBTITLE_BUFFER_SIZE = 128+3;
 
-#pragma pack(16)
     struct VoiceLine
     {
-        char audioName[8] = {};
-        char subtitle[SUBTITLE_BUFFER_SIZE] = {};
-        bool resolved = false;
+        char           audioName[8] = {};
+        bool           resolved     = false;
+        std::u16string subtitle;
     };
 
     std::vector<VoiceLine> m_voiceLines;
@@ -22,25 +21,40 @@ class VoiceLineRandomizer : public Randomizer<VoiceLineRandomizer>
     template <auto &cDMAudio__PreloadMissionAudioSlot>
     void
     RandomizeVoiceLine (void *p1, uint8_t slot, const char *audioName,
-                        uint32_t p4, const char *subtitle)
+                        uint32_t p4, const char16_t *subtitle)
     {
         auto &line = GetRandomElementMut (m_voiceLines);
         cDMAudio__PreloadMissionAudioSlot (p1, slot, line.audioName, p4,
-                                           line.subtitle);
+                                           line.subtitle.c_str ());
+    }
+
+    template <int N, typename T, typename U>
+    bool
+    StringCompare (T &a, U &b)
+    {
+        for (size_t i = 0; i < N; i++)
+            {
+                if (a[i] != b[i])
+                    return false;
+            }
+
+        return true;
     }
 
     void
     ReadSubtitlesFromEntries (CKeyArray &keyArray)
     {
+        int max = 0;
         for (auto &i : std::span(keyArray.entries, keyArray.numEntries))
             {
                 for (auto &j : m_voiceLines) {
-                    if (!j.resolved && strncmp(j.subtitle, i.key, 8) == 0)
-                        {
-                            memcpy (j.subtitle, i.value, SUBTITLE_BUFFER_SIZE);
-                            j.resolved = true;
-                            break;
-                        }
+
+                        if (!j.resolved && StringCompare<7> (j.subtitle, i.key))
+                            {
+                                j.subtitle = i.value;
+                                j.resolved = true;
+                                break;
+                            }
                 }
             }
     }
@@ -81,38 +95,16 @@ class VoiceLineRandomizer : public Randomizer<VoiceLineRandomizer>
          auto f = Rainbomizer::Common::GetRainbomizerDataFile ("VoiceLines.txt");
         f.ReadLines ([this] (char *line) {
             VoiceLine voiceLine;
-            sscanf (line, "%8s %128[^\r\n]", voiceLine.audioName, voiceLine.subtitle);
+            int pos;
+
+            sscanf (line, "%8s %n", voiceLine.audioName, &pos);
+            line += pos;
+
+            while (*line)
+                voiceLine.subtitle.push_back (*line++);
+
             m_voiceLines.push_back (voiceLine);
         });
-
-        std::sort (m_voiceLines.begin (), m_voiceLines.end (),
-                   [] (const VoiceLine &a, const VoiceLine &b) {
-                       return strncmp (a.subtitle, b.subtitle, 8) < 0;
-                   });
-    }
-
-    void
-    ConvertCustomSubtitlesToWideChars ()
-    {
-        for (auto &line : m_voiceLines)
-            {
-                if (line.resolved)
-                    continue;
-
-                char  buffer[SUBTITLE_BUFFER_SIZE] = {};
-                char *subtitle                     = line.subtitle;
-
-                for (int i = 0; i < SUBTITLE_BUFFER_SIZE; i++)
-                    {
-                        if (subtitle[i] == '\0')
-                            break;
-
-                        buffer[i * 2] = subtitle[i];
-                    }
-
-                line.resolved = true;
-                memcpy (line.subtitle, buffer, SUBTITLE_BUFFER_SIZE);
-            }
     }
 
     template <auto &CKeyArray__Update>
@@ -123,7 +115,6 @@ class VoiceLineRandomizer : public Randomizer<VoiceLineRandomizer>
         // instance because of reasons
 
         ReadSubtitlesFromGxt (text);
-        ConvertCustomSubtitlesToWideChars ();
         CKeyArray__Update (text, chars);
     }
 
@@ -136,7 +127,7 @@ public:
             {
                 HOOK_MEMBER (Jal, (0x08a8d730), RandomizeVoiceLine,
                              void (void *, uint8_t, const char *, uint32_t,
-                                   const char *));
+                                   const char16_t *));
 
                 HOOK_MEMBER (Jal, (0x89f6b60), InitialiseSubtitles,
                              void (CText *, int));

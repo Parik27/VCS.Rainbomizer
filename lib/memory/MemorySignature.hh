@@ -69,9 +69,9 @@ NibbleMaskFromString (T str)
             for (size_t i = 1; i < 9; i++)
                 {
                     if (str[i] == '.' || str[i] == '?')
-                        mask |= 1 << (i - 1);
+                        mask |= 1 << (8 - i);
                     else if (str[i] == '1')
-                        byte |= 1 << (i - 1);
+                        byte |= 1 << (8 - i);
                 }
         }
 

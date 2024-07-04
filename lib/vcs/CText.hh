@@ -29,8 +29,8 @@ struct CKeyArray
 
 struct CKeyEntry
 {
-    char *value;
-    char  key[8];
+    char16_t *value;
+    char      key[8];
 };
 
 #pragma pack(push, 1)

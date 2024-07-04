@@ -3,10 +3,13 @@
 #include <cstdint>
 
 #include "GameAddress.hh"
+#include "core/Logger.hh"
 #include "memory/MemorySignature.hh"
 
 class MemoryManager
 {
+    void InitialiseAllPatterns ();
+
 public:
 
     uint32_t m_gameTextAddress = 0;
