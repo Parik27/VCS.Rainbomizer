@@ -5,9 +5,5 @@
 class CDarkel
 {
 public:
-    static bool
-    FrenzyGoingOn ()
-    {
-        return GameFunction<0x8a3675c, bool ()>::Call ();
-    }
+    inline static GameFunction<0x8a3675c, bool ()> FrenzyGoingOn{};
 };

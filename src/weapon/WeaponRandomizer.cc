@@ -21,7 +21,7 @@ class WeaponRandomizer : public Randomizer<WeaponRandomizer>
 {
     inline static int ForcedWeapon = -1;
     inline static bool DisableWeaponRandomizer = false;
-    inline static int rampage_weapon = -1;
+    inline static int RampageWeapon = -1;
 
     template <auto &CPed__GiveWeapon>
     static int
@@ -33,10 +33,10 @@ class WeaponRandomizer : public Randomizer<WeaponRandomizer>
         int newWeapon = WeaponsCommon::GetRandomUsableWeapon ();
 
         if (ped == FindPlayerPed () && CDarkel::FrenzyGoingOn ()
-            && rampage_weapon != -1)
+            && RampageWeapon != -1)
         {
-            newWeapon = rampage_weapon;
-            rampage_weapon = -1;
+            newWeapon = RampageWeapon;
+            RampageWeapon = -1;
         }
 
         if (ForcedWeapon != -1)
@@ -149,8 +149,8 @@ static void
 SetRandomPlayerWeaponForRampage(int weapon, int time, short kill, int modelId0, short* text,
 		int modelId2, int modelId3, int modelId4, bool standardSound, bool needHeadshot)
 {
-    rampage_weapon = WeaponsCommon::GetRandomUsableWeapon ();
-    CDarkel__StartFrenzy(rampage_weapon, time, kill, modelId0, text,
+    RampageWeapon = WeaponsCommon::GetRandomUsableWeapon ();
+    CDarkel__StartFrenzy(RampageWeapon, time, kill, modelId0, text,
         modelId2, modelId3, modelId4, standardSound, needHeadshot);
  }
  
