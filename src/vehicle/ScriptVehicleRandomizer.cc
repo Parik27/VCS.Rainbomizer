@@ -72,8 +72,7 @@ class ScriptVehicleRandomizer : public Randomizer<ScriptVehicleRandomizer>
     {
         int originalVehicle = modelId;
         while ((modelId = VehicleCommon::GetRandomUsableVehicle ()),
-            CVehicleModelInfo::GetMaximumNumberOfPassengersFromNumberOfDoors(modelId) + 1 != 4
-            && VehicleCommon::IsVehicleOfType(VEHICLE_TYPE_BOAT));
+            CVehicleModelInfo::GetMaximumNumberOfPassengersFromNumberOfDoors(modelId) + 1 < 4);
 
         if (!VehicleCommon::AttemptToLoadVehicle (modelId))
             modelId = originalVehicle;

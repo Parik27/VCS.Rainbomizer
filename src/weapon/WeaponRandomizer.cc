@@ -14,12 +14,14 @@
 #include <vcs/CWeaponInfo.hh>
 #include <vcs/CPlayer.hh>
 #include <vcs/CPed.hh>
+#include <vcs/CDarkel.hh>
 
 
 class WeaponRandomizer : public Randomizer<WeaponRandomizer>
 {
     inline static int ForcedWeapon = -1;
     inline static bool DisableWeaponRandomizer = false;
+    inline static int rampage_weapon = -1;
 
     template <auto &CPed__GiveWeapon>
     static int
@@ -29,6 +31,14 @@ class WeaponRandomizer : public Randomizer<WeaponRandomizer>
             return CPed__GiveWeapon (ped, weaponType, ammo, p4);
 
         int newWeapon = WeaponsCommon::GetRandomUsableWeapon ();
+
+        if (ped == FindPlayerPed () && CDarkel::FrenzyGoingOn ()
+            && rampage_weapon != -1)
+        {
+            newWeapon = rampage_weapon;
+            rampage_weapon = -1;
+        }
+
         if (ForcedWeapon != -1)
             newWeapon = ForcedWeapon;
 
@@ -133,6 +143,16 @@ class WeaponRandomizer : public Randomizer<WeaponRandomizer>
         CPickups__Update ();
         DisableWeaponRandomizer = false;
     }
+
+template<auto &CDarkel__StartFrenzy>
+static void 
+SetRandomPlayerWeaponForRampage(int weapon, int time, short kill, int modelId0, short* text,
+		int modelId2, int modelId3, int modelId4, bool standardSound, bool needHeadshot)
+{
+    rampage_weapon = WeaponsCommon::GetRandomUsableWeapon ();
+    CDarkel__StartFrenzy(rampage_weapon, time, kill, modelId0, text,
+        modelId2, modelId3, modelId4, standardSound, needHeadshot);
+ }
  
 public:
     WeaponRandomizer ()
@@ -169,5 +189,8 @@ public:
               void (CWeapon *, class CVehicle *, bool, bool));
 
         HOOK (Jal, 0x08ac53f8, SkipWeaponRandomizationForPickups, void ());
+
+        HOOK (Jal, (0x8aa0640), SetRandomPlayerWeaponForRampage, 
+            void (int, int, short, int, short*, int, int, int, bool, bool));
     }
 };
