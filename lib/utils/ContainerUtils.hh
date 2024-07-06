@@ -8,8 +8,7 @@ template <typename T, typename V>
 constexpr bool
 DoesElementExist (const T &container, const V val)
 {
-    return std::find (std::begin (container), std::end (container), val)
-           != std::end (container);
+    return std::ranges::contains (container, val);
 }
 
 template <typename Map, typename Key>

@@ -33,45 +33,25 @@ class ColourRandomizer : public Randomizer<ColourRandomizer>
     TextureFun (const char *name)
     {
         auto tex = TextureDefaultFind (name);
-        if (std::string_view (name) == "bar_inside1"
-            || std::string_view (name) == "hudnumbers"
-            || std::string_view (name) == "bar_inside2")
+
+        /* Randomizes the colours of the textures */
+        static constexpr std::array randomizedTextures
+            = {"hudnumbers", "bar_inside1", "bar_inside2", "ndc_redballoon"};
+
+        static constexpr std::array randomizedColours
+            = {0x206e20, 0x0000ff, 0xfaff09, 0x2c8cc1, 0x955ce4};
+
+        if (DoesElementExist (randomizedTextures, std::string_view (name)))
             {
-              Rainbomizer::Logger::LogMessage("%s", name);
-                for (int i = 0; i < tex->raster->CalculatePaletteSize (); i++)
+                for (uint32_t &col : tex->raster->GetPalette ())
                     {
-
-                        uint32_t &col = tex->raster->GetPalette ()[i];
-                        Rainbomizer::Logger::LogMessage("%08x", col);
-
-                        if ((col & 0x00FFFFFF) == 0x206e20
-                            || (col & 0x00FFFFFF) == 0xfaff09
-                            || (col & 0x00FFFFFF) == 0x2c8cc1
-                            || (col & 0x00FFFFFF) == 0x955ce4)
+                        if (DoesElementExist (randomizedColours,
+                                              col & 0xFFFFFF))
                             col = (col & 0xFF000000) | RandomSize (0xFFFFFF);
                     }
             }
 
         return tex;
-    }
-
-    static CRGBA *
-    RandomizeColours (CRGBA *th, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
-    {
-        th->r = r;
-        th->g = g;
-        th->b = b;
-        th->a = a;
-
-        if (std::abs(r - g) + std::abs(r - b) > 10)
-            {
-                th->r = 255; // RandomSize (0xFF);
-                th->g = 0;   // RandomSize (0xFF);
-                th->b = 0;   // RandomSize (0xFF);
-                //th->a = 0;
-            }
-
-        return th;
     }
 
   struct ColourTable

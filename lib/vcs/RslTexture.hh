@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <span>
 
 struct RslV3
 {
@@ -33,15 +34,34 @@ struct RslObjectHasNode {
     void      (*sync)();
 };
 
-struct RslRaster {
-    uint32_t unk1;
-    uint8_t* data;
-    int16_t  minWidth;
+struct RslRaster
+{
+    void    *commandBuffer;
+    uint8_t *data;
+    int16_t  stride;
     uint8_t  logWidth;
     uint8_t  logHeight;
     uint8_t  depth;
-    uint8_t  mipmaps;
-    uint16_t unk2;	// like RW raster format?
+
+    uint8_t mipmaps : 6;
+    bool    uClamp : 1;
+    bool    vClamp : 1;
+
+    uint8_t unk;
+
+    enum ColorMode
+    {
+        GU_PSM_5551 = 1,
+        GU_PSM_8888 = 5,
+    } colorMode : 5;
+
+    enum PaletteMode
+    {
+        NONE,
+        GU_PSM_T4,
+        GU_PSM_T8,
+
+    } paletteMode : 2;
 
     uint32_t
     GetWidth ()
@@ -55,89 +75,85 @@ struct RslRaster {
         return 1 << logHeight;
     }
 
-    uint8_t
-    GetMipmaps ()
-    {
-        return mipmaps & 0b111111;
-    }
-
     uint8_t *
     GetTexel (int32_t n)
     {
         auto     out = data;
-        uint32_t w   = GetWidth ();
-        uint32_t h   = GetHeight ();
+        uint32_t w   = stride;
+        uint32_t lH  = logHeight;
 
         while (n--)
             {
-                w = std::max (w, uint32_t (minWidth));
-                out += (w * h * depth) / 8;
-                w >>= 1;
-                h >>= 1;
+                out += w * (1 << lH);
+                lH--;
+
+                if (0x10 < w)
+                    w /= 2;
             }
 
         return out;
     }
 
-  uint8_t
-  GetPaletteIdx (size_t x, size_t y)
-  {
-      if (depth > 8)
-          return 0;
+    uint8_t
+    GetPaletteIdx (size_t x, size_t y)
+    {
+        uint32_t w = GetWidth ();
+        uint32_t h = GetHeight ();
 
-      uint32_t w = GetWidth ();
-      uint32_t h = GetHeight ();
+        if (x >= w || y >= h)
+            return 0;
 
-      if (x >= w || y >= h)
-          return 0;
+        switch (paletteMode)
+            {
+            case NONE: return 0;
+            case GU_PSM_T4: return data[y * w + x];
+            case GU_PSM_T8: return data[(y * w + x) / 2] >> (4 * (x & 1)) & 0xf;
+            }
 
-      switch (depth)
-          {
-          case 8: return data[y * w + x];
-          case 4: return data[(y * w + x) / 2] >> (4 * (x & 1)) & 0xf;
-          }
+        return 0;
+    }
 
-      return 0;
-  }
+    uint16_t
+    CalculatePaletteSize ()
+    {
+        switch (paletteMode)
+            {
+            case GU_PSM_T8: return 0x100;
+            case GU_PSM_T4: return 0x10;
+            default: return 0;
+            }
+    }
 
-  uint8_t
-  CalculatePaletteSize ()
-  {
-      if (depth > 8)
-          return 0;
+    uint32_t
+    GetPixelColour (size_t x, size_t y)
+    {
+        if (depth <= 8)
+            {
+                uint8_t   idx     = GetPaletteIdx (x, y);
+                uint32_t *palette = GetPalettePtr ();
+                return palette ? palette[idx] : 0;
+            }
 
-      uint8_t maxIdx = 0;
-      for (size_t y = 0; y < GetHeight (); y++)
-          for (size_t x = 0; x < GetWidth (); x++)
-              {
-                  maxIdx = std::max (maxIdx, GetPaletteIdx (x, y));
-              }
+        return 0;
+    }
 
-      return maxIdx + 1;
-  }
+    uint32_t *
+    GetPalettePtr ()
+    {
+        if (depth <= 8)
+            return reinterpret_cast<uint32_t *> (GetTexel (mipmaps));
 
-  uint32_t
-  GetPixelColour (size_t x, size_t y)
-  {
-      if (depth <= 8)
-          {
-              uint8_t   idx     = GetPaletteIdx (x, y);
-              uint32_t *palette = GetPalette ();
-              return palette ? palette[idx] : 0;
-          }
+        return nullptr;
+    }
 
-      return 0;
-  }
-
-  uint32_t *
+  auto
   GetPalette ()
   {
-      if (depth <= 8)
-          return reinterpret_cast<uint32_t *> (GetTexel (GetMipmaps ()));
-
-      return nullptr;
+    return std::span (GetPalettePtr (), CalculatePaletteSize ());
   }
 };
+
+static_assert (sizeof (RslRaster) == 16, "RslRaster size mismatch");
 
 struct RslTexList {
     struct RslObject   object;
