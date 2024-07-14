@@ -13,6 +13,7 @@
 
 #include <core/Randomizer.hh>
 #include <core/Config.hh>
+#include <core/Events.hh>
 
 #include <cstdio>
 #include <random>
@@ -229,7 +230,9 @@ public:
         Missions.reserve (64);
 
         InitialiseMissionsArray ();
-        InitialiseMissionsMap (Seed);
+
+        RandomizationSeedEvent::Add (
+            [] (int seed) { Get ().InitialiseMissionsMap (seed); });
 
         HOOK_MEMBER (Jal, (0x08abc41c), RandomizeMission,
               uint32_t (class CRunningScript *, unsigned char *data,
