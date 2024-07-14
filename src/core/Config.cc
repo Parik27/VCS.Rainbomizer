@@ -4,6 +4,8 @@
 #include "Config.hh"
 #include <limits>
 
+//#define NO_CPPTOML
+
 #ifndef NO_CPPTOML
 #include "cpptoml/cpptoml.h"
 #include <core/Common.hh>

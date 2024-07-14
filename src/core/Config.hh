@@ -30,6 +30,13 @@ public:
     /// Initialises
     ConfigManager (const std::string &file = "config.toml");
 
+    template <typename T>
+    static void
+    ReadValue (const std::string &table, const std::string &key, T &out)
+    {
+        return GetInstance ()->ReadValue (table, key, out);
+    }
+
     template <typename... Args>
     static bool
     ReadConfig (const std::string &table, Args... params)

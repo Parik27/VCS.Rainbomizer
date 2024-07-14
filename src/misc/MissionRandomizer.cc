@@ -226,7 +226,7 @@ class MissionRandomizer : public Randomizer<MissionRandomizer>
 public:
     MissionRandomizer ()
     {
-        RB_C_DO_CONFIG ("MissionRandomizer", Seed, ForcedMission);
+        RB_C_DO_CONFIG ("MissionRandomizer", ForcedMission);
         Missions.reserve (64);
 
         InitialiseMissionsArray ();

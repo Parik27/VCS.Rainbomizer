@@ -4,6 +4,7 @@
 #include <core/Randomizer.hh>
 #include <core/Logger.hh>
 #include <utils/Utils.hh>
+#include <core/Config.hh>
 
 class VoiceLineRandomizer : public Randomizer<VoiceLineRandomizer>
 {
@@ -121,6 +122,8 @@ class VoiceLineRandomizer : public Randomizer<VoiceLineRandomizer>
 public:
     VoiceLineRandomizer ()
     {
+        RB_C_DO_CONFIG ("VoiceLineRandomizer");
+
         LoadVoiceLines ();
 
         if (m_voiceLines.size ())

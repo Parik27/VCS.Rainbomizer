@@ -1,5 +1,6 @@
 #include "Events.hh"
 #include <hooks/Hooks.hh>
+#include "core/Config.hh"
 #include "core/Logger.hh"
 #include "utils/Random.hh"
 #include <pspsdk.h>
@@ -15,7 +16,7 @@ FadeEvent::ProcessFadeEvent (class CCamera *cam)
 
 FadeEvent::FadeEvent ()
 {
-    HOOK_MEMBER (Jmp, (0x8a1cc64), ProcessFadeEvent, void (class CCamera *));
+  //HOOK_MEMBER (Jmp, (0x8a1cc64), ProcessFadeEvent, void (class CCamera *));
 }
 
 template <auto &CRunningScript__Process>
@@ -27,11 +28,10 @@ RandomizationSeedEvent::ProcessRandomizationSeedEvent (CRunningScript *script)
     if (script->m_pCurrentIP == 0)
         {
             if (CarsCollected.Get () == 0)
-                CarsCollected.Get () = RandomSize (0xFFFFFFFF);
+                CarsCollected.Get ()
+                    = ForcedSeed == -1 ? RandomSize (0xFFFFFFFF) : ForcedSeed;
 
-            Rainbomizer::Logger::LogMessage ("Game started. Seed: %08x",
-                                             CarsCollected.Get ());
-            this->operator() (CarsCollected);
+            this->operator() (ForcedSeed == -1 ? ForcedSeed : CarsCollected);
         }
 
     CRunningScript__Process (script);
@@ -39,6 +39,12 @@ RandomizationSeedEvent::ProcessRandomizationSeedEvent (CRunningScript *script)
 
 RandomizationSeedEvent::RandomizationSeedEvent ()
 {
+    std::string ForcedSeed = "";
+    ConfigManager::ReadValue ("", "Seed", ForcedSeed);
+
+    if (ForcedSeed != "")
+        this->ForcedSeed = std::hash<std::string>{}(ForcedSeed);
+
     HOOK_MEMBER (Jal, 0x08869b00, ProcessRandomizationSeedEvent,
                  void (CRunningScript *));
 }

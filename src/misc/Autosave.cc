@@ -1,4 +1,3 @@
-#include "core/Logger.hh"
 #include "memory/GameAddress.hh"
 #include "ppsspp/KeyCodes.h"
 #include "ppsspp/Keyboard.hh"
@@ -9,6 +8,9 @@
 #include <core/Randomizer.hh>
 #include <hooks/Hooks.hh>
 #include <thread>
+
+#include <core/Config.hh>
+#include <core/Logger.hh>
 
 #include <scm/Command.hh>
 #include <scm/Opcodes.hh>
@@ -105,6 +107,8 @@ class AutoSave : public Randomizer<AutoSave>
 public:
     AutoSave ()
     {
+        RB_C_DO_CONFIG("Autosave");
+
         HOOK_MEMBER (Jal, 0x08ab5a3c, OverrideSave,
                      int (SceUtilitySavedataParam *));
         HOOK_MEMBER (Jal, 0x08869b00, ProcessAutosave, void (CRunningScript *));

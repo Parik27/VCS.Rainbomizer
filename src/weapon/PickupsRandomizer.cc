@@ -1,8 +1,10 @@
 #include <hooks/Hooks.hh>
 #include <memory/Memory.hh>
 
-#include "core/Logger.hh"
-#include "core/Randomizer.hh"
+#include <core/Logger.hh>
+#include <core/Randomizer.hh>
+#include <core/Config.hh>
+
 #include "memory/GameAddress.hh"
 #include "mips.h"
 
@@ -74,6 +76,9 @@ class PickupsRandomizer : public Randomizer<PickupsRandomizer>
                                              PICKUP_RACEBAD,
                                              PICKUP_RACEGOOD};
 
+    inline static int ForcedPickup = -1;
+    inline static bool EnablePowerups = true;
+
 public:
     template <auto &CPickups__GenerateNewOne>
     static int
@@ -138,19 +143,21 @@ public:
     FixCollectedPickups (int modelId, int p2)
     {
         if (modelId == PICKUP_RACEGOOD)
-        {
-            CVehicle* vehicle = FindPlayerVehicle ();
-            if (vehicle)
-                vehicle->m_fHealth += 1000;
+            {
+                CVehicle *vehicle = FindPlayerVehicle ();
+                if (vehicle)
+                    vehicle->m_fHealth += 1000;
 
-            // Return here to prevent crashing
-            return false;
-        }
-        return CPickups__GivePlayerGoodiesWithPickUpMI(modelId, p2);
+                // Return here to prevent crashing
+                return false;
+            }
+        return CPickups__GivePlayerGoodiesWithPickUpMI (modelId, p2);
     }
 
     PickupsRandomizer ()
     {
+        RB_C_DO_CONFIG ("PickupRandomizer", ForcedPickup, EnablePowerups);
+
         HOOK (Jmp, (0x088f5a3c), RandomizePickups,
               int (CVector *, int, char, int, int, bool, char));
         HOOK (Jal, (0x088f47bc), PickupPicked,
@@ -159,13 +166,18 @@ public:
               bool (int, int));
 
         // Powerups
-        GameAddress<0x08a0b608>::Nop ();
-        GameAddress<0x08a0b60c>::Nop ();
-        GameAddress<0x089bd2d4>::Nop (); // draw powerup timers
-        GameAddress<0x08a0b62c>::Nop (); // ped state check
-        GameAddress<0x0894ad94>::Nop ();
+        if (EnablePowerups)
+            {
+                // Quad damage, health boost and invisibility
+                GameAddress<0x08a0b608>::Nop ();
+                GameAddress<0x08a0b60c>::Nop ();
+                GameAddress<0x089bd2d4>::Nop (); // draw powerup timers
+                GameAddress<0x08a0b62c>::Nop (); // ped state check
+                GameAddress<0x0894ad94>::Nop ();
 
-        GameAddress<0x08947b38>::Nop ();
-        GameAddress<0x08947b90>::LuiOri(a0, 10.0f);
+                // Racebad fix
+                GameAddress<0x08947b38>::Nop ();
+                GameAddress<0x08947b90>::LuiOri (a0, 5.0f);
+            }
     }
 };

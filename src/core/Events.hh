@@ -38,6 +38,8 @@ public:
 
 class RandomizationSeedEvent : public Event<RandomizationSeedEvent, int>
 {
+    int ForcedSeed = -1;
+
     template <auto &CRunningScript__Process>
     void ProcessRandomizationSeedEvent (CRunningScript* scr);
 

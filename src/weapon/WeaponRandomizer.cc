@@ -157,7 +157,12 @@ SetRandomPlayerWeaponForRampage(int weapon, int time, short kill, int modelId0, 
 public:
     WeaponRandomizer ()
     {
-        RB_C_DO_CONFIG ("WeaponRandomizer", ForcedWeapon)
+        bool EnableCustomDriveBy = false;
+
+        RB_C_DO_CONFIG ("WeaponRandomizer", ForcedWeapon, EnableCustomDriveBy)
+
+        HOOK (Jal, 0x08869b00, DrawCorona,
+              void (class CRunningScript *));
 
         HOOK (Jmp, (0x0891b7dc), RandomizeWeapon,
               int (class CPed *, int, int, bool));
@@ -180,10 +185,13 @@ public:
 
         // Custom drive-by
         // ==============================================
-        GameAddress<0x08a52270>::Write (li (a0, 5));
-        GameAddress<0x08a43d98>::Write (li (a0, 5));
-        GameAddress<0x08a52764>::Write (li (a0, 5));
-        GameAddress<0x089b3a20>::Nop ();
+        if (EnableCustomDriveBy)
+            {
+                GameAddress<0x08a52270>::Write (li (a0, 5));
+                GameAddress<0x08a43d98>::Write (li (a0, 5));
+                GameAddress<0x08a52764>::Write (li (a0, 5));
+                GameAddress<0x089b3a20>::Nop ();
+            }
 
         HOOK (Jal, (0x08a411b4), FireProjectilesDuringDriveby,
               void (CWeapon *, class CVehicle *, bool, bool));
