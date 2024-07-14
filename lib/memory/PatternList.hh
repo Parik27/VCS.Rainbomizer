@@ -81,7 +81,7 @@ inline static constexpr std::array s_Patterns = {
     Pattern{0x08b48060, "? ? ? ? 01 00 07 34 25 b0 e0 02"},
     Pattern{0x089edce0, "f0 ff bd 27 ? ? b0 af 25 80 80 00 ff 00 c6 30"},
     Pattern{0x089d9a48, "c0 ff bd 27 ? ? b0 af ? ? b3 af 25 98 a0 00"},
-    //Pattern{0x08832e04, "80 FF BD 27 ? ? B0 AF 25 80 80 00 B0 03 04 26"},
+    Pattern{0x08832e04, "80 FF BD 27 ? ? B0 AF 25 80 80 00 B0 03 04 26"},
     Pattern{0x08835298, "05 00 04 34 ? ? 44 AE"},
     Pattern{0x08b45350, "f0 ff bd 27 ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? 00 00 00 00 ? ? ? ? f0 08 44 24 ? ? 40 10"},
     Pattern{0x08b49444, "? ? ? ? 25 20 c0 02 ? ? 00 10 00 00 00 00 ? ? ? ? 25 20 c0 02"},
@@ -93,4 +93,7 @@ inline static constexpr std::array s_Patterns = {
     Pattern{0x08960600, "? ? ? ? 00 00 00 00 ? ? 5e 54 ? ? ? ? ? ? ? ? 25 20 00 00", 0, Pattern::BRANCH},
     Pattern{0x08968930, "? ? ? ? 01 00 07 34 25 88 00 02 ? ? 20 12"},
     Pattern{0x08a3675c, "? ? 84 97 01 00 82 38"},
+    Pattern{0x08bb4084, "? ? 85 8f ? ? 85 ac 04 00 84 24 ? ? 85 8f", 0, Pattern::GPOFFSET},
+    Pattern{0x08badd74, "? ? 84 8f ? ? 00 ae ? ? 84 8f", 0, Pattern::GPOFFSET}
+
 };

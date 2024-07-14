@@ -31,7 +31,7 @@ RandomizationSeedEvent::ProcessRandomizationSeedEvent (CRunningScript *script)
                 CarsCollected.Get ()
                     = ForcedSeed == -1 ? RandomSize (0xFFFFFFFF) : ForcedSeed;
 
-            this->operator() (ForcedSeed == -1 ? ForcedSeed : CarsCollected);
+            this->operator() (ForcedSeed == -1 ? CarsCollected : ForcedSeed);
         }
 
     CRunningScript__Process (script);
@@ -40,7 +40,7 @@ RandomizationSeedEvent::ProcessRandomizationSeedEvent (CRunningScript *script)
 RandomizationSeedEvent::RandomizationSeedEvent ()
 {
     std::string ForcedSeed = "";
-    ConfigManager::ReadValue ("", "Seed", ForcedSeed);
+    ConfigManager::GetValue ("", "Seed", ForcedSeed);
 
     if (ForcedSeed != "")
         this->ForcedSeed = std::hash<std::string>{}(ForcedSeed);

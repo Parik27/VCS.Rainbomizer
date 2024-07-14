@@ -39,6 +39,7 @@ class MissionRandomizer : public Randomizer<MissionRandomizer>
     MissionInfo *OriginalMission;
     MissionInfo *RandomMission;
 
+    bool DelayMissionScript = false;
     int Seed;
     int ForcedMission = -1;
 
@@ -80,7 +81,13 @@ class MissionRandomizer : public Randomizer<MissionRandomizer>
 
                         params[0] = RandomMission->id;
 
-                        Rainbomizer::Logger::LogMessage (
+                        // For prologue mission we need to delay the script
+                        // so that the game doesn't crash as it allows time for
+                        // essential mission scripts to start.
+                        if (OriginalMission->id == 8)
+                            DelayMissionScript = true;
+
+                        Rainbomizer::Logger::LogCritical (
                             "Randomized mission: %d", params[0]);
                     }
             }
@@ -217,8 +224,14 @@ class MissionRandomizer : public Randomizer<MissionRandomizer>
     int
     ProcessMissionScript (CRunningScript *script)
     {
-        if (script->m_bIsMission && RandomMission)
+        if (script->m_bIsMission && RandomMission) {
+            if (std::exchange(DelayMissionScript, false)) {
+                Rainbomizer::Logger::LogCritical (
+                    "Delaying prologue mission script");
+                return 1;
+            }
             ProcessMissionRandomizerFSM (script);
+        }
 
         return CRunningScript__ProcessOneCommand (script);
     }
@@ -230,6 +243,7 @@ public:
         Missions.reserve (64);
 
         InitialiseMissionsArray ();
+        InitialiseMissionsMap(10);
 
         RandomizationSeedEvent::Add (
             [] (int seed) { Get ().InitialiseMissionsMap (seed); });
