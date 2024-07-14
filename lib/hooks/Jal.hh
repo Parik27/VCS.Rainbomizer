@@ -1,5 +1,6 @@
 #pragma once
 
+#include "memory/GameAddress.hh"
 #include <injector.h>
 
 #include <core/Logger.hh>
@@ -35,5 +36,7 @@ RegisterHook (void *addr, O &originalFunc)
     Rainbomizer::Logger::LogMessage ("Hooking function: %p -> %p at address %p",
                                      originalFunc, hookedFunc, addr);
 }
+template <auto... Args> using AddressT = GameAddress<Args...>;
+
 }; // namespace Jal
 }; // namespace InternalHooks

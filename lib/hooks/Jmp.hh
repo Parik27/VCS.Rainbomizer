@@ -92,6 +92,9 @@ RegisterHook (void *addr, O &originalFunc)
         });
 #endif
 }
+
+template <auto... Args> using AddressT = GameAddress<Args...>;
+
 }; // namespace Jmp
 
 }; // namespace InternalHooks

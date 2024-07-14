@@ -14,7 +14,8 @@
     {                                                                          \
         static InternalHooks::func_pointer_type_v<__VA_ARGS__> OrigFunc;       \
         InternalHooks::type::RegisterHook<function<OrigFunc>> (                \
-            (void *) GameAddress<address>::Get (), OrigFunc);                  \
+            (void *) InternalHooks::type::AddressT<address>::Get (),           \
+            OrigFunc);                                                         \
     }
 
 #define HOOK_MEMBER(type, address, function, ...)                              \
@@ -26,5 +27,5 @@
             return Get ().function<OrigFunc> (                                 \
                 std::forward<decltype (args)> (args)...);                      \
         }                                                                      \
-        > ((void *) GameAddress<address>::Get (), OrigFunc);                   \
+        > ((void *) InternalHooks::type::AddressT<address>::Get (), OrigFunc); \
     }
