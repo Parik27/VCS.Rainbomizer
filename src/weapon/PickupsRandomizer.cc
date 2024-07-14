@@ -61,7 +61,6 @@ class PickupsRandomizer : public Randomizer<PickupsRandomizer>
                                              PICKUP_ADRENALINE,
                                              PICKUP_MOVIE,
                                              PICKUP_BUY_VEHICLE,
-                                             PICKUP_BRIEFCASE,
                                              PICKUP_KEYCARD,
                                              PICKUP_GD_DILDO,
                                              PICKUP_NDC_DRUGPACKET,

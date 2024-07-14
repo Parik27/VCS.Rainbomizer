@@ -118,8 +118,7 @@ public:
         return ((Ret (*) (Args...)) (GameAddress<Address>::Get ())) (args...);
     }
 
-    // This can be made static in C++23 for guaranteed inlining
-    inline Ret operator () (Args ...args) const
+    inline static Ret operator () (Args ...args)
     {
         return Call (args...);
     }

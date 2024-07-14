@@ -8,6 +8,7 @@
 #include "utils/Random.hh"
 #include "Common.hh"
 #include "vcs/CModelInfo.hh"
+#include "vcs/CRunningScript.hh"
 #include "vcs/CVehicle.hh"
 
 #include <ranges>
@@ -46,7 +47,6 @@ public:
     RandomizeTrafficVehicle (class CZoneInfo *zone, int *pClass)
     {
         CCarCtrl__ChooseModel (zone, pClass);
-        *pClass = 0x18;
         return GetRandomVehicle ();
     }
 
@@ -92,6 +92,7 @@ public:
             case VEHICLE_TYPE_HELI:
                 return CHeli__CHeli (vehicle, modelId, createdBy);
             };
+
 
         return vehicle;
     }

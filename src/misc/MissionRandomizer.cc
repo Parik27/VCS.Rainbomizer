@@ -26,8 +26,8 @@ class MissionRandomizer : public Randomizer<MissionRandomizer>
 {
     struct MissionInfo
     {
-        int8_t id;
-        char gxtName[8];
+        int8_t  id;
+        char    gxtName[8];
         CVector startPos;
         CVector endPos;
     };
@@ -35,10 +35,11 @@ class MissionRandomizer : public Randomizer<MissionRandomizer>
     std::vector<MissionInfo> Missions;
     std::map<int8_t, int8_t> MissionMap;
 
-    MissionInfo* OriginalMission;
-    MissionInfo* RandomMission;
+    MissionInfo *OriginalMission;
+    MissionInfo *RandomMission;
 
     int Seed;
+    int ForcedMission = -1;
 
     MissionInfo *
     GetMissionInfoForId (uint8_t id)
@@ -61,20 +62,26 @@ class MissionRandomizer : public Randomizer<MissionRandomizer>
         uint32_t ret
             = CRunningScript__CollectParams (scr, data, numParams, params);
 
-        if (auto* mission = LookupMap (MissionMap, params[0]))
+        if (auto *mission = LookupMap (MissionMap, params[0]))
             {
-                OriginalMission = GetMissionInfoForId (params[0]);
-                RandomMission = GetMissionInfoForId (*mission);
+                if (ForcedMission != -1)
+                    *mission = ForcedMission;
 
-                CallCommand<SET_CHAR_COORDINATES> (Global{782},
-                                                   RandomMission->startPos.x,
-                                                   RandomMission->startPos.y,
-                                                   RandomMission->startPos.z);
+                if (*mission != params[0])
+                    {
+                        OriginalMission = GetMissionInfoForId (params[0]);
+                        RandomMission   = GetMissionInfoForId (*mission);
 
-                params[0] = RandomMission->id;
+                        CallCommand<SET_CHAR_COORDINATES> (
+                            Global{782}, RandomMission->startPos.x,
+                            RandomMission->startPos.y,
+                            RandomMission->startPos.z);
 
-                Rainbomizer::Logger::LogMessage ("Randomized mission: %d",
-                                                 params[0]);
+                        params[0] = RandomMission->id;
+
+                        Rainbomizer::Logger::LogMessage (
+                            "Randomized mission: %d", params[0]);
+                    }
             }
 
         // inform other randomizers we changed the mission
@@ -117,23 +124,41 @@ class MissionRandomizer : public Randomizer<MissionRandomizer>
     }
 
     void
+    OnMissionStart (CRunningScript *script)
+    {
+        // Open bridges and hurricane gordy gone
+        for (uint16_t i = 1562; i <= 1566; i++)
+            CallCommand<DELETE_OBJECT> (Global{i});
+
+        CallCommand<SET_PLAYER_PUSHED_TOWARDS_MAINLAND> (0);
+    }
+
+    void
+    OnMissionEnd (CRunningScript *script)
+    {
+    }
+
+    void
     OnMissionPass (CRunningScript *script)
     {
         // Restore original mission gxt name for save files
+        // We need to check if the name matches because the
+        // mission name might be in a different variable by
+        // some weird script and we don't want to modify
+        // random script variable in that case.
         char *gxtName = (char *) (CTheScripts::ScriptSpace
                                   + script->GetLocalVariable (0));
 
         if (strncmp (gxtName, RandomMission->gxtName, 8) == 0)
-            {
-                memcpy (gxtName, OriginalMission->gxtName,
-                        strlen (OriginalMission->gxtName) + 1);
-            }
+            memcpy (gxtName, OriginalMission->gxtName, 8);
 
         // Teleport player to the original mission end position
         CallCommand<SET_CHAR_COORDINATES> (Global{782},
                                            OriginalMission->endPos.x,
                                            OriginalMission->endPos.y,
                                            OriginalMission->endPos.z);
+
+        OnMissionEnd (script);
         RandomMission = nullptr;
         OriginalMission = nullptr;
     }
@@ -141,13 +166,26 @@ class MissionRandomizer : public Randomizer<MissionRandomizer>
     void
     OnMissionFail (CRunningScript *script)
     {
+        // Allow prologue to restart properly
         if (OriginalMission->id == 8)
             {
                 CTheScripts::GetGlobal<int> (3) = 1;
             }
 
+        OnMissionEnd (script);
         RandomMission = nullptr;
         OriginalMission = nullptr;
+    }
+
+    void
+    ProcessCodeSectionSkip (CRunningScript *script, size_t mission, size_t at,
+                            size_t to)
+    {
+        if (RandomMission->id != mission)
+            return;
+
+        if (script->m_pCurrentIP == CTheScripts::MainScriptSize + at)
+            script->m_pCurrentIP = CTheScripts::MainScriptSize + to;
     }
 
     void
@@ -157,6 +195,13 @@ class MissionRandomizer : public Randomizer<MissionRandomizer>
             = CTheScripts::ScriptSpace[script->m_pCurrentIP]
               | (CTheScripts::ScriptSpace[script->m_pCurrentIP + 1] << 8);
 
+        ProcessCodeSectionSkip (script, 83, 10210, 10217);
+        ProcessCodeSectionSkip (script, 88, 9826, 9833);
+
+        if (script->m_pCurrentIP == CTheScripts::MainScriptSize)
+            {
+                OnMissionStart (script);
+            }
         if (currentOpcode == REGISTER_MISSION_PASSED)
             {
                 OnMissionPass (script);
@@ -180,7 +225,7 @@ class MissionRandomizer : public Randomizer<MissionRandomizer>
 public:
     MissionRandomizer ()
     {
-        RB_C_DO_CONFIG ("MissionRandomizer", Seed);
+        RB_C_DO_CONFIG ("MissionRandomizer", Seed, ForcedMission);
         Missions.reserve (64);
 
         InitialiseMissionsArray ();
