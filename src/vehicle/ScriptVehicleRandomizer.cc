@@ -101,9 +101,6 @@ class ScriptVehicleRandomizer : public Randomizer<ScriptVehicleRandomizer>
     static void
     ReloadPatternsCheck (CRunningScript *scr)
     {
-        if (scr->m_bIsMission)
-            CallCommand<PRINT_WITH_NUMBER_NOW>("NUMBER", CStreaming::sm_Instance->m_numVehiclesLoaded, 100, 1);
-
         if (PPSSPPUtils::CheckKeyUp<NKCODE_F5> ())
             {
                 CallCommand<PRINT_BIG>("AU_ST2", 1000, 8);

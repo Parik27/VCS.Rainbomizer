@@ -32,7 +32,7 @@ public:
 
     template <typename T>
     static void
-    ReadValue (const std::string &table, const std::string &key, T &out)
+    GetValue (const std::string &table, const std::string &key, T &out)
     {
         return GetInstance ()->ReadValue (table, key, out);
     }

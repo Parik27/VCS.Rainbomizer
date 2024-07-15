@@ -94,7 +94,7 @@ public:
     Nop (size_t at, size_t size)
     {
         for (size_t i = 0; i < size; i++)
-            CTheScripts::ScriptSpace[at] = 0x0;
+            CTheScripts::ScriptSpace[at+i] = 0x0;
     }
 };
 

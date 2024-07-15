@@ -11,6 +11,7 @@
 
 #include <core/Config.hh>
 #include <core/Logger.hh>
+#include <core/Events.hh>
 
 #include <scm/Command.hh>
 #include <scm/Opcodes.hh>
@@ -55,6 +56,15 @@ class AutoSave : public Randomizer<AutoSave>
         CTheScripts::GetGlobal<float> (285) = player->m_matrix.pos.y;
         CTheScripts::GetGlobal<float> (286) = player->m_matrix.pos.z;
 
+        CallCommand<STORE_SCORE> (Global{782}, Global{276}); // money
+
+        // Weapons
+        for (int8_t i = 0; i < 10; i++)
+            CallCommand<GET_CHAR_WEAPON_IN_SLOT> (Global{782}, i,
+                                                  Global (244 + i),
+                                                  Global (254 + i),
+                                                  Global (264 + i));
+
         GameAddress<0x8bb31b6>::Write (true);
     }
 
@@ -63,6 +73,11 @@ class AutoSave : public Randomizer<AutoSave>
     ProcessAutosave (CRunningScript *scr)
     {
         static auto ProgressMade = GameVariable<float, 0x08bb40d0>{};
+
+        // Prevent the game from calculating ground z for the save coordinates
+        // Since the other island is not loaded, this results in incorrect results
+        // and since the save coordinates are correct anyway, it's not required
+        scr->Nop (173186 - 8, 10);
 
         float prevProgress = ProgressMade;
         CRunningScript__Process (scr);
