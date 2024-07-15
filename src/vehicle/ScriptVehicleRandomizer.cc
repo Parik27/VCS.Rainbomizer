@@ -178,6 +178,9 @@ public:
         // Unlock scripted police vehicles
         GameAddress<0x8835298>::Write (li (a0, 1));
 
+        // Allow all vehicles to be pay-n-sprayable
+        GameAddress<0x0896e7a8>::WriteInstructions (li (v0, 1), jr (ra));
+
         ThreadUtils::Initialise ();
     }
 };
