@@ -92,7 +92,6 @@ inline static constexpr std::array s_Patterns = {
     Pattern{0x088f74ec, "A0 FF BD 27 ? ? B0 AF ? ? B1 AF ? ? BF AF FF FF 91 30"},
     Pattern{0x08960600, "? ? ? ? 00 00 00 00 ? ? 5e 54 ? ? ? ? ? ? ? ? 25 20 00 00", 0, Pattern::BRANCH},
     Pattern{0x08968930, "? ? ? ? 01 00 07 34 25 88 00 02 ? ? 20 12"},
-    Pattern{0x08a3675c, "? ? 84 97 01 00 82 38"},
     Pattern{0x08bb4084, "? ? 85 8f ? ? 85 ac 04 00 84 24 ? ? 85 8f", 0, Pattern::GPOFFSET},
     Pattern{0x08badd74, "? ? 84 8f ? ? 00 ae ? ? 84 8f", 0, Pattern::GPOFFSET}
 

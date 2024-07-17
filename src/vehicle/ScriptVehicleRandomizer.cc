@@ -37,7 +37,7 @@ class ScriptVehicleRandomizer : public Randomizer<ScriptVehicleRandomizer>
     {
         int ret = CollectParams (scr, p2, p3, params);
 
-        PatternResult result{params[0]};
+        ScriptVehiclePattern::Result result{params[0]};
         m_Patterns.GetRandomVehicle (eVehicle (params[0]), scr, result);
 
         int originalVehicle = params[0];

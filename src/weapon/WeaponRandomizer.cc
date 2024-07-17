@@ -8,7 +8,11 @@
 #include "core/Config.hh"
 
 #include "memory/GameAddress.hh"
+#include "ppsspp/Keyboard.hh"
+#include "scm/Command.hh"
+#include "scm/Opcodes.hh"
 #include "weapon/Common.hh"
+#include "weapon/WeaponPatterns.hh"
 
  #include <vcs/CVehicle.hh>
 #include <vcs/CWeaponInfo.hh>
@@ -16,12 +20,13 @@
 #include <vcs/CPed.hh>
 #include <vcs/CDarkel.hh>
 
-
 class WeaponRandomizer : public Randomizer<WeaponRandomizer>
 {
     inline static int ForcedWeapon = -1;
     inline static bool DisableWeaponRandomizer = false;
     inline static int RampageWeapon = -1;
+
+    inline static WeaponPatternManager m_Patterns;
 
     template <auto &CPed__GiveWeapon>
     static int
@@ -30,19 +35,13 @@ class WeaponRandomizer : public Randomizer<WeaponRandomizer>
         if (weaponType == 0 || DisableWeaponRandomizer)
             return CPed__GiveWeapon (ped, weaponType, ammo, p4);
 
-        int newWeapon = WeaponsCommon::GetRandomUsableWeapon ();
-
-        if (ped == FindPlayerPed () && CDarkel::FrenzyGoingOn ()
-            && RampageWeapon != -1)
-        {
-            newWeapon = RampageWeapon;
-            RampageWeapon = -1;
-        }
+        WeaponPattern::Result result{weaponType};
+        m_Patterns.GetRandomWeapon (ped, weaponType, ammo, result);
 
         if (ForcedWeapon != -1)
-            newWeapon = ForcedWeapon;
+            result.Weapon = ForcedWeapon;
 
-        return CPed__GiveWeapon (ped, newWeapon, ammo, p4);
+        return CPed__GiveWeapon (ped, result.Weapon, ammo, p4);
     }
 
     template <auto &CWeapon__FireWeapon>
@@ -144,25 +143,51 @@ class WeaponRandomizer : public Randomizer<WeaponRandomizer>
         DisableWeaponRandomizer = false;
     }
 
-template<auto &CDarkel__StartFrenzy>
-static void 
-SetRandomPlayerWeaponForRampage(int weapon, int time, short kill, int modelId0, short* text,
-		int modelId2, int modelId3, int modelId4, bool standardSound, bool needHeadshot)
-{
-    RampageWeapon = WeaponsCommon::GetRandomUsableWeapon ();
-    CDarkel__StartFrenzy(RampageWeapon, time, kill, modelId0, text,
-        modelId2, modelId3, modelId4, standardSound, needHeadshot);
- }
- 
+#ifdef MELEE_DEBUG
+    inline static float coronaX    = 0;
+    inline static float coronaY    = 0;
+    inline static float coronaZ    = 0;
+    inline static float coronaSize = 0;
+
+    template <auto &CWorld__TestSphereAgainstWorld>
+    static int
+    DrawMeleeDebugSphere (float p1, float *p2, uint32_t p3, uint32_t p4,
+                          uint32_t p5, uint32_t p6, uint32_t p7, uint8_t p8,
+                          uint32_t p9, uint8_t p10)
+    {
+        Rainbomizer::Logger::LogMessage ("DRAWING SPHERE: %f %f %f", p2[0],
+                                         p2[1], p2[2]);
+        coronaX    = p2[0];
+        coronaY    = p2[1];
+        coronaZ    = p2[2];
+        coronaSize = p1;
+        CallCommand<DRAW_CORONA> (p2[0], p2[1], p2[2], p1, 6, 0, 0, 200, 0);
+        return CWorld__TestSphereAgainstWorld (p1, p2, p3, p4, p5, p6, p7, p8,
+                                               p9, p10);
+    }
+
+    template <auto &CRunningScript__Process>
+    static void
+    DrawCorona (CRunningScript *scr)
+    {
+        static char textthing[256] = {};
+
+        if (PPSSPPUtils::CheckKeyUp<NKCODE_K> ())
+            {
+            }
+
+        CallCommand<DRAW_CORONA> (coronaX, coronaY, coronaZ, coronaSize, 4, 2,
+                                  255, 0, 0);
+        CRunningScript__Process (scr);
+    }
+#endif
+
 public:
     WeaponRandomizer ()
     {
         bool EnableCustomDriveBy = false;
 
         RB_C_DO_CONFIG ("WeaponRandomizer", ForcedWeapon, EnableCustomDriveBy)
-
-        HOOK (Jal, 0x08869b00, DrawCorona,
-              void (class CRunningScript *));
 
         HOOK (Jmp, (0x0891b7dc), RandomizeWeapon,
               int (class CPed *, int, int, bool));
@@ -198,7 +223,15 @@ public:
 
         HOOK (Jal, 0x08ac53f8, SkipWeaponRandomizationForPickups, void ());
 
-        HOOK (Jal, (0x8aa0640), SetRandomPlayerWeaponForRampage, 
-            void (int, int, short, int, short*, int, int, int, bool, bool));
+#ifdef MELEE_DEBUG
+        HOOK (Jal, 0x8a48038, DrawMeleeDebugSphere,
+              int (float, float *, uint32_t, uint32_t, uint32_t, uint32_t,
+                   uint32_t, uint8_t, uint32_t, uint8_t));
+
+        HOOK (Jal, 0x08869b00, DrawCorona,
+              void (class CRunningScript *));
+#endif
+
+        m_Patterns.ReadPatterns("WeaponPatterns.txt");
     }
 };

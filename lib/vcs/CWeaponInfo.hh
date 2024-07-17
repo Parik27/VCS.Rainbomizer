@@ -46,6 +46,7 @@ enum eWeapon
     WEAPON_HELICANNON,
     WEAPON_CAMERA,
     WEAPON_BINOCULARS,
+    WEAPON_NUM_WEAPONS
 };
 
 class CWeaponInfo

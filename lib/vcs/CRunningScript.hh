@@ -17,6 +17,7 @@ public:
 class CTheScripts
 {
 public:
+    static constexpr GameVariable<CRunningScript*, 0x08bb4050> CurrentScript{};
     static constexpr GameVariable<unsigned char *, 0x8baaf44> ScriptSpace{};
     static constexpr GameVariable<int[20], 0x8bc77c8>         ScriptParams{};
     static constexpr GameVariable<int, 0x8bb4084>             MainScriptSize{};

@@ -7,12 +7,6 @@
 #include <cstdint>
 #include <vector>
 
-struct PatternResult
-{
-    int            vehId  = -1;
-    const CVector *coords = nullptr;
-};
-
 class ScriptVehiclePattern
 {
     struct VehicleTypes
@@ -49,11 +43,17 @@ class ScriptVehiclePattern
     }
 
 public:
+    struct Result
+    {
+        int            vehId  = -1;
+        const CVector *coords = nullptr;
+    };
+
     bool IsValidVehicleForPattern (eVehicle id) const;
     void Cache ();
 
-    void GetRandom (PatternResult &result) const;
-    void GetRandomLoaded (PatternResult &result) const;
+    void GetRandom (Result &result) const;
+    void GetRandomLoaded (Result &result) const;
 
     bool Match (uint32_t hash, CRunningScript *script) const;
 
@@ -67,5 +67,5 @@ class VehiclePatternManager
 public:
     void ReadPatterns (const char *file);
     void GetRandomVehicle (eVehicle original, CRunningScript *script,
-                           PatternResult &result);
+                           ScriptVehiclePattern::Result &result);
 };

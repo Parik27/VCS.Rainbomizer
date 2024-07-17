@@ -29,34 +29,22 @@ class VoiceLineRandomizer : public Randomizer<VoiceLineRandomizer>
                                            line.subtitle.c_str ());
     }
 
-    template <int N, typename T, typename U>
-    bool
-    StringCompare (T &a, U &b)
-    {
-        for (size_t i = 0; i < N; i++)
-            {
-                if (a[i] != b[i])
-                    return false;
-            }
-
-        return true;
-    }
-
     void
     ReadSubtitlesFromEntries (CKeyArray &keyArray)
     {
         int max = 0;
-        for (auto &i : std::span(keyArray.entries, keyArray.numEntries))
+        for (auto &i : std::span (keyArray.entries, keyArray.numEntries))
             {
-                for (auto &j : m_voiceLines) {
-
-                        if (!j.resolved && StringCompare<7> (j.subtitle, i.key))
+                auto key = std::string_view (i.key);
+                for (auto &j : m_voiceLines)
+                    {
+                        if (!j.resolved && std::ranges::equal (j.subtitle, key))
                             {
                                 j.subtitle = i.value;
                                 j.resolved = true;
                                 break;
                             }
-                }
+                    }
             }
     }
 

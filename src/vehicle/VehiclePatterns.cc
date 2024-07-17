@@ -59,7 +59,7 @@ ScriptVehiclePattern::Read (const char *line)
 }
 
 void
-ScriptVehiclePattern::GetRandom (PatternResult &result) const
+ScriptVehiclePattern::GetRandom (Result &result) const
 {
     auto patternFilter
         = [this] (int id) { return IsValidVehicleForPattern (eVehicle (id)); };
@@ -133,9 +133,9 @@ VehiclePatternManager::ReadPatterns (const char *file)
 }
 
 void
-VehiclePatternManager::GetRandomVehicle (eVehicle        original,
-                                         CRunningScript *script,
-                                         PatternResult  &result)
+VehiclePatternManager::GetRandomVehicle (eVehicle                      original,
+                                         CRunningScript               *script,
+                                         ScriptVehiclePattern::Result &result)
 {
     auto model
         = ModelInfo::GetModelInfo<CVehicleModelInfo> (original)->m_hashName;

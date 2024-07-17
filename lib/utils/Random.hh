@@ -4,7 +4,9 @@
 
 #include <cstdint>
 #include <vector>
+#include <random>
 
+std::mt19937 &RandEngine ();
 int          RandomInt (int max);
 int          RandomInt (int min, int max);
 size_t       RandomSize (size_t max);

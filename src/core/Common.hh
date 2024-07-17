@@ -70,16 +70,16 @@ public:
 class Common
 {
 public:
-    static std::string GetRainbomizerFileName (const std::string &name,
-                                               const std::string &subdirs = "",
-                                               bool               temp = false);
+    static std::string GetRainbomizerFileName
+        [[nodiscard]] (const std::string &name, const std::string &subdirs = "",
+                       bool temp = false);
 
-    static FileWrapper GetRainbomizerFile (const std::string &name,
-                                           const std::string &mode,
-                                           const std::string &subdirs = "",
-                                           bool tempFallback          = false);
+    static FileWrapper GetRainbomizerFile
+        [[nodiscard]] (const std::string &name, const std::string &mode,
+                       const std::string &subdirs      = "",
+                       bool               tempFallback = false);
 
-    static FileWrapper GetRainbomizerDataFile (const std::string &name,
-                                               const std::string &mode = "r");
+    static FileWrapper GetRainbomizerDataFile
+        [[nodiscard]] (const std::string &name, const std::string &mode = "r");
 };
 } // namespace Rainbomizer
