@@ -48,20 +48,30 @@ WeaponPattern::Read (const char *line)
 
     for (auto i : std::ranges::split_view (pattern, ' '))
         {
-            auto type    = std::ranges::split_view (i, '=').begin ();
-            auto type_s  = std::string_view (*type);
-            auto value_s = std::string_view (*++type);
+            auto split_view = std::ranges::split_view (i, '=');
+
+            if (std::ranges::distance(split_view) != 2)
+                continue;
+
+            auto it = split_view.begin();
+            auto type_s  = std::string_view (*it);
+            auto value_s = std::string_view (*++it);
 
             float weight;
             std::from_chars (value_s.data (), value_s.data () + value_s.size (),
                              weight);
 
-            Rainbomizer::Logger::LogMessage ("%s", type_s.data ());
-
             auto group = GetWeaponGroup (type_s);
             group.ForEachWeapon ([this, &weights, weight] (int weapon) {
                 weights[weapon] = weight;
             });
+
+
+            Rainbomizer::Logger::LogMessage("%s", line);
+            for (auto [weight, idx] : std::views::zip(weights, std::views::iota(0)))
+                {
+                    Rainbomizer::Logger::LogMessage("%d = %f", idx, weight);
+                }
         }
 
     m_Distribution
@@ -85,7 +95,7 @@ WeaponPatternManager::ReadPatterns (const char *file)
     });
 }
 
-void
+bool
 WeaponPatternManager::GetRandomWeapon (CPed *ped, int weaponType, int ammo,
                                        WeaponPattern::Result &pattern)
 {
@@ -100,11 +110,12 @@ WeaponPatternManager::GetRandomWeapon (CPed *ped, int weaponType, int ammo,
             if (p.Match (ped, currentMission, weaponType, ammo))
                 {
                     p.GetRandom (pattern);
-                    return;
+                    return true;
                 }
         }
 
     pattern.Weapon = weaponType;
+    return false;
 }
 
 bool

@@ -61,6 +61,7 @@ public:
         char buffer[BUFFER_SIZE];
         while (fgets (buffer, sizeof (buffer), file))
             {
+                buffer[strcspn (buffer, "\r")] = '\0';
                 buffer[strcspn (buffer, "\n")] = '\0';
                 f (buffer);
             }

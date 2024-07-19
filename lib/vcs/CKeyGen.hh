@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cstdint>
+#include <string_view>
 
 class CKeyGen
 {
@@ -70,27 +71,17 @@ public:
     }
 
     inline static constexpr int
-    GetUppercaseKey (const char *param_1)
+    GetUppercaseKey (std::string_view param_1)
     {
-        uint32_t uVar1 = 0xffffffff;
-        if ((int) *param_1 != 0)
+        uint32_t key = 0xffffffff;
+        for (auto ch : param_1)
             {
-                char ch = *param_1;
                 if (ch >= 'a' && ch <= 'z')
                     ch -= 0x20;
 
-                uint32_t uVar2 = (int) ch ^ 0xffffffff;
-                do
-                    {
-                        param_1 = param_1 + 1;
-			char ch = *param_1;
-			if (ch >= 'a' && ch <= 'z')
-			  ch -= 0x20;
-
-                        uVar1   = uVar1 >> 8 ^ crc32_table[uVar2 & 0xff];
-                        uVar2   = (int) ch ^ uVar1;
-                } while ((int) *param_1 != 0);
+                key = crc32_table[(key ^ ch) % 256] ^ (key >> 8);
             }
-        return uVar1;
+
+        return key;
     }
 };

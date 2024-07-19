@@ -60,7 +60,7 @@ public:
     static CWeaponInfo *
     GetWeaponInfo (int id)
     {
-        return GameFunction<0x8b20150, CWeaponInfo *(int, int)>::Call (0, id);
+        return GameFunction<0x8b20150, CWeaponInfo *(int)>::Call (id);
     }
 };
 

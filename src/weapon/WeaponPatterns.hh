@@ -33,6 +33,6 @@ class WeaponPatternManager
 
 public:
     void ReadPatterns (const char *file);
-    void GetRandomWeapon (CPed *ped, int weaponType, int ammo,
+    bool GetRandomWeapon (CPed *ped, int weaponType, int ammo,
                           WeaponPattern::Result &pattern);
 };

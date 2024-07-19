@@ -25,24 +25,13 @@ public:
     {
         int newModel = model;
 
-        newModel = GetRandomElement (
-            std::views::iota (8, 167) | std::views::filter ([] (int i) {
-                return CStreaming::HasModelLoaded (i);
-            }));
-
-        if (ForcedPed != -1)
+        if (!CStreaming::HasModelLoaded (model))
             {
-                CStreaming::RequestModel (newModel, 0x3abccc);
+                CStreaming::RequestModel (model);
                 CStreaming::LoadAllRequestedModels (false);
-
-                if (CStreaming::HasModelLoaded (newModel))
-                    newModel = ForcedPed;
             }
 
         SetModelIndex (ped, newModel);
-
-        // This breaks ped colours but fixes rampages
-        // ped->m_nModelIndex = model;
     }
 
     PedRandomizer ()
