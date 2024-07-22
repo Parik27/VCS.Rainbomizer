@@ -35,9 +35,10 @@ constexpr void
 ScriptVehiclePattern::ReadVehicleGroupFlag (std::string_view flag)
 {
     constexpr auto &group = std::get<I> (s_VehicleGroups);
-    if (flag == group.name) {
-        m_aIncludedGroups[I] = true;
-    }
+    if (flag == group.name)
+        {
+            m_aIncludedGroups[I] = true;
+        }
 
     else if (flag.starts_with ("Not") && flag.substr (3) == group.name)
         m_aExcludedGroups[I] = true;
@@ -54,12 +55,12 @@ ScriptVehiclePattern::ReadFlag (std::string_view flag)
 }
 
 void
-ScriptVehiclePattern::ReadFlags (const char* line)
+ScriptVehiclePattern::ReadFlags (const char *line)
 {
-    auto flags = std::string_view(line);
-    for (auto flag : std::views::split(flags, '+'))
+    auto flags = std::string_view (line);
+    for (auto flag : std::views::split (flags, '+'))
         {
-            ReadFlag (std::string_view(flag));
+            ReadFlag (std::string_view (flag));
         }
 }
 
@@ -98,7 +99,8 @@ ScriptVehiclePattern::GetRandom (Result &result) const
 {
     auto patternFilter
         = [this] (int id) { return IsValidVehicleForPattern (eVehicle (id)); };
-    bool streamingOverloaded = CStreaming::sm_Instance->m_numVehiclesLoaded > STREAMING_THRESHOLD;
+    bool streamingOverloaded
+        = CStreaming::sm_Instance->m_numVehiclesLoaded > STREAMING_THRESHOLD;
 
     if (streamingOverloaded)
         {
@@ -127,22 +129,17 @@ ScriptVehiclePattern::Match (uint32_t hash, CRunningScript *script) const
     return m_nOriginalVehicle == hash;
 }
 
-template <size_t I, bool Included>
+template <size_t I>
 constexpr bool
 ScriptVehiclePattern::DoesVehicleSatisfyGroupRequirement (eVehicle id) const
 {
     constexpr auto &group = std::get<I> (s_VehicleGroups);
 
-    if constexpr (Included)
-        {
-            if (m_aIncludedGroups[I])
-                return DoesElementExist (group.vehicles, id);
-        }
-    else
-        {
-            if (m_aExcludedGroups[I])
-                return !DoesElementExist (group.vehicles, id);
-        }
+    if (m_aIncludedGroups[I] && !DoesElementExist (group.vehicles, id))
+        return false;
+
+    if (m_aExcludedGroups[I] && DoesElementExist (group.vehicles, id))
+        return false;
 
     return true;
 }
@@ -151,15 +148,7 @@ constexpr bool
 ScriptVehiclePattern::DoesVehicleSatisfyGroupRequirements (eVehicle id) const
 {
     return [this, id]<std::size_t... I> (std::index_sequence<I...>) {
-        bool included
-            = m_aIncludedGroups.none ()
-              || (... && DoesVehicleSatisfyGroupRequirement<I, true> (id));
-
-        bool excluded
-            = m_aExcludedGroups.none ()
-              || (... && DoesVehicleSatisfyGroupRequirement<I, false> (id));
-
-        return included && excluded;
+        return (... && DoesVehicleSatisfyGroupRequirement<I> (id));
     }(std::make_index_sequence<
                std::tuple_size_v<decltype (s_VehicleGroups)>>{});
 }

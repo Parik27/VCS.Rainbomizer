@@ -59,7 +59,7 @@ public:
         const CVector *coords = nullptr;
     };
 
-    template <size_t, bool Included>
+    template <size_t>
     inline constexpr bool DoesVehicleSatisfyGroupRequirement (eVehicle id) const;
     inline constexpr bool DoesVehicleSatisfyGroupRequirements (eVehicle id) const;
 

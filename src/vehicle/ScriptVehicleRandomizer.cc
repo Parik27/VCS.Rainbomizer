@@ -149,6 +149,19 @@ class ScriptVehicleRandomizer : public Randomizer<ScriptVehicleRandomizer>
         return op_HAS_MODEL_LOADED (script);
     }
 
+    template <auto &CWeapon__DoDrivebyAutoAim>
+    static void
+    FixHeliAutoaim (CPed *driver, CVehicle *vehicle, CVector *source,
+                    CVector *target)
+    {
+        int16_t oldMid = vehicle->m_nModelIndex;
+        if (oldMid == VEHICLE_SESPAROW || oldMid == VEHICLE_AUTOGYRO)
+            vehicle->m_nModelIndex = VEHICLE_HUNTER;
+
+        CWeapon__DoDrivebyAutoAim (driver, vehicle, source, target);
+        vehicle->m_nModelIndex = oldMid;
+    }
+
 public:
     ScriptVehicleRandomizer ()
     {
@@ -180,6 +193,12 @@ public:
 
         // Allow all vehicles to be pay-n-sprayable
         GameAddress<0x0896e7a8>::WriteInstructions (li (v0, 1), jr (ra));
+
+        // Fix slot0
+        // blez s1, 0x14 -> bltz s1, 0x14
+        GameAddress<0x08ae9210>::WriteInstructions (0x06200004);
+
+        HOOK (Jal, 0x8a49344, FixHeliAutoaim, void (CPed*, CVehicle*, CVector*, CVector*));
 
         ThreadUtils::Initialise ();
     }
