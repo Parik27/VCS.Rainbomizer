@@ -34,10 +34,10 @@ class ScriptVehiclePattern
     uint16_t m_Mission          = 0;
 
     std::bitset<std::tuple_size_v<decltype (s_VehicleGroups)>>
-        m_aIncludedGroups;
+        m_aIncludedGroups = 0;
 
     std::bitset<std::tuple_size_v<decltype (s_VehicleGroups)>>
-        m_aExcludedGroups;
+        m_aExcludedGroups = 0;
 
 #ifdef USE_CACHE
     bool                  m_bCached = false;
