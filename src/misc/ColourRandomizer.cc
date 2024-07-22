@@ -70,6 +70,10 @@ class ColourRandomizer : public Randomizer<ColourRandomizer>
 
     // clang-format off
     inline static constexpr std::tuple colourizers{
+        TextureColourizer{"hudnumbers", {0x206e20}},
+        TextureColourizer{"ndc_redballoon", {0xff0000}},
+        TextureColourizer{"bar_inside1", {0x09fffa}},
+        TextureColourizer{"bar_inside2", {0xe45c95}},
         TextureColourizer{"starflame",
                           {0x145ED3,0x11479B,0x0B2B62,0x061A39,0x070A0F,}},
 

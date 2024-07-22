@@ -4,8 +4,12 @@
 #include "vcs/CVector.hh"
 #include "vcs/CModelInfo.hh"
 #include "vcs/CVehicle.hh"
+
 #include <cstdint>
 #include <vector>
+#include <bitset>
+
+#include "VehicleGroups.hh"
 
 class ScriptVehiclePattern
 {
@@ -29,6 +33,12 @@ class ScriptVehiclePattern
     uint32_t m_nOriginalVehicle = 0;
     uint16_t m_Mission          = 0;
 
+    std::bitset<std::tuple_size_v<decltype (s_VehicleGroups)>>
+        m_aIncludedGroups;
+
+    std::bitset<std::tuple_size_v<decltype (s_VehicleGroups)>>
+        m_aExcludedGroups;
+
 #ifdef USE_CACHE
     bool                  m_bCached = false;
     std::vector<uint32_t> m_aCache;
@@ -49,6 +59,10 @@ public:
         const CVector *coords = nullptr;
     };
 
+    template <size_t, bool Included>
+    inline constexpr bool DoesVehicleSatisfyGroupRequirement (eVehicle id) const;
+    inline constexpr bool DoesVehicleSatisfyGroupRequirements (eVehicle id) const;
+
     bool IsValidVehicleForPattern (eVehicle id) const;
     void Cache ();
 
@@ -57,6 +71,11 @@ public:
 
     bool Match (uint32_t hash, CRunningScript *script) const;
 
+    template <size_t I>
+    inline constexpr void ReadVehicleGroupFlag (std::string_view flag);
+
+    inline constexpr void ReadFlag (std::string_view flag);
+    void ReadFlags (const char *line);
     void Read (const char *line);
 };
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "memory/GameAddress.hh"
+#include "vcs/CVector.hh"
 #include <cstdint>
 
 class CBaseModelInfo
@@ -64,10 +65,7 @@ public:
     eVehicleType m_vehicleType;
     float        m_wheelScale;
     float        m_wheelScaleRear;
-    uint8_t      field12_0x60;
-    uint8_t      field13_0x61;
-    uint8_t      field14_0x62;
-    uint8_t      field15_0x63;
+    CVector      m_positions[15];
 };
 
 class ModelInfo

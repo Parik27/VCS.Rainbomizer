@@ -83,6 +83,13 @@ public:
                                                             output);
     }
 
+    void
+    StoreParams (uint32_t *ip, int numParams)
+    {
+        GameFunction<0x08862890, void (CRunningScript *, uint32_t *, int)>::Call (
+            this, ip, numParams);
+    }
+
     uint16_t
     GetCurrentOpcode ()
     {

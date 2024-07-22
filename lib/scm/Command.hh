@@ -2,6 +2,7 @@
 
 #include "core/Logger.hh"
 #include "memory/GameAddress.hh"
+#include "scm/Opcodes.hh"
 #include "vcs/CRunningScript.hh"
 #include <algorithm>
 #include <array>
@@ -68,12 +69,27 @@ EncodeArgument (const char (&str)[N])
     return arr;
 }
 
+template <size_t N>
+constexpr auto
+EncodeArgument (const std::array<uint8_t, N> &arr)
+{
+    return arr;
+}
+
 constexpr auto
 EncodeArgument (Global global)
 {
     return std::array<uint8_t, 2>{uint8_t ((global.idx >> 8) + 0xCD),
                                   uint8_t (global.idx & 0xFF)};
 }
+
+constexpr auto
+EncodeArgument (Local local)
+{
+    return std::array<uint8_t, 2>{uint8_t ((local.idx >> 8) + 0x6D),
+                                  uint8_t (local.idx & 0xFF)};
+}
+
 
 template <size_t N>
 constexpr auto
@@ -100,13 +116,152 @@ GenerateCommandBuffer (Args &&...args)
                         EncodeArgument (args)...);
 }
 
-template <uint16_t Opcode, typename... Args>
+/* This class is not thread safe. Only use it from the game script thread */
+class CommandCaller
+{
+    inline static constinit CRunningScript callerThread;
+
+public:
+    template <uint16_t Opcode, typename... Args>
+    static void
+    Call (Args &&...args)
+    {
+        auto buffer
+            = GenerateCommandBuffer<Opcode> (std::forward<Args> (args)...);
+        for (auto i : buffer)
+            {
+                if (i == 0)
+                    break;
+            }
+
+        // Smart compiler optimizes away assignment to an integer if I just
+        // store it in integer current ip.
+        callerThread.m_pCurrentIpPtr = buffer.data ();
+        callerThread.m_pCurrentIP -= int32_t (CTheScripts::ScriptSpace.Get ());
+
+        callerThread.ProcessOneCommand ();
+    }
+
+    template <typename T>
+    static T &
+    GetLocal (Local local)
+    {
+        return *(T*) &callerThread.GetLocalVariable (local.idx);
+    }
+
+    static bool
+    GetResult ()
+    {
+        return callerThread.m_bCondResult;
+    }
+
+    template <int32_t Size> class BackedUpScriptArgs
+    {
+        std::array<uint32_t, Size> m_backup;
+
+        BackedUpScriptArgs ()
+        {
+            for (size_t i = 0; i < Size; i++)
+                m_backup[i] = CTheScripts::ScriptParams[i];
+        }
+
+        ~BackedUpScriptArgs ()
+        {
+            for (size_t i = 0; i < Size; i++)
+                CTheScripts::ScriptParams[i] = m_backup[i];
+        }
+    };
+};
+
+template <uint16_t Opcode, bool BackupScriptArgs = false, typename... Args>
 void
 CallCommand (Args &&...args)
 {
-    static constinit CRunningScript caller;
-    auto buffer = GenerateCommandBuffer<Opcode> (std::forward<Args> (args)...);
-    caller.m_pCurrentIP
-        = int32_t (buffer.data () - CTheScripts::ScriptSpace);
-    caller.ProcessOneCommand ();
+    if constexpr (BackupScriptArgs)
+        {
+            CommandCaller::BackedUpScriptArgs<sizeof...(Args)> backup;
+            CommandCaller::Call<Opcode> (std::forward<Args> (args)...);
+        }
+    else
+        CommandCaller::Call<Opcode> (std::forward<Args> (args)...);
 }
+
+template <size_t NumReturn, typename Class, typename... Params>
+class ScriptCommandHook
+{
+    inline static int (*OriginalCommand) (CRunningScript *);
+public:
+    static void
+    Call (Params... params)
+    {
+        auto script           = CTheScripts::CurrentScript;
+        auto buffer           = concatenate (GenerateArgumentBuffer (params)...,
+                                             std::array<uint8_t, NumReturn * 3>{0});
+        auto returnParamsAddr = buffer.data () + buffer.size () - NumReturn * 3;
+
+        memcpy (returnParamsAddr,
+                &CTheScripts::ScriptSpace[script->m_pCurrentIP], NumReturn * 3);
+
+        auto prevIp             = script->m_pCurrentIP;
+        script->m_pCurrentIpPtr = buffer.data ();
+        script->m_pCurrentIP -= int32_t (CTheScripts::ScriptSpace.Get ());
+
+        auto ipBeforeCall = script->m_pCurrentIP;
+        OriginalCommand (script);
+        auto bytesToSkip = script->m_pCurrentIP - ipBeforeCall;
+
+        script->m_pCurrentIP
+            = prevIp + (bytesToSkip - (buffer.size () - NumReturn * 3));
+    }
+
+    template <typename... Args>
+    static void
+    Return (Args... args)
+    {
+        auto                               script = CTheScripts::CurrentScript;
+        std::array<uint8_t, NumReturn * 3> buffer;
+
+        [args...]<std::size_t... I> (std::index_sequence<I...>) {
+            ((GetParam<I, Args> () = args), ...);
+        }(std::make_index_sequence<sizeof...(Args)> {});
+
+        memcpy (buffer.data (), &CTheScripts::ScriptSpace[script->m_pCurrentIP],
+                NumReturn * 3);
+
+        auto prevIp             = script->m_pCurrentIP;
+        script->m_pCurrentIpPtr = buffer.data ();
+        script->m_pCurrentIP -= int32_t (CTheScripts::ScriptSpace.Get ());
+
+        auto ipBeforeCall = script->m_pCurrentIP;
+        script->StoreParams (&script->m_pCurrentIP, NumReturn);
+        auto bytesToSkip = script->m_pCurrentIP - ipBeforeCall;
+
+        script->m_pCurrentIP = prevIp + bytesToSkip;
+    }
+
+    template<std::size_t I, typename T>
+    static T&
+    GetParam ()
+    {
+        return *reinterpret_cast<T*>(&CTheScripts::ScriptParams[I]);
+    }
+
+    template <auto &OriginalCommand>
+    static int
+    Hook (CRunningScript *script)
+    {
+        script->CollectParams (&script->m_pCurrentIP, sizeof...(Params),
+                               CTheScripts::ScriptParams);
+
+        ScriptCommandHook::OriginalCommand = OriginalCommand;
+
+        []<std::size_t... I> (std::index_sequence<I...>) {
+            Class::Impl (GetParam<I, Params> ()...);
+        }(std::make_index_sequence<sizeof...(Params)>{});
+
+        return 0;
+    }
+};
+
+template <typename Class, typename... Params>
+class ScriptCommandHook<0, Class, Params...>;

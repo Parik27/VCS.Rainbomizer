@@ -16,6 +16,7 @@ public:
     union
     {
         ATOFFSET (0x0, CMatrix, m_matrix);
+        ATOFFSET (0x56, short, m_nModelIndex);
         ATOFFSET (0x30, CVector, vecPosition);
         ATOFFSET (0x81c, CPed *, pPointGunAt)
         ATOFFSET (0x450, CPed *, pSeekTarget)

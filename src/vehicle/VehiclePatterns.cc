@@ -9,6 +9,7 @@
 #include "vcs/CVehicle.hh"
 #include "vehicle/Common.hh"
 #include <cstdio>
+#include "VehicleGroups.hh"
 
 constexpr int STREAMING_THRESHOLD = 17;
 
@@ -26,6 +27,38 @@ ScriptVehiclePattern::VehicleTypes::GetValue (eVehicleType type) const
         case VEHICLE_TYPE_BMX: return Bicycles;
         case VEHICLE_TYPE_QUAD: return Quadbikes;
         default: return false;
+        }
+}
+
+template <size_t I>
+constexpr void
+ScriptVehiclePattern::ReadVehicleGroupFlag (std::string_view flag)
+{
+    constexpr auto &group = std::get<I> (s_VehicleGroups);
+    if (flag == group.name)
+        m_aIncludedGroups[I] = true;
+
+    if (flag.starts_with ("!") && flag.substr (1) == group.name)
+        m_aExcludedGroups[I] = true;
+}
+
+constexpr void
+ScriptVehiclePattern::ReadFlag (std::string_view flag)
+{
+    // Vehicle Group Flags
+    [this, flag]<std::size_t... I> (std::index_sequence<I...>) {
+        (..., ReadVehicleGroupFlag<I> (flag));
+    }(std::make_index_sequence<
+        std::tuple_size_v<decltype (s_VehicleGroups)>>{});
+}
+
+void
+ScriptVehiclePattern::ReadFlags (const char* line)
+{
+    auto flags = std::string_view(line);
+    for (auto flag : std::views::split(flags, '+'))
+        {
+            ReadFlag (std::string_view(flag));
         }
 }
 
@@ -48,6 +81,7 @@ ScriptVehiclePattern::Read (const char *line)
             &m_vecMovedCoords.y, &m_vecMovedCoords.z);
 
     m_nOriginalVehicle = CKeyGen::GetUppercaseKey (vehicleName);
+    ReadFlags (flags);
 
     mAllowedTypes
         = {cars == 'Y',   bikes == 'Y',       bicycles == 'Y', quadbikes == 'Y',
@@ -92,6 +126,40 @@ ScriptVehiclePattern::Match (uint32_t hash, CRunningScript *script) const
     return m_nOriginalVehicle == hash;
 }
 
+template <size_t I, bool Included>
+constexpr bool
+ScriptVehiclePattern::DoesVehicleSatisfyGroupRequirement (eVehicle id) const
+{
+    constexpr auto &group = std::get<I> (s_VehicleGroups);
+
+    if constexpr (Included)
+        {
+            if (m_aIncludedGroups[I] && !DoesElementExist (group.vehicles, id))
+                return false;
+        }
+    else
+        {
+            if (m_aExcludedGroups[I] && DoesElementExist (group.vehicles, id))
+                return false;
+        }
+
+    return true;
+}
+
+constexpr bool
+ScriptVehiclePattern::DoesVehicleSatisfyGroupRequirements (eVehicle id) const
+{
+    return [this, id]<std::size_t... I> (std::index_sequence<I...>) {
+        bool included
+            = (... || DoesVehicleSatisfyGroupRequirement<I, true> (id));
+        bool excluded
+            = (... && DoesVehicleSatisfyGroupRequirement<I, false> (id));
+
+        return included && excluded;
+    }(std::make_index_sequence<
+               std::tuple_size_v<decltype (s_VehicleGroups)>>{});
+}
+
 bool
 ScriptVehiclePattern::IsValidVehicleForPattern (eVehicle id) const
 {
@@ -107,6 +175,9 @@ ScriptVehiclePattern::IsValidVehicleForPattern (eVehicle id) const
           + 1;
 
     if (seats < m_nSeatCheck)
+        return false;
+
+    if (!DoesVehicleSatisfyGroupRequirements (id))
         return false;
 
     return mAllowedTypes.GetValue (vehType) || mMovedTypes.GetValue (vehType);
