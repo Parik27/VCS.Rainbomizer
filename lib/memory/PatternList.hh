@@ -15,6 +15,8 @@
  $gp.
  */
 
+#pragma once
+
 #include "Pattern.hh"
 #include <array>
 
@@ -99,5 +101,7 @@ inline static constexpr std::array s_Patterns = {
     Pattern{0x08ad8274, "90 FF BD 27 ? ? 85 93 ? ? B0 AF ? ? B1 AF ? ? B2 AF"},
     Pattern{0x08bb4050, "? ? 84 AF ? ? 85 90", 0, Pattern::GPOFFSET},
     Pattern{0x0896e7a8, "? ? 85 84 BF 00 A6 28"},
-    Pattern{0x08bc77c8, "? ? 12 3c 25 28 20 02 01 00 06 34 ? ? ? ? ? ? ? ? ? ? ? 26 ? ? ? ? 04 63 00 46", 0, Pattern::UPPER_AND_ADD, 0x14}
+    Pattern{0x08bc77c8, "? ? 12 3c 25 28 20 02 01 00 06 34 ? ? ? ? ? ? ? ? ? ? ? 26 ? ? ? ? 04 63 00 46", 0, Pattern::UPPER_AND_ADD, 0x14},
+    Pattern{0x08ae9210, "? ? 20 1a 28 00 25 2a ? ? a0 10"},
+    Pattern{0x8a49344, "? ? ? ? 25 38 00 02 25 20 00 02"},
 };

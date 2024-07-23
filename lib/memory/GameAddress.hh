@@ -30,9 +30,9 @@ DoesPatternExist ()
 template <uint32_t Address> class GameAddress
 {
     inline static uintptr_t resolvedAddress = Address;
+    inline static bool resolved = false;
 
 #ifdef DEBUG_GAME_ADDRESSES
-    inline static bool resolved                 = false;
     inline static bool unresolvedMessagePrinted = false;
 #endif
 
@@ -69,13 +69,23 @@ public:
         Read <T> () = value;
     }
 
+    static bool
+    IsResolved ()
+    {
+        return resolved;
+    }
+
+    static const uintptr_t &
+    GetResolvedAddress ()
+    {
+        return resolvedAddress;
+    }
+
     static void
     SetResolvedAddress (uintptr_t addr)
     {
         resolvedAddress = addr;
-#ifdef DEBUG_GAME_ADDRESSES
         resolved = true;
-#endif
     }
 
     static void

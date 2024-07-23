@@ -9,6 +9,7 @@
 class MemoryManager
 {
     void InitialiseAllPatterns ();
+    std::string GetCacheFileName ();
 
 public:
 

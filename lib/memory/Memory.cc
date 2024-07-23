@@ -1,5 +1,6 @@
 #include "Memory.hh"
 #include "core/Logger.hh"
+#include "memory/Cache.hh"
 #include "memory/GameAddress.hh"
 #include "memory/MemorySignature.hh"
 #include "memory/Pattern.hh"
@@ -18,6 +19,9 @@ InitialisePattern (MemoryManager& manager)
     using namespace MemorySignature;
 
     constexpr const auto &currentPattern = s_Patterns[NUM];
+
+    if (GameAddress<currentPattern.address>::IsResolved ())
+        return;
 
     static constinit const Signature<GetMemorySignatureSize (
         currentPattern.pattern_str)>
@@ -47,14 +51,28 @@ InitialisePattern (MemoryManager& manager)
         GameAddress<currentPattern.address>::Get ());
 }
 
+std::string
+MemoryManager::GetCacheFileName ()
+{
+    // Some random addresses that should hopefully be unique enough
+    auto identifier = injector.ReadMemory32 (0x088f45b4)
+                      + injector.ReadMemory32 (0x8b6f6bc);
+
+    return std::move("SignatureCache_" + std::to_string (identifier) + ".bin");
+}
+
 void
 MemoryManager::InitialiseAllPatterns ()
 {
     Rainbomizer::Logger::FunctionBenchmark benchmark;
 
+    MemorySignatureCache::ReadFromFile (GetCacheFileName ());
+
     [this]<std::size_t... I> (std::index_sequence<I...>) {
         (..., InitialisePattern<I> (*this));
     }(std::make_index_sequence<std::size (s_Patterns)>{});
+
+    MemorySignatureCache::WriteToFile (GetCacheFileName ());
 }
 
 void

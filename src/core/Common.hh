@@ -29,6 +29,8 @@ public:
         return file;
     }
 
+    explicit operator bool () { return file; }
+
     FileWrapper (FileWrapper &&other) : file (other.file)
     {
         other.file = nullptr;
