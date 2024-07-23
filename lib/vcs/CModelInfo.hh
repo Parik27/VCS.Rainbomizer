@@ -2,6 +2,7 @@
 
 #include "memory/GameAddress.hh"
 #include "vcs/CVector.hh"
+#include "vcs/RslTexture.hh"
 #include <cstdint>
 
 class CBaseModelInfo
@@ -66,6 +67,15 @@ public:
     float        m_wheelScale;
     float        m_wheelScaleRear;
     CVector      m_positions[15];
+    uint8_t      unk[8];
+    char         m_sName[8];
+    uint8_t      unk2[36];
+    uint32_t     lastPrimaryColour;
+    uint32_t     lastSecondaryColour;
+    RslMaterial *m_materials1[30];
+    RslMaterial *m_materials2[25];
+    RslElement **m_apComponents;
+    uint32_t     m_nAnimIndex;
 };
 
 class ModelInfo

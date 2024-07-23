@@ -39,6 +39,10 @@ class ScriptVehiclePattern
     std::bitset<std::tuple_size_v<decltype (s_VehicleGroups)>>
         m_aExcludedGroups = 0;
 
+    int16_t m_posX = 0;
+    int16_t m_posY = 0;
+    int16_t m_posZ = 0;
+
 #ifdef USE_CACHE
     bool                  m_bCached = false;
     std::vector<uint32_t> m_aCache;
@@ -69,7 +73,7 @@ public:
     void GetRandom (Result &result) const;
     void GetRandomLoaded (Result &result) const;
 
-    bool Match (uint32_t hash, CRunningScript *script) const;
+    bool Match (uint32_t hash, const CVector& pos, CRunningScript *script) const;
 
     template <size_t I>
     inline constexpr void ReadVehicleGroupFlag (std::string_view flag);
@@ -86,5 +90,5 @@ class VehiclePatternManager
 public:
     void ReadPatterns (const char *file);
     void GetRandomVehicle (eVehicle original, CRunningScript *script,
-                           ScriptVehiclePattern::Result &result);
+                           const CVector &pos, ScriptVehiclePattern::Result &result);
 };

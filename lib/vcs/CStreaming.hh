@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vcs/CRunningScript.hh"
 #include <memory/GameAddress.hh>
 
 struct CStreamingRequest {
@@ -15,7 +16,7 @@ struct CStreamingInfo {
     struct CStreamingInfo *m_prev;
     uint8_t m_status;
     uint8_t m_flags;
-    short m_nextModelOnCd;
+    short m_cleanupThread;
     uint32_t m_cdPosn;
     uint32_t m_cdSize;
 };
@@ -61,6 +62,7 @@ public:
     uint8_t                   field35_0xb8;
     uint8_t                   bLoadingAllModels; /* Created by retype action */
 
+    static void RequestModel (CRunningScript* script, int id);
     static void RequestModel (int id, int flags = 0x3abccc);
     static void LoadAllRequestedModels (bool p1);
     static bool HasModelLoaded(int id);

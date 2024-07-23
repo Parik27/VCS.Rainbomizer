@@ -19,6 +19,7 @@
 #include "psploadcore.h"
 #include "scm/Command.hh"
 #include "scm/Opcodes.hh"
+#include "utils/ContainerUtils.hh"
 #include "vehicle/VehiclePatterns.hh"
 
 #include <pspsdk.h>
@@ -38,7 +39,11 @@ class ScriptVehicleRandomizer : public Randomizer<ScriptVehicleRandomizer>
         int ret = CollectParams (scr, p2, p3, params);
 
         ScriptVehiclePattern::Result result{params[0]};
-        m_Patterns.GetRandomVehicle (eVehicle (params[0]), scr, result);
+        m_Patterns.GetRandomVehicle (eVehicle (params[0]), scr,
+                                     CVector{std::bit_cast<float> (params[1]),
+                                             std::bit_cast<float> (params[2]),
+                                             std::bit_cast<float> (params[3])},
+                                     result);
 
         int originalVehicle = params[0];
         int newVehicle = ForcedVehicle == -1 ? result.vehId : ForcedVehicle;
@@ -120,10 +125,21 @@ class ScriptVehicleRandomizer : public Randomizer<ScriptVehicleRandomizer>
         script->CollectParams (&currentIp, 1, &model);
 
         if (model > 0
-            && ModelInfo::GetModelInfo<CBaseModelInfo> (model)->type == 6)
+            && ModelInfo::GetModelInfo<CBaseModelInfo> (model)->type == 6
+            && model < CStreaming::sm_Instance->m_texOffset)
             {
-                script->CollectParams (&script->m_pCurrentIP, 1, &model);
-                return 0;
+                // Need to keep sea sparrow/maverick/etc. loaded in missions
+                // since Leeds use their animations without checking if said
+                // animation is loaded in some missions.
+                if (!DoesElementExist (std::array{VEHICLE_MAVERICK,
+                                                  VEHICLE_HUEYHOSP,
+                                                  VEHICLE_SESPAROW},
+                                       model))
+                    {
+                        script->CollectParams (&script->m_pCurrentIP, 1,
+                                               &model);
+                        return 0;
+                    }
             }
 
         return op_REQUEST_MODEL (script);
@@ -139,7 +155,8 @@ class ScriptVehicleRandomizer : public Randomizer<ScriptVehicleRandomizer>
         script->CollectParams (&currentIp, 1, &model);
 
         if (model > 0
-            && ModelInfo::GetModelInfo<CBaseModelInfo> (model)->type == 6)
+            && ModelInfo::GetModelInfo<CBaseModelInfo> (model)->type == 6 &&
+            model < CStreaming::sm_Instance->m_texOffset)
             {
                 script->m_bNotFlag = !script->m_bNotFlag;
                 return CTheScripts::ScriptCommands[BUILD_WORLD_GEOMETRY]

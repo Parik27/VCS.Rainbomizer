@@ -52,6 +52,14 @@ ScriptVehiclePattern::ReadFlag (std::string_view flag)
         (..., ReadVehicleGroupFlag<I> (flag));
     }(std::make_index_sequence<
         std::tuple_size_v<decltype (s_VehicleGroups)>>{});
+
+    // Read position check
+    if (flag.starts_with ("x="))
+        std::from_chars (flag.data () + 2, flag.data () + flag.size (), m_posX);
+    else if (flag.starts_with ("y="))
+        std::from_chars (flag.data () + 2, flag.data () + flag.size (), m_posY);
+    else if (flag.starts_with ("z="))
+        std::from_chars (flag.data () + 2, flag.data () + flag.size (), m_posZ);
 }
 
 void
@@ -121,9 +129,15 @@ ScriptVehiclePattern::GetRandom (Result &result) const
 }
 
 bool
-ScriptVehiclePattern::Match (uint32_t hash, CRunningScript *script) const
+ScriptVehiclePattern::Match (uint32_t hash, const CVector &pos,
+                             CRunningScript *script) const
 {
     if (ThreadUtils::GetMissionIdFromThread (script) != m_Mission)
+        return false;
+
+    if ((m_posX != 0 && static_cast<int16_t> (pos.x) != m_posX)
+        || (m_posY != 0 && static_cast<int16_t> (pos.y) != m_posY)
+        || (m_posZ != 0 && static_cast<int16_t> (pos.z) != m_posZ))
         return false;
 
     return m_nOriginalVehicle == hash;
@@ -199,6 +213,7 @@ VehiclePatternManager::ReadPatterns (const char *file)
 void
 VehiclePatternManager::GetRandomVehicle (eVehicle                      original,
                                          CRunningScript               *script,
+                                         const CVector                &pos,
                                          ScriptVehiclePattern::Result &result)
 {
     auto model
@@ -207,7 +222,7 @@ VehiclePatternManager::GetRandomVehicle (eVehicle                      original,
     size_t patternId = 0;
     for (const auto &i : m_aPatterns)
         {
-            if (i.Match (model, script))
+            if (i.Match (model, pos, script))
                 {
                     Rainbomizer::Logger::LogMessage (
                         "Vehicle %d matched pattern %zu", original, patternId);
