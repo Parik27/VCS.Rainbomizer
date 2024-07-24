@@ -173,7 +173,7 @@ class ScriptVehicleRandomizer : public Randomizer<ScriptVehicleRandomizer>
     {
         int16_t oldMid = vehicle->m_nModelIndex;
         if (oldMid == VEHICLE_SESPAROW || oldMid == VEHICLE_AUTOGYRO)
-            vehicle->m_nModelIndex = VEHICLE_HUNTER;
+            vehicle->m_nModelIndex = -996; // Legacy ModelIndex for Sea Sparrow
 
         CWeapon__DoDrivebyAutoAim (driver, vehicle, source, target);
         vehicle->m_nModelIndex = oldMid;
