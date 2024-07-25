@@ -20,6 +20,7 @@
 #include "scm/Command.hh"
 #include "scm/Opcodes.hh"
 #include "utils/ContainerUtils.hh"
+#include "vcs/CPlayer.hh"
 #include "vehicle/VehiclePatterns.hh"
 
 #include <pspsdk.h>
@@ -55,6 +56,14 @@ class ScriptVehicleRandomizer : public Randomizer<ScriptVehicleRandomizer>
         if (result.coords)
             {
                 auto coords = reinterpret_cast<float *> (params);
+
+                if (result.absoluteCoords)
+                    {
+                        coords[1] = 0;
+                        coords[2] = 0;
+                        coords[3] = 0;
+                    }
+
                 coords[1] += result.coords->x;
                 coords[2] += result.coords->y;
                 coords[3] += result.coords->z;
@@ -215,7 +224,11 @@ public:
         // blez s1, 0x14 -> bltz s1, 0x14
         GameAddress<0x08ae9210>::WriteInstructions (0x06200004);
 
-        HOOK (Jal, 0x8a49344, FixHeliAutoaim, void (CPed*, CVehicle*, CVector*, CVector*));
+        HOOK (Jal, 0x8a49344, FixHeliAutoaim,
+              void (CPed *, CVehicle *, CVector *, CVector *));
+
+        GameAddress<0x089da48c>::WriteInstructions(lwc1(f12, s0, 0x78c));
+        GameAddress<0x089da494>::WriteInstructions(swc1(f12, s0, 0x25c));
 
         ThreadUtils::Initialise ();
     }

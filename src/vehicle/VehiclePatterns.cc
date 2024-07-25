@@ -60,6 +60,12 @@ ScriptVehiclePattern::ReadFlag (std::string_view flag)
         std::from_chars (flag.data () + 2, flag.data () + flag.size (), m_posY);
     else if (flag.starts_with ("z="))
         std::from_chars (flag.data () + 2, flag.data () + flag.size (), m_posZ);
+
+    if (flag == "AbsAltCoords")
+        m_Flags.m_bMovedCoordsAreAbsolute = true;
+
+    if (flag == "NotOriginal")
+        m_Flags.m_bNotOriginal = true;
 }
 
 void
@@ -125,7 +131,10 @@ ScriptVehiclePattern::GetRandom (Result &result) const
 
     auto *info = ModelInfo::GetModelInfo<CVehicleModelInfo> (result.vehId);
     if (mMovedTypes.GetValue (info->m_vehicleType))
-        result.coords = &m_vecMovedCoords;
+        {
+            result.coords         = &m_vecMovedCoords;
+            result.absoluteCoords = m_Flags.m_bMovedCoordsAreAbsolute;
+        }
 }
 
 bool
@@ -175,7 +184,7 @@ ScriptVehiclePattern::IsValidVehicleForPattern (eVehicle id) const
 
     // Original vehicle is always valid
     if (model->m_hashName == m_nOriginalVehicle)
-        return true;
+        return !m_Flags.m_bNotOriginal;
 
     auto seats
         = CVehicleModelInfo::GetMaximumNumberOfPassengersFromNumberOfDoors (id)

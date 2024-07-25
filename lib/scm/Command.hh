@@ -159,6 +159,7 @@ public:
     {
         std::array<uint32_t, Size> m_backup;
 
+    public:
         BackedUpScriptArgs ()
         {
             for (size_t i = 0; i < Size; i++)

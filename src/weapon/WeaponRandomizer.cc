@@ -11,6 +11,7 @@
 #include "ppsspp/Keyboard.hh"
 #include "scm/Command.hh"
 #include "scm/Opcodes.hh"
+#include "vcs/CRunningScript.hh"
 #include "weapon/Common.hh"
 #include "weapon/WeaponPatterns.hh"
 
@@ -19,6 +20,7 @@
 #include <vcs/CPlayer.hh>
 #include <vcs/CPed.hh>
 #include <vcs/CDarkel.hh>
+#include <core/ThreadUtils.hh>
 
 class WeaponRandomizer : public Randomizer<WeaponRandomizer>
 {
@@ -28,6 +30,60 @@ class WeaponRandomizer : public Randomizer<WeaponRandomizer>
 
     inline static WeaponPatternManager m_Patterns;
 
+    inline static struct PedWeaponEquipManager
+    {
+        int Mission;
+        int OriginalWeapon;
+        int RandomWeapon;
+
+        void
+        Store (CPed *ped, int original, int random)
+        {
+            if (ped != FindPlayerPed ())
+                return;
+
+            if (!CTheScripts::CurrentScript)
+                return;
+
+            Mission = ThreadUtils::GetMissionIdFromThread (
+                CTheScripts::CurrentScript);
+
+            OriginalWeapon = original;
+            RandomWeapon   = random;
+        }
+
+        bool
+        Restore (CPed *ped, int &slot)
+        {
+            if (ped != FindPlayerPed ())
+                return false;
+
+            if (!CTheScripts::CurrentScript)
+                return false;
+
+            int missionId = ThreadUtils::GetMissionIdFromThread (
+                CTheScripts::CurrentScript);
+
+            auto originalInfo = CWeaponInfo::GetWeaponInfo (OriginalWeapon);
+            auto randomInfo   = CWeaponInfo::GetWeaponInfo (RandomWeapon);
+
+            Rainbomizer::Logger::LogMessage (
+                "%d", CTheScripts::CurrentScript->m_pCurrentIP);
+
+            Rainbomizer::Logger::LogMessage (
+                "Restoring weapon: %d -> %d (slot %d vs %d) %d", RandomWeapon,
+                OriginalWeapon, slot, originalInfo->nSlot, missionId);
+
+            if (missionId == Mission)
+                {
+                    slot = randomInfo->nSlot;
+                    return true;
+                }
+
+            return false;
+        }
+    } m_PlayerEquipMgr;
+
     template <auto &CPed__GiveWeapon>
     static int
     RandomizeWeapon (CPed *ped, int weaponType, int ammo, int p4)
@@ -36,7 +92,13 @@ class WeaponRandomizer : public Randomizer<WeaponRandomizer>
             return CPed__GiveWeapon (ped, weaponType, ammo, p4);
 
         WeaponPattern::Result result{weaponType};
-        m_Patterns.GetRandomWeapon (ped, weaponType, ammo, result);
+
+        // We store only the matched patterns so as to not override
+        // the equip manager
+        bool store = m_Patterns.GetRandomWeapon (ped, weaponType, ammo, result);
+
+        if (store)
+            m_PlayerEquipMgr.Store (ped, weaponType, result.Weapon);
 
         if (ForcedWeapon != -1)
             result.Weapon = ForcedWeapon;
@@ -47,9 +109,9 @@ class WeaponRandomizer : public Randomizer<WeaponRandomizer>
     template <auto &CWeapon__FireWeapon>
     static int
     FixProjectileThrowingThird (CWeapon *weap, class CPed *ped,
-                                 class CVector *src)
+                                class CVector *src)
     {
-        if (!WeaponsCommon::IsProjectile(eWeapon(weap->Type)))
+        if (!WeaponsCommon::IsProjectile (eWeapon (weap->Type)))
             return CWeapon__FireWeapon (weap, ped, src);
 
         auto prevSeekTarget = ped->pSeekTarget;
@@ -57,19 +119,21 @@ class WeaponRandomizer : public Randomizer<WeaponRandomizer>
             {
                 if (ped->pPointGunAt)
                     {
-                        auto& end   = ped->vecPosition;
-                        auto& start = ped->pPointGunAt->vecPosition;
+                        auto &end   = ped->vecPosition;
+                        auto &start = ped->pPointGunAt->vecPosition;
 
                         Rainbomizer::Logger::LogMessage (
                             "Checking pointing: %f %f %f to %f %f %f", start.x,
                             start.y, start.z, end.x, end.y, end.z);
 
-                        // if (!((int (*) (CVector *, CVector *, bool, bool, bool,
+                        // if (!((int (*) (CVector *, CVector *, bool, bool,
+                        // bool,
                         //                 bool, bool, bool, bool,
-                        //                 bool)) 0x88967ac) (&start, &end, true,
+                        //                 bool)) 0x88967ac) (&start, &end,
+                        //                 true,
                         //                                    true, false, true,
-                        //                                    false, false, false,
-                        //                                    false))
+                        //                                    false, false,
+                        //                                    false, false))
                         //     return 0;
                     }
                 ped->pSeekTarget = ped->pPointGunAt;
@@ -84,8 +148,9 @@ class WeaponRandomizer : public Randomizer<WeaponRandomizer>
         return ret;
     }
 
- template<auto& CPed__SetActiveWeaponSlot>
- static void RandomizeSelectedWeapon (CPed* ped, int slot)
+    template <auto &CPed__SetActiveWeaponSlot>
+    static void
+    RandomizeSelectedWeapon (CPed *ped, int slot)
     {
         static std::array<uint32_t, 10> usedSlots;
 
@@ -94,8 +159,14 @@ class WeaponRandomizer : public Randomizer<WeaponRandomizer>
             if (ped->Weapons[i].Type && ped->Weapons[i].Ammo)
                 usedSlots[numSlots++] = i;
 
-        if (!numSlots || (FindPlayerPed () == ped))
+        if (!numSlots)
             return CPed__SetActiveWeaponSlot (ped, slot);
+
+        if (FindPlayerPed () == ped)
+            {
+                m_PlayerEquipMgr.Restore (ped, slot);
+                return CPed__SetActiveWeaponSlot (ped, slot);
+            }
 
         CPed__SetActiveWeaponSlot (ped, usedSlots[RandomInt (numSlots - 1)]);
     }
@@ -182,6 +253,26 @@ class WeaponRandomizer : public Randomizer<WeaponRandomizer>
     }
 #endif
 
+    struct AmmoCheckFix : public ScriptCommandHook<1, AmmoCheckFix, int, int>
+    {
+        static void
+        Impl (int ped, int weaponType)
+        {
+            if (ped == CTheScripts::GetGlobal<int>(782))
+                {
+                    Return (100);
+                }
+            else
+                Return (0);
+        }
+    };
+
+    template<auto &Orig>
+    static void Test (CPed* ped)
+    {
+
+    }
+    
 public:
     WeaponRandomizer ()
     {
@@ -215,13 +306,17 @@ public:
                 GameAddress<0x08a52270>::Write (li (a0, 5));
                 GameAddress<0x08a43d98>::Write (li (a0, 5));
                 GameAddress<0x08a52764>::Write (li (a0, 5));
-                GameAddress<0x089b3a20>::Nop ();
+                //GameAddress<0x089b3a20>::Nop ();
+                HOOK (Jal, 0x089b3a20, Test, void (CPed *));
             }
 
         HOOK (Jal, (0x08a411b4), FireProjectilesDuringDriveby,
               void (CWeapon *, class CVehicle *, bool, bool));
 
         HOOK (Jal, 0x08ac53f8, SkipWeaponRandomizationForPickups, void ());
+
+        HOOK (Opcode, GET_AMMO_IN_CHAR_WEAPON, AmmoCheckFix::Hook,
+              int (CRunningScript *));
 
 #ifdef MELEE_DEBUG
         HOOK (Jal, 0x8a48038, DrawMeleeDebugSphere,

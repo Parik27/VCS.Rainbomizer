@@ -26,7 +26,7 @@ public:
     static auto
     AllUsableVehicles ()
     {
-        return std::views::iota (int (VEHICLE_AUTOGYRO), VEHICLE_AIRTRAIN)
+        return std::views::iota (int (VEHICLE_6ATV), VEHICLE_AIRTRAIN)
                | std::views::filter (
                    [] (int i) { return !IsBadVehicle (eVehicle (i)); });
     }
