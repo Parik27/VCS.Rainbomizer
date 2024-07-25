@@ -182,7 +182,7 @@ class ScriptVehicleRandomizer : public Randomizer<ScriptVehicleRandomizer>
     {
         int16_t oldMid = vehicle->m_nModelIndex;
         if (oldMid == VEHICLE_SESPAROW || oldMid == VEHICLE_AUTOGYRO)
-            vehicle->m_nModelIndex = VEHICLE_HUNTER;
+            vehicle->m_nModelIndex = -996; // Legacy ModelIndex for Sea Sparrow
 
         CWeapon__DoDrivebyAutoAim (driver, vehicle, source, target);
         vehicle->m_nModelIndex = oldMid;
@@ -227,6 +227,7 @@ public:
         HOOK (Jal, 0x8a49344, FixHeliAutoaim,
               void (CPed *, CVehicle *, CVector *, CVector *));
 
+        // m_fGasPedal fix for planes
         GameAddress<0x089da48c>::WriteInstructions(lwc1(f12, s0, 0x78c));
         GameAddress<0x089da494>::WriteInstructions(swc1(f12, s0, 0x25c));
 
