@@ -707,4 +707,4 @@ inline static constexpr std::tuple s_VehicleGroups =
 			VEHICLE_YOLA
 		}
 	}
-}
+};
