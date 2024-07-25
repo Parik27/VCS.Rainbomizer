@@ -27,7 +27,12 @@ class ScriptVehiclePattern
 
     } mAllowedTypes, mMovedTypes;
 
-    CVector        m_vecMovedCoords = {0.0, 0.0, 0.0};
+    struct
+    {
+        bool m_bMovedCoordsAreAbsolute : 1 = false;
+        bool m_bNotOriginal : 1            = false;
+    } m_Flags;
+    CVector m_vecMovedCoords          = {0.0, 0.0, 0.0};
 
     uint32_t m_nSeatCheck       = 0;
     uint32_t m_nOriginalVehicle = 0;
@@ -59,8 +64,9 @@ class ScriptVehiclePattern
 public:
     struct Result
     {
-        int            vehId  = -1;
-        const CVector *coords = nullptr;
+        int            vehId          = -1;
+        bool           absoluteCoords = false;
+        const CVector *coords         = nullptr;
     };
 
     template <size_t>

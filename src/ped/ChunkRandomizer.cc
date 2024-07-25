@@ -3,12 +3,14 @@
 #include "memory/GameAddress.hh"
 #include "utils/ContainerUtils.hh"
 #include "vcs/CKeyGen.hh"
+#include "vcs/CVector.hh"
 #include <core/Randomizer.hh>
 #include <hooks/Hooks.hh>
 #include <vcs/CStreaming.hh>
 #include <utils/Random.hh>
 #include <map>
 #include <vcs/CModelInfo.hh>
+#include <core/Config.hh>
 
 class ChunkRandomizer : public Randomizer<ChunkRandomizer>
 {
@@ -22,8 +24,8 @@ class ChunkRandomizer : public Randomizer<ChunkRandomizer>
         uint32_t texCdPosn = -1;
         uint32_t texCdSize = -1;
 
-        void    *colModel = nullptr;
-        bool     replaceCollision = true;
+        void *colModel         = nullptr;
+        bool  replaceCollision = true;
 
         auto
         GetModelDetails (uint32_t id)
@@ -81,6 +83,11 @@ class ChunkRandomizer : public Randomizer<ChunkRandomizer>
             if (modelId != -1)
                 {
                     FillFromModelId (modelId);
+                }
+            else
+                {
+                    Rainbomizer::Logger::LogMessage ("%d not found: %s", hash,
+                                                     modelName.data ());
                 }
 
             ParseFlags (split_view);
@@ -159,8 +166,7 @@ class ChunkRandomizer : public Randomizer<ChunkRandomizer>
     ChunkInfo *
     GetRandomChunkForModelId (CStreaming *p1, int modelId)
     {
-        if (modelId >= p1->m_texOffset
-            || p1->ms_aInfoForModel[modelId].m_status != 0)
+        if (modelId >= p1->m_texOffset || p1->ms_aInfoForModel[modelId].m_status != 0)
             return nullptr;
 
         for (auto &chunkGroup : m_Chunks)
@@ -185,9 +191,12 @@ class ChunkRandomizer : public Randomizer<ChunkRandomizer>
         ReadChunkInfo ();
         auto randomChunk = GetRandomChunkForModelId(p1, modelId);
 
-        if (randomChunk) {
-            randomChunk->StoreInModelId (modelId);
-        }
+        if (randomChunk)
+            {
+                Rainbomizer::Logger::LogMessage ("randomizing %d to %d",
+                                                 modelId, randomChunk->modelId);
+                randomChunk->StoreInModelId (modelId);
+            }
 
         return CStreaming__GetStreamingInfo (p1, modelId);
     }
@@ -195,6 +204,8 @@ class ChunkRandomizer : public Randomizer<ChunkRandomizer>
 public:
     ChunkRandomizer ()
     {
+        RB_C_DO_CONFIG("ChunkRandomizer");
+
         HOOK_MEMBER (Jal, 0x08ad44c0, RandomizeChunk,
                      CStreamingInfo * (CStreaming *, int) );
         GameAddress<0x08ad8274>::WriteInstructions (jr (ra));
