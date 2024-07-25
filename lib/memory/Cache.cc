@@ -19,7 +19,7 @@ MemorySignatureCache::ReadFromFile (const std::string &file)
 
     fread (&signature, sizeof (signature), 1, f);
 
-    if (signature == FileSignature)
+    if (signature != FileSignature)
         return;
 
     fread (&numAddresses, sizeof (numAddresses), 1, f);

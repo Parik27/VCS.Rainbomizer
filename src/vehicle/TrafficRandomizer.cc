@@ -97,16 +97,41 @@ public:
         return vehicle;
     }
 
+    template <auto &CCarCtrl__ChooseModel>
+    static int32_t
+    FixProcessControlCrash (class CZoneInfo *zone, int *pClass)
+    {
+        int32_t ret = CCarCtrl__ChooseModel (zone, pClass);
+
+        if (ret == -1)
+            return -1;
+
+        auto model = ModelInfo::GetModelInfo<CVehicleModelInfo> (ret);
+
+        if (model->m_vehicleType == VEHICLE_TYPE_AUTOMOBILE
+            || model->m_vehicleType == VEHICLE_TYPE_BOAT)
+            return ret;
+
+        return -1;
+    }
+
     TrafficRandomizer ()
     {
         RB_C_DO_CONFIG ("TrafficRandomizer", ForcedVehicle);
 
+        HOOK (Jal, (0x08acbccc), FixProcessControlCrash,
+              int (class CZoneInfo *, int *));
+
         HOOK (Jmp, (0x08b4275c), RandomizeTrafficVehicle,
               int (class CZoneInfo *, int *));
+
         HOOK (Jmp, (0x8b45350), RandomizePoliceTraffic, int ());
+
         HOOK (Jmp, (0x08b42198), ChooseModelToLoad, int ());
+
         HOOK (Jal, (0x08b48060), AddMisingVehicleConstructors,
               CVehicle * (CVehicle *, int, uint8_t, uint32_t));
+
         HOOK (Jal, (0x8b49444), FixEmptyPoliceCars, void (CVehicle *));
     }
 };
