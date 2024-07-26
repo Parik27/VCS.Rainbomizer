@@ -1,8 +1,10 @@
 #pragma once
 
 #include "memory/GameAddress.hh"
+#include "vcs/CKeyGen.hh"
 #include "vcs/CVector.hh"
 #include "vcs/RslTexture.hh"
+#include <vcs/CStreaming.hh>
 #include <cstdint>
 
 class CBaseModelInfo
@@ -84,10 +86,41 @@ public:
     static constexpr auto ms_modelInfoPtrs
         = GameVariable<CBaseModelInfo **, 0x08bb2158>{};
 
-    template <typename T>
+    template <typename T = CBaseModelInfo>
     static T *
     GetModelInfo (uint32_t Id)
     {
         return static_cast<T *> (ms_modelInfoPtrs[Id]);
+    }
+
+    static size_t
+    GetModelIdFromModelHash (uint32_t hash)
+    {
+        for (size_t i = 0; i < CStreaming::sm_Instance->m_texOffset; i++)
+            {
+                auto modelInfo = ModelInfo::ms_modelInfoPtrs[i];
+                if (modelInfo && modelInfo->m_hashName == hash)
+                    return i;
+            }
+
+        return -1;
+    }
+
+    template <typename T = CBaseModelInfo>
+    static T *
+    GetModelByHash (uint32_t hash)
+    {
+        auto id = GetModelIdFromModelHash (hash);
+        if (id != -1)
+            return GetModelInfo<T> (id);
+
+        return nullptr;
+    }
+
+    template <typename T = CBaseModelInfo>
+    static T *
+    GetModelByName (std::string_view str)
+    {
+        return GetModelByHash<T> (CKeyGen::GetUppercaseKey (str));
     }
 };

@@ -78,7 +78,7 @@ class ChunkRandomizer : public Randomizer<ChunkRandomizer>
             auto modelName  = std::string_view (*split_view.begin ());
 
             hash    = CKeyGen::GetUppercaseKey (modelName);
-            modelId = GetModelIdFromModelHash (hash);
+            modelId = ModelInfo::GetModelIdFromModelHash (hash);
 
             if (modelId != -1)
                 {
@@ -111,19 +111,6 @@ class ChunkRandomizer : public Randomizer<ChunkRandomizer>
 
     bool                                m_ChunksInitialised = false;
     std::vector<std::vector<ChunkInfo>> m_Chunks;
-
-    static size_t
-    GetModelIdFromModelHash (uint32_t hash)
-    {
-        for (size_t i = 0; i < CStreaming::sm_Instance->m_texOffset; i++)
-            {
-                auto modelInfo = ModelInfo::ms_modelInfoPtrs[i];
-                if (modelInfo && modelInfo->m_hashName == hash)
-                    return i;
-            }
-
-        return -1;
-    }
 
     void
     DumpModelHashes ()

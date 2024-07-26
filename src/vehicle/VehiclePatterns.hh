@@ -47,6 +47,9 @@ class ScriptVehiclePattern
     int16_t m_posX = 0;
     int16_t m_posY = 0;
     int16_t m_posZ = 0;
+    int16_t m_ForcedVehicle = -1;
+
+    std::vector<uint16_t> m_BlacklistedVehicles;
 
 #ifdef USE_CACHE
     bool                  m_bCached = false;
@@ -70,8 +73,10 @@ public:
     };
 
     template <size_t>
-    inline constexpr bool DoesVehicleSatisfyGroupRequirement (eVehicle id) const;
-    inline constexpr bool DoesVehicleSatisfyGroupRequirements (eVehicle id) const;
+    inline constexpr bool
+    DoesVehicleSatisfyGroupRequirement (eVehicle id) const;
+    inline constexpr bool
+    DoesVehicleSatisfyGroupRequirements (eVehicle id) const;
 
     bool IsValidVehicleForPattern (eVehicle id) const;
     void Cache ();
@@ -79,12 +84,19 @@ public:
     void GetRandom (Result &result) const;
     void GetRandomLoaded (Result &result) const;
 
-    bool Match (uint32_t hash, const CVector& pos, CRunningScript *script) const;
+    bool Match (uint32_t hash, const CVector &pos,
+                CRunningScript *script) const;
 
     template <size_t I>
     inline constexpr void ReadVehicleGroupFlag (std::string_view flag);
 
+    template <typename T>
+    inline constexpr void ReadFlag (std::string_view data,
+                                    std::string_view flagName, T &out);
+
     inline constexpr void ReadFlag (std::string_view flag);
+
+    void ReadBlacklist (const char *line);
     void ReadFlags (const char *line);
     void Read (const char *line);
 };
