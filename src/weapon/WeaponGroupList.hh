@@ -1,9 +1,8 @@
 #include "WeaponGroups.hh"
+#include "weapon/Common.hh"
 
 constexpr static std::array s_WeaponGroups{
-    WeaponGroup{"all",
-                ~WeaponGroup::CreateBitset ({WEAPON_UNARMED, WEAPON_HELICANNON,
-                                             WEAPON_ROCKET, WEAPON_SEAMINE})},
+    WeaponGroup{"all", ~WeaponGroup::CreateBitset (WeaponsCommon::BadWeapons)},
 
     // Individual weapon groups
     WeaponGroup{"brassknuckle", {WEAPON_BRASSKNUCKLE}},
@@ -39,7 +38,6 @@ constexpr static std::array s_WeaponGroups{
     WeaponGroup{"flamethrower", {WEAPON_FLAMETHROWER}},
     WeaponGroup{"m60", {WEAPON_M60}},
     WeaponGroup{"minigun", {WEAPON_MINIGUN}},
-    WeaponGroup{"detonator", {WEAPON_DETONATOR}},
     WeaponGroup{"camera", {WEAPON_CAMERA}},
     WeaponGroup{"binoculars", {WEAPON_BINOCULARS}},
 
@@ -62,8 +60,7 @@ constexpr static std::array s_WeaponGroups{
 
     WeaponGroup{"pistols", {WEAPON_COLT45, WEAPON_PYTHON}},
     WeaponGroup{"rifles", {WEAPON_M4, WEAPON_RUGER, WEAPON_SNIPERRIFLE}},
-    WeaponGroup{"special",
-                {WEAPON_DETONATOR, WEAPON_CAMERA, WEAPON_BINOCULARS}},
+    WeaponGroup{"special", {WEAPON_CAMERA, WEAPON_BINOCULARS}},
     WeaponGroup{"op", {WEAPON_MINIGUN, WEAPON_M60, WEAPON_MOLOTOV}},
 
     WeaponGroup{"heavy",

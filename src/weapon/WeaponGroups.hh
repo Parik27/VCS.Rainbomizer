@@ -5,8 +5,9 @@
 
 struct WeaponGroup
 {
+    template<typename T>
     static consteval std::bitset<WEAPON_NUM_WEAPONS>
-    CreateBitset (std::initializer_list<int> weapons)
+    CreateBitset (const T &weapons)
     {
         std::bitset<WEAPON_NUM_WEAPONS> result;
         for (auto w : weapons)

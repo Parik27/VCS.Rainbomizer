@@ -10,15 +10,16 @@
 
 class WeaponsCommon
 {
+public:
     static constexpr std::array BadWeapons
-        = {WEAPON_UNARMED, WEAPON_HELICANNON, WEAPON_ROCKET, WEAPON_SEAMINE};
+        = {WEAPON_UNARMED, WEAPON_HELICANNON, WEAPON_ROCKET, WEAPON_SEAMINE,
+           WEAPON_DETONATOR};
 
     static constexpr std::array Projectiles
         = {WEAPON_ROCKET,  WEAPON_ROCKETLAUNCHER, WEAPON_MOLOTOV,
            WEAPON_TEARGAS, WEAPON_SEAMINE,        WEAPON_LANDMINE,
            WEAPON_GRENADE};
 
-public:
     static constexpr bool
     IsBadWeapon (eWeapon weapon)
     {

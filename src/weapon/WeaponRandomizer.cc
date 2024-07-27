@@ -12,6 +12,7 @@
 #include "scm/Command.hh"
 #include "scm/Opcodes.hh"
 #include "vcs/CRunningScript.hh"
+#include "vcs/CStreaming.hh"
 #include "weapon/Common.hh"
 #include "weapon/WeaponPatterns.hh"
 
@@ -102,7 +103,7 @@ class WeaponRandomizer : public Randomizer<WeaponRandomizer>
 
         if (ForcedWeapon != -1)
             result.Weapon = ForcedWeapon;
-
+        
         return CPed__GiveWeapon (ped, result.Weapon, ammo, p4);
     }
 
@@ -267,12 +268,6 @@ class WeaponRandomizer : public Randomizer<WeaponRandomizer>
         }
     };
 
-    template<auto &Orig>
-    static void Test (CPed* ped)
-    {
-
-    }
-    
 public:
     WeaponRandomizer ()
     {
@@ -306,8 +301,7 @@ public:
                 GameAddress<0x08a52270>::Write (li (a0, 5));
                 GameAddress<0x08a43d98>::Write (li (a0, 5));
                 GameAddress<0x08a52764>::Write (li (a0, 5));
-                //GameAddress<0x089b3a20>::Nop ();
-                HOOK (Jal, 0x089b3a20, Test, void (CPed *));
+                GameAddress<0x089b3a20>::Nop ();
             }
 
         HOOK (Jal, (0x08a411b4), FireProjectilesDuringDriveby,

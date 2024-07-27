@@ -1,6 +1,8 @@
 #pragma once
 
 #include "memory/GameAddress.hh"
+#include "vcs/CVector.hh"
+#include <GhidraTypes.hh>
 
 #include <cstdint>
 
@@ -51,11 +53,38 @@ enum eWeapon
 
 class CWeaponInfo
 {
-    char unk[0x68];
-
 public:
-    int nSlot;
-    int unk2;
+    uint      m_flags;
+    uint      m_fireType;
+    float     m_fRange;
+    uint      m_nFiringRate;
+    uint      m_nReload;
+    uint      m_nAmountOfAmmunition;
+    uint      m_nDamage;
+    float     m_fSpeed;
+    float     m_fRadius;
+    float     m_fLifeSpan;
+    float     m_fSpread;
+    undefined field11_0x2c;
+    undefined field12_0x2d;
+    undefined field13_0x2e;
+    undefined field14_0x2f;
+    CVector   m_vecFireOffset;
+    dword     m_AnimToPlay;
+    float     m_fAnimLoopStart;
+    float     m_fAnimLoopEnd;
+    float     m_fAnimFrameFire;
+    float     m_fAnim2LoopStart;
+    float     m_fAnim2LoopEnd;
+    float     m_fAnim2FrameFire;
+    float     m_fAnimBreakOut;
+    uint      nWeaponModel1;
+    int       nWeaponModel2; /* Created by retype action */
+    uint      nSlot;
+    undefined field27_0x6c;
+    undefined field28_0x6d;
+    undefined field29_0x6e;
+    undefined field30_0x6f;
 
     static CWeaponInfo *
     GetWeaponInfo (int id)
