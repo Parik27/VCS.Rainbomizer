@@ -1,4 +1,5 @@
 #include "ChunkInfo.hh"
+#include "vcs/CModelInfo.hh"
 
 auto
 ChunkInfo::GetModelDetails (uint32_t id)
@@ -64,7 +65,7 @@ ChunkInfo::FillFromModelId (uint32_t id)
 
     colModel = modelInfo.m_pColModel;
 
-    if (modelInfo.type == 6)
+    if (modelInfo.type == MODEL_TYPE_VEHICLE)
         {
             Rainbomizer::Logger::LogMessage (
                 "col model: %d, %d, %p, %d", id, modelInfo.m_hashName, colModel,
@@ -78,7 +79,7 @@ void
 ChunkInfo::CreateExtraData (uint32_t modelId)
 {
     auto model = ModelInfo::GetModelInfo (modelId);
-    if (model->type == 6)
+    if (model->type == MODEL_TYPE_VEHICLE)
         extraData = std::make_unique<VehicleExtraData> ();
     else
         extraData = std::make_unique<ExtraData> ();

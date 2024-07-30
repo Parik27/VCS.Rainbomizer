@@ -16,6 +16,9 @@
 
 #include <array>
 
+#include "WeaponPatterns.hh"
+#include "vcs/CModelInfo.hh"
+
 #include <utils/ContainerUtils.hh>
 #include <utils/Random.hh>
 
@@ -76,21 +79,49 @@ class PickupsRandomizer : public Randomizer<PickupsRandomizer>
                                              PICKUP_RACEBAD,
                                              PICKUP_RACEGOOD};
 
-    inline static int ForcedPickup = -1;
+    inline static int  ForcedPickup   = -1;
     inline static bool EnablePowerups = true;
+
+    WeaponPatternManager m_Patterns;
+
+    bool
+    RandomizeWeaponPickup (int modelId, WeaponPattern::Result &result)
+    {
+        auto modelInfo = ModelInfo::GetModelInfo (modelId);
+
+        if (modelInfo->type != MODEL_TYPE_WEAPON)
+            return false;
+
+        auto     weaponModel = static_cast<CWeaponModelInfo *> (modelInfo);
+        uint32_t weaponId    = weaponModel->GetWeaponId ();
+
+        return m_Patterns.GetRandomWeapon (nullptr, weaponId, 0, result);
+    }
 
 public:
     template <auto &CPickups__GenerateNewOne>
-    static int
+    int
     RandomizePickups (CVector *pos, int modelId, char arg3, int arg4, int arg5,
                       bool arg6, char arg7)
     {
-        for (auto &model : m_Pickups)
-            if (model == modelId)
-                {
-                    modelId = GetRandomElement (m_Pickups);
-                    break;
-                }
+        WeaponPattern::Result result;
+
+        // Attempt to randomize a weapon pickup
+        if (RandomizeWeaponPickup (modelId, result))
+            {
+                CWeaponInfo *info = CWeaponInfo::GetWeaponInfo (result.Weapon);
+                modelId           = info->nWeaponModel1;
+            }
+        else
+            {
+                // else do generic randomization
+                for (auto &model : m_Pickups)
+                    if (model == modelId)
+                        {
+                            modelId = GetRandomElement (m_Pickups);
+                            break;
+                        }
+            }
 
         int ret = CPickups__GenerateNewOne (pos, modelId, arg3, arg4, arg5,
                                             arg6, arg7);
@@ -158,12 +189,14 @@ public:
     {
         RB_C_DO_CONFIG ("PickupRandomizer", ForcedPickup, EnablePowerups);
 
-        HOOK (Jmp, (0x088f5a3c), RandomizePickups,
-              int (CVector *, int, char, int, int, bool, char));
+        HOOK_MEMBER (Jmp, (0x088f5a3c), RandomizePickups,
+                     int (CVector *, int, char, int, int, bool, char));
+
         HOOK (Jal, (0x088f47bc), PickupPicked,
               bool (class CPickup *, class CPed *, bool, int, int, int));
-        HOOK (Jmp, (0x088f74ec), FixCollectedPickups, 
-              bool (int, int));
+        HOOK (Jmp, (0x088f74ec), FixCollectedPickups, bool (int, int));
+
+        m_Patterns.ReadPatterns ("WeaponPickupPatterns.txt");
 
         // Powerups
         if (EnablePowerups)

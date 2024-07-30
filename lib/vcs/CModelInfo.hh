@@ -39,9 +39,27 @@ public:
 
 class CSimpleModelInfo : public CBaseModelInfo
 {
+public:
+    RslElement* m_objects;
+    float m_lodDistances[3];
+    uint8_t m_numObjects;
+    uint16_t m_flags;
+    CSimpleModelInfo* m_relatedObject;
 };
 
-class CElementModelInfo : public CSimpleModelInfo
+class CWeaponModelInfo : public CSimpleModelInfo
+{
+public:
+    uint32_t m_animId;
+
+    uint32_t
+    GetWeaponId ()
+    {
+        return reinterpret_cast<uint32_t> (m_relatedObject);
+    }
+};
+
+class CElementModelInfo : public CBaseModelInfo
 {
     RslElementGroup *m_elementGroup;
     union

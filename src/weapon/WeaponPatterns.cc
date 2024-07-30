@@ -137,7 +137,7 @@ WeaponPattern::Match (CPed *ped, int mission, int weaponType, int ammo)
     if (m_Ped == 0 && ped != FindPlayerPed ())
         return false;
 
-    if (m_Ped != -1 && ped->m_nModelIndex != m_Ped)
+    if (m_Ped != -1 && ped && ped->m_nModelIndex != m_Ped)
         return false;
 
     return true;
