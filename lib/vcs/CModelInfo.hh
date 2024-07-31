@@ -94,7 +94,7 @@ public:
     static constexpr auto GetMaximumNumberOfPassengersFromNumberOfDoors
         = GameFunction<0x8aa2670, int (int)>{};
 
-    char         field1_0x30[8];
+    char           field1_0x30[8];
     CHandlingData *m_pHandlingData;
     void          *field3_0x3c;
     void          *field4_0x40;
@@ -115,6 +115,13 @@ public:
     RslMaterial   *m_materials2[25];
     RslElement   **m_apComponents;
     uint32_t       m_nAnimIndex;
+    uint32_t       unk3;
+    uint8_t        m_numDoors;
+    uint8_t        unk4;
+    uint8_t        unk5;
+    uint8_t        m_numComponents;
+    uint32_t       unk6;
+    uint32_t       unk7;
 };
 
 class ModelInfo

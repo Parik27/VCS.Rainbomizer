@@ -95,6 +95,18 @@ class ChunkRandomizer : public Randomizer<ChunkRandomizer>
         return CStreaming__GetStreamingInfo (p1, modelId);
     }
 
+    // The game may force a component that exists for the original model
+    // but not a randomized chunk model.
+    template <auto &CVehicleModelInfo__ChooseComponent>
+    static int
+    FixComponentCrash (CVehicleModelInfo *model)
+    {
+        int component = CVehicleModelInfo__ChooseComponent (model);
+        if (component != -1 && model->m_numComponents <= component)
+            return -1;
+        return component;
+    }
+
 public:
     ChunkRandomizer ()
     {
@@ -104,6 +116,9 @@ public:
 
         HOOK_MEMBER (Jal, 0x08ad44c0, RandomizeChunk,
                      CStreamingInfo * (CStreaming *, int) );
+
+        HOOK (Jal, 0x08aa1974, FixComponentCrash, int (CVehicleModelInfo*));
+        HOOK (Jal, 0x08aa1a00, FixComponentCrash, int (CVehicleModelInfo*));
 
         GameAddress<0x08ad8274>::WriteInstructions (jr (ra));
     }

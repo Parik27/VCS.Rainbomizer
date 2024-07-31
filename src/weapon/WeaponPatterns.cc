@@ -6,6 +6,7 @@
 #include "vcs/CRunningScript.hh"
 #include "vcs/CWeaponInfo.hh"
 #include <bitset>
+#include <ranges>
 
 #include "WeaponGroups.hh"
 #include "WeaponGroupList.hh"
@@ -30,14 +31,50 @@ GetWeaponGroup (std::string_view name)
     return s_WeaponGroups[0];
 }
 
+template <typename T>
+inline constexpr void
+WeaponPattern::ReadFlag (std::string_view data, std::string_view flagName,
+                         T &out)
+{
+    if (data.starts_with (flagName)
+        && data.substr (flagName.size ()).starts_with ("="))
+        std::from_chars (data.data () + flagName.size () + 1,
+                         data.data () + data.size (), out);
+}
+
+void
+WeaponPattern::ReadFlag (std::string_view flag)
+{
+    ReadFlag (flag, "min_x", m_RegionCheck.MinX);
+    ReadFlag (flag, "min_y", m_RegionCheck.MinY);
+    ReadFlag (flag, "max_x", m_RegionCheck.MaxX);
+    ReadFlag (flag, "max_y", m_RegionCheck.MaxY);
+}
+
+void
+WeaponPattern::ReadFlags (const char *flags)
+{
+    Rainbomizer::Logger::LogMessage ("Reading weapon randomizer flags: %s",
+                                     flags);
+
+    std::string_view flags_sv (flags);
+    for (auto flag : std::views::split (flags_sv, '+'))
+        {
+            ReadFlag (std::string_view (flag));
+        }
+}
+
 void
 WeaponPattern::Read (const char *line)
 {
     char originalWeapon[32] = {};
     char pattern[256]       = {};
+    char flags[256]         = {};
 
-    sscanf (line, "%s %d %d %d %[^\n]", originalWeapon, &m_Mission, &m_Ammo,
-            &m_Ped, pattern);
+    sscanf (line, "%s %d %d %d %[^\t\n] %s", originalWeapon, &m_Mission,
+            &m_Ammo, &m_Ped, pattern, flags);
+
+    ReadFlags (flags);
 
     std::array<float, WEAPON_NUM_WEAPONS> weights;
 
@@ -139,6 +176,16 @@ WeaponPattern::Match (CPed *ped, int mission, int weaponType, int ammo)
 
     if (m_Ped != -1 && ped && ped->m_nModelIndex != m_Ped)
         return false;
+
+    // Region check
+    if (m_RegionCheck.MaxX != -1 && m_RegionCheck.MaxY != -1
+        && m_RegionCheck.MinX != -1 && m_RegionCheck.MinY != -1 && ped)
+        {
+            const CVector &pos = ped->vecPosition;
+            if (pos.x < m_RegionCheck.MinX || pos.x > m_RegionCheck.MaxX
+                || pos.y < m_RegionCheck.MinY || pos.y > m_RegionCheck.MaxY)
+                return false;
+        }
 
     return true;
 }
