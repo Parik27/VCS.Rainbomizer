@@ -109,7 +109,7 @@ public:
         auto model = ModelInfo::GetModelInfo<CVehicleModelInfo> (ret);
 
         if (model->m_vehicleType == VEHICLE_TYPE_AUTOMOBILE
-            || model->m_vehicleType == VEHICLE_TYPE_BOAT)
+            || model->m_vehicleType == VEHICLE_TYPE_BIKE)
             return ret;
 
         return -1;
