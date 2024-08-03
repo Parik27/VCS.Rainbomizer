@@ -1,9 +1,9 @@
 #include "vcs/CRunningScript.hh"
-#include <vector>
+#include <set>
 
 template <typename Class, typename... Args> class Event
 {
-    std::vector<void (*) (Args...)> m_Listeners;
+    std::set<void (*) (Args...)> m_Listeners;
 
 public:
     void
@@ -23,7 +23,7 @@ public:
     static void
     Add (void (*ptr) (Args...))
     {
-        Get ().m_Listeners.push_back (ptr);
+        Get ().m_Listeners.insert (ptr);
     }
 };
 

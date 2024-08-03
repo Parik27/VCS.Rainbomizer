@@ -4,6 +4,7 @@
 #include "memory/GameAddress.hh"
 #include "memory/MemorySignature.hh"
 #include "memory/Pattern.hh"
+#include "memory/ThreadManager.hh"
 #include <cstring>
 #include <injector.h>
 #include <pspsdk.h>
@@ -80,6 +81,8 @@ MemoryManager::Init ()
 {
     if (std::exchange (m_initialised, true))
         return;
+
+    ThreadManager::Get ().BlockThread ("stupidthread");
 
     SceUID modules[10];
     int    count  = 0;

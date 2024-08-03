@@ -1,6 +1,6 @@
 #pragma once
 
-#include <algorithm>
+#include <string_view>
 #include <cstdint>
 #include <span>
 #include <type_traits>
@@ -25,6 +25,15 @@ struct RslMatrix
     float pad2;
     RslV3 pos;
     float pad3;
+};
+
+enum eRslObjectType
+{
+    RSL_OBJECT_NODE = 0,
+    RSL_OBJECT_HAS_NODE = 1,
+    RSL_OBJECT_ELEMENT_GROUP = 2,
+    RSL_OBJECT_TEX_LIST = 6,
+    RSL_OBJECT_GEOMETRY = 8
 };
 
 template <typename T> struct RslLLLink
@@ -83,6 +92,12 @@ struct RslLinkList
 {
     struct RslLLLink<T> link;
 
+    RslLinkList ()
+    {
+        link.next = &link;
+        link.prev = &link;
+    }
+
     auto
     begin ()
     {
@@ -94,18 +109,32 @@ struct RslLinkList
     {
         return typename RslLLLink<T>::iterator {&link};
     }
+
+    void
+    insert (T node)
+    {
+        node->lLink.next = link.next;
+        node->lLink.prev = &link;
+        link.next->prev = &node->lLink;
+        link.next = &node->lLink;
+    }
 };
 
-template<typename T = void*>
+template<int Type, typename T = void*>
 struct RslObject {
     uint8_t  type;
     uint8_t  subType;
     uint8_t  flags;
     uint8_t  privateFlags;
     T       *data;
+
+    RslObject ()
+        : type (Type), subType (0), flags (0), privateFlags (0), data (nullptr)
+    {
+    }
 };
 
-struct RslObjectHasNode : public RslObject<class RslNode>
+struct RslObjectHasNode : public RslObject<1, class RslNode>
 {
     struct RslLLLink<class RslNode *> lLink;
     void (*sync) ();
@@ -113,24 +142,24 @@ struct RslObjectHasNode : public RslObject<class RslNode>
 
 struct RslRaster
 {
-    void    *commandBuffer;
-    uint8_t *data;
-    int16_t  stride;
-    uint8_t  logWidth;
-    uint8_t  logHeight;
-    uint8_t  depth;
+    void    *commandBuffer = nullptr;
+    uint8_t *data = nullptr;
+    int16_t  stride = 0;
+    uint8_t  logWidth = 0;
+    uint8_t  logHeight = 0;
+    uint8_t  depth = 0;
 
-    uint8_t mipmaps : 6;
-    bool    uClamp : 1;
-    bool    vClamp : 1;
+    uint8_t mipmaps : 6 = 0;
+    bool    uClamp : 1 = 0;
+    bool    vClamp : 1 = 0;
 
-    uint8_t unk;
+    uint8_t unk = 0;
 
     enum ColorMode
     {
         GU_PSM_5551 = 1,
         GU_PSM_8888 = 5,
-    } colorMode : 5;
+    } colorMode : 5 = GU_PSM_5551;
 
     enum PaletteMode
     {
@@ -139,7 +168,7 @@ struct RslRaster
         GU_PSM_T4,
 
 
-    } paletteMode : 3;
+    } paletteMode : 3 = NONE;
 
     uint32_t
     GetWidth ()
@@ -153,6 +182,13 @@ struct RslRaster
         return 1 << logHeight;
     }
 
+    uint32_t DataSize ()
+    {
+        uint32_t main_size = GetTexel(mipmaps) - data;
+        uint32_t pal_size = CalculatePaletteSize() * 4;
+        return main_size + pal_size;
+    }
+    
     uint8_t *
     GetTexel (int32_t n)
     {
@@ -239,7 +275,7 @@ public:
     RslNode  *frame;
 };
 
-class RslNode : public RslObject<>
+class RslNode : public RslObject<RSL_OBJECT_NODE>
 {
 public:
     RslLinkList<RslObjectHasNode *> objectList;
@@ -294,6 +330,35 @@ public:
                 node->ForAllChildrenRecursive (functor, depth + 1);
                 node = node->next;
             }
+    }
+
+    RslNode* FindChildByName (std::string_view name)
+    {
+        RslNode* node = nullptr;
+
+        ForAllChildrenRecursive ([&] (RslNode* n, int) {
+            if (n->name && n->name == name)
+                node = n;
+        });
+
+        return node;
+    }
+
+    void
+    AddChildAtEnd (RslNode *node)
+    {
+        if (!child)
+            {
+                child = node;
+                return;
+            }
+
+        auto last = child;
+
+        while (last->next)
+            last = last->next;
+
+        last->next = node;
     }
 };
 
@@ -398,7 +463,7 @@ public:
     class RslMatfx* matfx;
 };
 
-class RslGeometry : public RslObject<>
+class RslGeometry : public RslObject<RSL_OBJECT_GEOMETRY>
 {
 public:
     uint16_t numRefs;
@@ -422,7 +487,7 @@ public:
     uint32_t                      unk_0x30;
 };
 
-class RslElementGroup : public RslObject<RslNode>
+class RslElementGroup : public RslObject<RSL_OBJECT_ELEMENT_GROUP, RslNode>
 {
 public:
     struct RslLinkList<RslElement *> elements;
@@ -433,17 +498,16 @@ public:
 
 static_assert (sizeof (RslRaster) == 16, "RslRaster size mismatch");
 
-
 struct RslTexture
 {
-    struct RslRaster              *raster;
-    struct RslTexList             *dict;
+    struct RslRaster              *raster = nullptr;
+    struct RslTexList             *dict   = nullptr;
     struct RslLLLink<RslTexture *> lLink;
-    char                           name[32];
-    char                           mask[32];
+    char                           name[32] = "";
+    char                           mask[32] = "";
 };
 
-struct RslTexList : public RslObject<>
+struct RslTexList : public RslObject<RSL_OBJECT_TEX_LIST>
 {
     RslLinkList<RslTexture *> textures;
     RslLLLink<RslTexList *>   lLink;

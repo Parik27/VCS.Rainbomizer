@@ -44,6 +44,17 @@ ScriptVehiclePattern::ReadVehicleGroupFlag (std::string_view flag)
         m_aExcludedGroups[I] = true;
 }
 
+template <typename T>
+inline constexpr void
+ScriptVehiclePattern::ReadFlag (std::string_view data,
+                                std::string_view flagName, T &out)
+{
+    if (data.starts_with (flagName)
+        && data.substr (flagName.size ()).starts_with ("="))
+        std::from_chars (data.data () + flagName.size () + 1,
+                         data.data () + data.size (), out);
+}
+
 constexpr void
 ScriptVehiclePattern::ReadFlag (std::string_view flag)
 {
@@ -54,12 +65,10 @@ ScriptVehiclePattern::ReadFlag (std::string_view flag)
         std::tuple_size_v<decltype (s_VehicleGroups)>>{});
 
     // Read position check
-    if (flag.starts_with ("x="))
-        std::from_chars (flag.data () + 2, flag.data () + flag.size (), m_posX);
-    else if (flag.starts_with ("y="))
-        std::from_chars (flag.data () + 2, flag.data () + flag.size (), m_posY);
-    else if (flag.starts_with ("z="))
-        std::from_chars (flag.data () + 2, flag.data () + flag.size (), m_posZ);
+    ReadFlag (flag, "x", m_posX);
+    ReadFlag (flag, "y", m_posY);
+    ReadFlag (flag, "z", m_posZ);
+    ReadFlag (flag, "ForcedVehicle", m_ForcedVehicle);
 
     if (flag == "AbsAltCoords")
         m_Flags.m_bMovedCoordsAreAbsolute = true;
@@ -83,6 +92,7 @@ ScriptVehiclePattern::Read (const char *line)
 {
     char vehicleName[64] = {0};
     char flags[256]      = {0};
+    char blacklist[256]  = {0};
     char cars            = 'N';
     char bikes           = 'N';
     char bicycles        = 'N';
@@ -91,13 +101,14 @@ ScriptVehiclePattern::Read (const char *line)
     char helicopters     = 'N';
     char boats           = 'N';
 
-    sscanf (line, "%hu %s %d %c %c %c %c %c %c %c %s %f %f %f", &m_Mission,
+    sscanf (line, "%hu %s %d %c %c %c %c %c %c %c %s %f %f %f %s", &m_Mission,
             vehicleName, &m_nSeatCheck, &cars, &bikes, &bicycles, &quadbikes,
             &planes, &helicopters, &boats, flags, &m_vecMovedCoords.x,
-            &m_vecMovedCoords.y, &m_vecMovedCoords.z);
+            &m_vecMovedCoords.y, &m_vecMovedCoords.z, blacklist);
 
     m_nOriginalVehicle = CKeyGen::GetUppercaseKey (vehicleName);
     ReadFlags (flags);
+    ReadBlacklist (blacklist);
 
     mAllowedTypes
         = {cars == 'Y',   bikes == 'Y',       bicycles == 'Y', quadbikes == 'Y',
@@ -129,6 +140,9 @@ ScriptVehiclePattern::GetRandom (Result &result) const
                                     | std::views::filter (patternFilter));
         }
 
+    if (m_ForcedVehicle != -1)
+        result.vehId = m_ForcedVehicle;
+
     auto *info = ModelInfo::GetModelInfo<CVehicleModelInfo> (result.vehId);
     if (mMovedTypes.GetValue (info->m_vehicleType))
         {
@@ -150,6 +164,18 @@ ScriptVehiclePattern::Match (uint32_t hash, const CVector &pos,
         return false;
 
     return m_nOriginalVehicle == hash;
+}
+
+void
+ScriptVehiclePattern::ReadBlacklist (const char *line)
+{
+    std::string_view blacklist (line);
+    for (auto id : std::views::split (blacklist, ','))
+        {
+            size_t vehicleId;
+            std::from_chars (id.begin (), id.end (), vehicleId);
+            m_BlacklistedVehicles.push_back (vehicleId);
+        }
 }
 
 template <size_t I>
@@ -194,6 +220,9 @@ ScriptVehiclePattern::IsValidVehicleForPattern (eVehicle id) const
         return false;
 
     if (!DoesVehicleSatisfyGroupRequirements (id))
+        return false;
+
+    if (DoesElementExist (m_BlacklistedVehicles, id))
         return false;
 
     return mAllowedTypes.GetValue (vehType) || mMovedTypes.GetValue (vehType);

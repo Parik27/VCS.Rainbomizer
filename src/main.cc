@@ -6,6 +6,8 @@
 #include "core/Logger.hh"
 #include "scm/Command.hh"
 
+#include <memory/ThreadManager.hh>
+
 #define MODULE_NAME "VCS.PPSSPP.Rainbomizer"
 #define GAME_INTERNAL_NAME "GTA3"
 
@@ -22,6 +24,7 @@ int main(int argc, char** argv)
     int    result = 0;
 
     Rainbomizer::Logger::LogMessage("Memory remaining: %03x", sceKernelMaxFreeMemSize());
+    ThreadManager::Get ().UnblockThreads ();
 
     sceKernelSleepThread (); // pspsdk closes the game if this function returns
 

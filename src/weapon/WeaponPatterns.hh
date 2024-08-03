@@ -14,6 +14,18 @@ class WeaponPattern
     int                          m_Ammo;
     int                          m_Ped;
 
+    struct RegionCheck
+    {
+        int MinX = -1, MinY = -1, MaxX = -1, MaxY = -1;
+    } m_RegionCheck;
+
+    template <typename T>
+    inline constexpr void ReadFlag (std::string_view data,
+                                    std::string_view flagName, T &out);
+
+    void ReadFlag (std::string_view flag);
+    void ReadFlags (const char *flags);
+
 public:
     struct Result
     {

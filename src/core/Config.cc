@@ -74,6 +74,13 @@ ConfigManager::ReadValue (const std::string &tableName, const std::string &key,
         return;
 
 #ifndef NO_CPPTOML
+
+    if (tableName == "")
+        {
+            out = m_pConfig->get_as<T> (key).value_or (out);
+            return;
+        }
+
     auto table    = m_pConfig->get_table (tableName);
 
     if (table && table->contains (key))

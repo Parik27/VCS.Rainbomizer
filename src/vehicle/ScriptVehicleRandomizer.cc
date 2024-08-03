@@ -12,6 +12,7 @@
 #include <hooks/Hooks.hh>
 
 #include "Common.hh"
+#include "chunks/ModelFun.hh"
 #include "core/ThreadUtils.hh"
 #include "memory/GameAddress.hh"
 #include "ppsspp/KeyCodes.h"
@@ -196,6 +197,8 @@ public:
         m_Patterns.ReadPatterns ("VehiclePatterns.txt");
         HOOK_MEMBER (Jal, (0x08aec324), RandomizeVehicle,
                      int (class CRunningScript *, int *, int, int *));
+
+        ModelFun::InstallNodesArrayFix ();
 
         HOOK (Opcode, REQUEST_MODEL, RequestModelHook, int (CRunningScript *));
         HOOK (Opcode, HAS_MODEL_LOADED, HasModelLoadedHook,
