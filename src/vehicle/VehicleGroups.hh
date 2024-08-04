@@ -21,7 +21,8 @@ inline static constexpr std::tuple s_VehicleGroups =
 	/*
 	VehicleGroup{"All", // reference only, don't uncomment this!
 		{
-			// all top speeds measured in "CheatDevice rounded KMH", divide by 1.2 to approximate real km/h
+			// all top speeds measured in "CheatDevice Remastered v1.0g2 rounded KMH"
+			// divide CDR~KMH by 1.2 to approximate real km/h
 			// cars
 			// 2-seater coupes
 			VEHICLE_BLISTAC,  // 164
@@ -161,6 +162,62 @@ inline static constexpr std::tuple s_VehicleGroups =
 		}
 	},
 	*/
+
+	VehicleGroup{"LeapAndBound", // customized for mission
+		{
+			// boats
+			VEHICLE_DINGHY,
+			VEHICLE_JETMAX,
+			VEHICLE_MARQUIS,
+			VEHICLE_RIO,
+			VEHICLE_SCARAB,
+			VEHICLE_SPEEDER,
+			VEHICLE_SPEEDER2,
+			VEHICLE_SQUALO,
+			VEHICLE_TROPIC
+		}
+	},
+	
+	VehicleGroup{"StealTheDeal", // customized for mission
+		{
+			// boats
+			VEHICLE_COASTG,
+			VEHICLE_DINGHY,
+			VEHICLE_JETMAX,
+			VEHICLE_MARQUIS,
+			VEHICLE_PREDATOR,
+			VEHICLE_REEFER,
+			VEHICLE_RIO,
+			VEHICLE_SCARAB,
+			VEHICLE_SPEEDER,
+			VEHICLE_SQUALO,
+			VEHICLE_TROPIC,
+			VEHICLE_YOLA,
+			// jetskis
+			VEHICLE_JETSKI
+		}
+	},
+
+	VehicleGroup{"Boat", // drives on water only
+		{
+			// boats
+			VEHICLE_COASTG,
+			VEHICLE_DINGHY,
+			VEHICLE_JETMAX,
+			VEHICLE_MARQUIS,
+			VEHICLE_PREDATOR,
+			VEHICLE_REEFER,
+			VEHICLE_RIO,
+			VEHICLE_SCARAB,
+			VEHICLE_SPEEDER,
+			VEHICLE_SPEEDER2,
+			VEHICLE_SQUALO,
+			VEHICLE_TROPIC,
+			VEHICLE_YOLA,
+			// jetskis
+			VEHICLE_JETSKI
+		}
+	},
 
 	VehicleGroup{"Floaty", // amphibious only
 		{
@@ -339,7 +396,7 @@ inline static constexpr std::tuple s_VehicleGroups =
 			VEHICLE_AMBULAN,
 			VEHICLE_BOXVIL,
 			VEHICLE_ENFORCE,
-			VEHICLE_6ATV, // GOOD_INSAND flag modded in
+			VEHICLE_6ATV, // GOOD_INSAND handling flag modded in
 			VEHICLE_BULLDOZE,
 			// bikes
 			VEHICLE_ANGEL,
@@ -401,6 +458,28 @@ inline static constexpr std::tuple s_VehicleGroups =
 		}
 	},
 
+	VehicleGroup{"Dangerous", // driver falls off
+		{
+			// bikes
+			VEHICLE_ANGEL,
+			VEHICLE_ELECTRAG,
+			VEHICLE_ELECTRAP,
+			VEHICLE_FAGGIO,
+			VEHICLE_FREEWAY,
+			VEHICLE_MOP50,
+			VEHICLE_PCJ600,
+			VEHICLE_SANCHEZ,
+			VEHICLE_STREETFI,
+			// bmxs
+			VEHICLE_BMXBOY,
+			VEHICLE_BMXGIRL,
+			// quads
+			VEHICLE_QUAD,
+			// jetskis
+			VEHICLE_JETSKI
+		}
+	},
+
 	VehicleGroup{"Siren", // plays jingles
 		{
 			// cars
@@ -440,7 +519,7 @@ inline static constexpr std::tuple s_VehicleGroups =
 
 	VehicleGroup{"Fast",
 		{
-			// cars -- faster than 180 CD~KMH
+			// cars -- faster than 180 CDR~KMH
 			VEHICLE_CHOLLO,   // 185
 			VEHICLE_CUBAN,    // 210.5
 			VEHICLE_SABRE,    // 210.5
@@ -472,7 +551,7 @@ inline static constexpr std::tuple s_VehicleGroups =
 			VEHICLE_BOXVIL,   // 184.5
 			VEHICLE_ENFORCE,  // 184.5
 			VEHICLE_SECURICA, // 188
-			// bikes -- faster than 170 CD~KMH
+			// bikes -- faster than 170 CDR~KMH
 			VEHICLE_ANGEL,    // 214
 			VEHICLE_ELECTRAG, // 173
 			VEHICLE_ELECTRAP, // 173
@@ -482,11 +561,11 @@ inline static constexpr std::tuple s_VehicleGroups =
 			VEHICLE_STREETFI, // 173
 			// quads
 			VEHICLE_QUAD,     // 210.5
-			// planes -- faster than 170 CD~KMH
+			// planes -- faster than 170 CDR~KMH
 			VEHICLE_BIPLANE,  // 177 in air
-			// helis -- faster than 150 CD~KMH
+			// helis -- faster than 150 CDR~KMH
 			VEHICLE_HUNTER,   // 243 at 0.576
-			// boats -- faster than 140 CD~KMH
+			// boats -- faster than 140 CDR~KMH
 			VEHICLE_COASTG,   // 163.5
 			VEHICLE_JETMAX,   // 159.5
 			VEHICLE_SCARAB,   // 160.5
@@ -501,7 +580,7 @@ inline static constexpr std::tuple s_VehicleGroups =
 
 	VehicleGroup{"SuperFast",
 		{
-			// cars -- faster than 200 CD~KMH
+			// cars -- faster than 200 CDR~KMH
 			VEHICLE_CUBAN,    // 210.5
 			VEHICLE_SABRE,    // 210.5
 			VEHICLE_SABRETB,  // 210.5
@@ -517,14 +596,14 @@ inline static constexpr std::tuple s_VehicleGroups =
 			VEHICLE_FBICAR,   // 210.5
 			VEHICLE_GLENDALE, // 210.5
 			VEHICLE_GREENWOO, // 210.5
-			// bikes -- faster than 190 CD~KMH
+			// bikes -- faster than 190 CDR~KMH
 			VEHICLE_ANGEL,    // 214
 			VEHICLE_PCJ600,   // 193
 			// quads
 			VEHICLE_QUAD,     // 210.5
-			// helis -- faster than 200 CD~KMH
+			// helis -- faster than 200 CDR~KMH
 			VEHICLE_HUNTER,   // 243 at 0.576
-			// boats -- faster than 155 CD~KMH
+			// boats -- faster than 155 CDR~KMH
 			VEHICLE_COASTG,   // 163.5
 			VEHICLE_JETMAX,   // 159.5
 			VEHICLE_SCARAB,   // 160.5
@@ -537,7 +616,7 @@ inline static constexpr std::tuple s_VehicleGroups =
 
 	VehicleGroup{"Slow",
 		{
-			// cars -- slower than 140 CD~KMH
+			// cars -- slower than 140 CDR~KMH
 			VEHICLE_MRWHOO,   // 118
 			VEHICLE_AMMOTRUK, // 132.5
 			VEHICLE_BARRACKS, // 132.5
@@ -555,15 +634,15 @@ inline static constexpr std::tuple s_VehicleGroups =
 			VEHICLE_BAGGAGE,  // 98.5
 			VEHICLE_BULLDOZE, // 84.5
 			VEHICLE_FORKLIFT, // 22 | 43.5 in reverse
-			// bikes -- slower than 140 CD~KMH
+			// bikes -- slower than 140 CDR~KMH
 			VEHICLE_FAGGIO,   // 134
 			VEHICLE_MOP50,    // 134
 			// bmxs
 			VEHICLE_BMXBOY,   // 83 | 99.5 with optimal tapping
 			VEHICLE_BMXGIRL,  // 83 | 99.5 with optimal tapping
-			// planes -- slower than 140 CD~KMH
+			// planes -- slower than 140 CDR~KMH
 			VEHICLE_HOVERCR,  // 120 | 115.5 in water
-			// boats -- slower than 100 CD~KMH
+			// boats -- slower than 100 CDR~KMH
 			VEHICLE_DINGHY,   // 78.5
 			VEHICLE_MARQUIS,  // 39.5
 			VEHICLE_REEFER,   // 28.5
@@ -574,7 +653,7 @@ inline static constexpr std::tuple s_VehicleGroups =
 
 	VehicleGroup{"SuperSlow",
 		{
-			// cars -- slower than 120 CD~KMH
+			// cars -- slower than 120 CDR~KMH
 			VEHICLE_MRWHOO,   // 118
 			VEHICLE_RHINO,    // 113
 			VEHICLE_TRASH,    // 120
@@ -583,7 +662,7 @@ inline static constexpr std::tuple s_VehicleGroups =
 			VEHICLE_BAGGAGE,  // 98.5
 			VEHICLE_BULLDOZE, // 84.5
 			VEHICLE_FORKLIFT, // 22 | 43.5 in reverse
-			// boats -- slower than 40 CD~KMH
+			// boats -- slower than 40 CDR~KMH
 			VEHICLE_MARQUIS,  // 39.5
 			VEHICLE_REEFER,   // 28.5
 			VEHICLE_RIO,      // 32.5
