@@ -77,6 +77,9 @@ ScriptVehiclePattern::ReadFlag (std::string_view flag)
 
     if (flag == "NotOriginal")
         m_Flags.m_bNotOriginal = true;
+
+    if (flag == "DontMoveBovver")
+        m_Flags.m_bDontMoveBovver = true;
 }
 
 void
@@ -170,7 +173,8 @@ ScriptVehiclePattern::GetRandom (Result &result) const
     result.boundsCheck = &m_vecBoundsCheck;
 
     auto *info = ModelInfo::GetModelInfo<CVehicleModelInfo> (result.vehId);
-    if (mMovedTypes.GetValue (info->m_vehicleType))
+    if (mMovedTypes.GetValue (info->m_vehicleType)
+        && !(result.vehId == VEHICLE_HOVERCR && m_Flags.m_bDontMoveBovver))
         {
             result.coords         = &m_vecMovedCoords;
             result.absoluteCoords = m_Flags.m_bMovedCoordsAreAbsolute;

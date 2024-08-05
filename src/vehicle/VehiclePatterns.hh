@@ -31,6 +31,7 @@ class ScriptVehiclePattern
     {
         bool m_bMovedCoordsAreAbsolute : 1 = false;
         bool m_bNotOriginal : 1            = false;
+        bool m_bDontMoveBovver : 1         = false;
     } m_Flags;
     CVector m_vecMovedCoords          = {0.0, 0.0, 0.0};
     CVector m_vecBoundsCheck          = {1000.0f, 1000.0f, 1000.0f};
