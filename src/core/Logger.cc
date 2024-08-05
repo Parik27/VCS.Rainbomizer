@@ -44,10 +44,18 @@ Logger::GetLogFile ()
                     mFile = stdout;
                 }
 
-            fprintf (mFile, "===========================================\n");
-            fprintf (mFile, "%d\n", (int) sceKernelLibcTime (NULL));
-            fprintf (mFile, "Rainbomizer VCS (PPSSPP) Build: %s \n", RAINBOMIZER_BUILD);
-            fprintf (mFile, "===========================================\n");
+            static bool printed = false;
+
+            if (!std::exchange (printed, true))
+                {
+                    fprintf (mFile,
+                             "===========================================\n");
+                    fprintf (mFile, "%d\n", (int) sceKernelLibcTime (NULL));
+                    fprintf (mFile, "Rainbomizer VCS (PPSSPP) Build: %s \n",
+                             RAINBOMIZER_BUILD);
+                    fprintf (mFile,
+                             "===========================================\n");
+                }
         }
 
     return mFile;

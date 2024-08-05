@@ -33,11 +33,40 @@ class ScriptVehicleRandomizer : public Randomizer<ScriptVehicleRandomizer>
 {
     VehiclePatternManager m_Patterns;
     int ForcedVehicle = -1;
+    bool LogAllPatterns = false;
+
+    void
+    LogPatterns ()
+    {
+        static bool patternsLogged = false;
+        if (!patternsLogged)
+            {
+                patternsLogged = true;
+                m_Patterns.LogAllPatterns ();
+            }
+
+        for (size_t i = VEHICLE_6ATV; i < VEHICLE_AIRTRAIN; i++)
+            {
+                if (i == VEHICLE_TOPFUN)
+                    continue;
+
+                auto model  = ModelInfo::GetModelInfo<CBaseModelInfo> (i);
+                auto bounds = model->m_pColModel->boundingBox.max
+                              - model->m_pColModel->boundingBox.min;
+
+                Rainbomizer::Logger::LogMessage (
+                    "Vehicle %d: %f %f %f %f", i, bounds.x, bounds.y, bounds.z,
+                    model->m_pColModel->boundingSphere.radius);
+            }
+    }
 
     template <auto &CollectParams>
     int
     RandomizeVehicle (CRunningScript *scr, int *p2, int p3, int *params)
     {
+        if (LogAllPatterns)
+            LogPatterns ();
+
         int ret = CollectParams (scr, p2, p3, params);
 
         ScriptVehiclePattern::Result result{params[0]};
@@ -192,7 +221,7 @@ class ScriptVehicleRandomizer : public Randomizer<ScriptVehicleRandomizer>
 public:
     ScriptVehicleRandomizer ()
     {
-        RB_C_DO_CONFIG("ScriptVehicleRandomizer", ForcedVehicle);
+        RB_C_DO_CONFIG("ScriptVehicleRandomizer", ForcedVehicle, LogAllPatterns);
 
         m_Patterns.ReadPatterns ("VehiclePatterns.txt");
         HOOK_MEMBER (Jal, (0x08aec324), RandomizeVehicle,

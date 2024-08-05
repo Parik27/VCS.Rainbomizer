@@ -50,6 +50,7 @@ class ScriptVehiclePattern
     int16_t m_ForcedVehicle = -1;
 
     std::vector<uint16_t> m_BlacklistedVehicles;
+    std::string m_OriginalLine;
 
 #ifdef USE_CACHE
     bool                  m_bCached = false;
@@ -99,6 +100,8 @@ public:
     void ReadBlacklist (const char *line);
     void ReadFlags (const char *line);
     void Read (const char *line);
+
+    void LogPattern () const;
 };
 
 class VehiclePatternManager
@@ -109,4 +112,6 @@ public:
     void ReadPatterns (const char *file);
     void GetRandomVehicle (eVehicle original, CRunningScript *script,
                            const CVector &pos, ScriptVehiclePattern::Result &result);
+
+    void LogAllPatterns ();
 };

@@ -36,9 +36,7 @@ ScriptVehiclePattern::ReadVehicleGroupFlag (std::string_view flag)
 {
     constexpr auto &group = std::get<I> (s_VehicleGroups);
     if (flag == group.name)
-        {
-            m_aIncludedGroups[I] = true;
-        }
+        m_aIncludedGroups[I] = true;
 
     else if (flag.starts_with ("Not") && flag.substr (3) == group.name)
         m_aExcludedGroups[I] = true;
@@ -117,6 +115,28 @@ ScriptVehiclePattern::Read (const char *line)
     mMovedTypes
         = {cars == 'C',   bikes == 'C',       bicycles == 'C', quadbikes == 'C',
            planes == 'C', helicopters == 'C', boats == 'C'};
+
+    m_OriginalLine = line;
+}
+
+void
+ScriptVehiclePattern::LogPattern () const
+{
+    auto patternFilter
+        = [this] (int id) { return IsValidVehicleForPattern (eVehicle (id)); };
+
+    static char patternLog[4096] = {};
+    patternLog[0]                = '\0';
+
+    Rainbomizer::Logger::LogMessage("== %s ==", m_OriginalLine.c_str());
+
+    for (auto i : VehicleCommon::AllUsableVehicles() | std::views::filter (patternFilter))
+        {
+            auto *info = ModelInfo::GetModelInfo<CVehicleModelInfo> (i);
+            sprintf (patternLog, "%s %s", patternLog, info->m_sName);
+        }
+
+    Rainbomizer::Logger::LogMessage("Allowed: %s", patternLog);
 }
 
 void
@@ -280,4 +300,11 @@ VehiclePatternManager::GetRandomVehicle (eVehicle                      original,
 
             result.vehId = VehicleCommon::GetRandomUsableLoadedVehicle ();
         }
+}
+
+void
+VehiclePatternManager::LogAllPatterns ()
+{
+    for (const auto &i : m_aPatterns)
+        i.LogPattern ();
 }
