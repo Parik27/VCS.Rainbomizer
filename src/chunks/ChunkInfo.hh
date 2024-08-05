@@ -33,7 +33,7 @@ struct ChunkInfo
     uint32_t texCdPosn = -1;
     uint32_t texCdSize = -1;
 
-    void *colModel         = nullptr;
+    CColModel *colModel         = nullptr;
     bool  replaceCollision = true;
 
     std::unique_ptr<ExtraData> extraData;

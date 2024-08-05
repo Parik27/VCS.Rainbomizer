@@ -68,6 +68,10 @@ ScriptVehiclePattern::ReadFlag (std::string_view flag)
     ReadFlag (flag, "z", m_posZ);
     ReadFlag (flag, "ForcedVehicle", m_ForcedVehicle);
 
+    ReadFlag (flag, "w", m_vecBoundsCheck.x);
+    ReadFlag (flag, "l", m_vecBoundsCheck.y);
+    ReadFlag (flag, "h", m_vecBoundsCheck.z);
+
     if (flag == "AbsAltCoords")
         m_Flags.m_bMovedCoordsAreAbsolute = true;
 
@@ -163,6 +167,8 @@ ScriptVehiclePattern::GetRandom (Result &result) const
     if (m_ForcedVehicle != -1)
         result.vehId = m_ForcedVehicle;
 
+    result.boundsCheck = &m_vecBoundsCheck;
+
     auto *info = ModelInfo::GetModelInfo<CVehicleModelInfo> (result.vehId);
     if (mMovedTypes.GetValue (info->m_vehicleType))
         {
@@ -244,6 +250,22 @@ ScriptVehiclePattern::IsValidVehicleForPattern (eVehicle id) const
 
     if (DoesElementExist (m_BlacklistedVehicles, id))
         return false;
+
+    // Bounds check
+    if (model->m_pColModel)
+        {
+            auto bounds = model->m_pColModel->boundingBox.max
+                          - model->m_pColModel->boundingBox.min;
+
+            if (bounds.x < m_vecBoundsCheck.x)
+                return false;
+
+            if (bounds.y < m_vecBoundsCheck.y)
+                return false;
+
+            if (bounds.z < m_vecBoundsCheck.z)
+                return false;
+        }
 
     return mAllowedTypes.GetValue (vehType) || mMovedTypes.GetValue (vehType);
 }

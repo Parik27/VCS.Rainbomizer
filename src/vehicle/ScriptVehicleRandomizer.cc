@@ -12,6 +12,7 @@
 #include <hooks/Hooks.hh>
 
 #include "Common.hh"
+#include "chunks/ChunkTunables.hh"
 #include "chunks/ModelFun.hh"
 #include "core/ThreadUtils.hh"
 #include "memory/GameAddress.hh"
@@ -65,8 +66,16 @@ class ScriptVehicleRandomizer : public Randomizer<ScriptVehicleRandomizer>
         int originalVehicle = params[0];
         int newVehicle = ForcedVehicle == -1 ? result.vehId : ForcedVehicle;
 
+        // Before loading the vehicle, inform chunk randomizer that
+        // we need vehicles matching these bounds.
+        if (result.boundsCheck)
+            ChunkRandomizerTunables::SetBoundsCheckForModel (
+                result.vehId, *result.boundsCheck);
+
         if (!VehicleCommon::AttemptToLoadVehicle (newVehicle))
             newVehicle = originalVehicle;
+
+        ChunkRandomizerTunables::ClearBoundsCheck ();
 
         params[0] = newVehicle;
         if (result.coords)

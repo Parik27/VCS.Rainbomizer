@@ -20,6 +20,64 @@ enum eModelType : uint8_t
     MODEL_TYPE_PED,
 };
 
+
+struct CBox {
+    struct CVector min;
+    struct CVector max;
+};
+
+struct RslV3d {
+    float x;
+    float y;
+    float z;
+};
+
+struct CSphere
+{
+    RslV3d center;
+    float  radius;
+};
+
+struct CColSphere
+{
+    struct CSphere _;
+    undefined1     surface; /* Created by retype action */
+    byte           pieceType;
+    undefined      field3_0x12;
+    undefined      field4_0x13;
+    undefined      field5_0x14;
+    undefined      field6_0x15;
+    undefined      field7_0x16;
+    undefined      field8_0x17;
+    undefined      field9_0x18;
+    undefined      field10_0x19;
+    undefined      field11_0x1a;
+    undefined      field12_0x1b;
+    undefined      field13_0x1c;
+    undefined      field14_0x1d;
+    undefined      field15_0x1e;
+    undefined      field16_0x1f;
+};
+
+class CColModel
+{
+public:
+    CSphere     boundingSphere;
+    CBox        boundingBox;
+    short       numBoxes;
+    short       numTrianglePlanes;
+    undefined1  numSpheres;  /* Created by retype action */
+    undefined1  numLines;    /* Created by retype action */
+    undefined1  numVertices; /* Created by retype action */
+    undefined1  level;       /* Created by retype action */
+    CColSphere *spheres;     /* Created by retype action */
+    dword       lines;
+    dword       boxes;
+    dword       vertices;
+    dword       triangles;
+    dword       trianglePlanes;
+};
+
 class CBaseModelInfo
 {
 public:
@@ -28,7 +86,7 @@ public:
     void      *modelChunk;
     eModelType type;
     bool       m_bOwnsColModel;
-    void      *m_pColModel;
+    CColModel *m_pColModel;
     int16_t    m_first2dEffect;
     int16_t    m_objectId;
     int16_t    m_refCount;

@@ -33,6 +33,7 @@ class ScriptVehiclePattern
         bool m_bNotOriginal : 1            = false;
     } m_Flags;
     CVector m_vecMovedCoords          = {0.0, 0.0, 0.0};
+    CVector m_vecBoundsCheck          = {1000.0f, 1000.0f, 1000.0f};
 
     uint32_t m_nSeatCheck       = 0;
     uint32_t m_nOriginalVehicle = 0;
@@ -71,6 +72,7 @@ public:
         int            vehId          = -1;
         bool           absoluteCoords = false;
         const CVector *coords         = nullptr;
+        const CVector *boundsCheck    = nullptr;
     };
 
     template <size_t>
