@@ -44,20 +44,6 @@ class ScriptVehicleRandomizer : public Randomizer<ScriptVehicleRandomizer>
                 patternsLogged = true;
                 m_Patterns.LogAllPatterns ();
             }
-
-        for (size_t i = VEHICLE_6ATV; i < VEHICLE_AIRTRAIN; i++)
-            {
-                if (i == VEHICLE_TOPFUN)
-                    continue;
-
-                auto model  = ModelInfo::GetModelInfo<CBaseModelInfo> (i);
-                auto bounds = model->m_pColModel->boundingBox.max
-                              - model->m_pColModel->boundingBox.min;
-
-                Rainbomizer::Logger::LogMessage (
-                    "Vehicle %d: %f %f %f %f", i, bounds.x, bounds.y, bounds.z,
-                    model->m_pColModel->boundingSphere.radius);
-            }
     }
 
     template <auto &CollectParams>
