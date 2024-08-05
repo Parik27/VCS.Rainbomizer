@@ -254,7 +254,7 @@ inline static constexpr std::tuple s_VehicleGroups =
 		}
 	},
 
-	VehicleGroup{"SeaVehicles", // doesn't drown
+	VehicleGroup{"Sea", // doesn't drown
 		{
 			// cars
 			VEHICLE_6ATV,
