@@ -257,13 +257,13 @@ ScriptVehiclePattern::IsValidVehicleForPattern (eVehicle id) const
             auto bounds = model->m_pColModel->boundingBox.max
                           - model->m_pColModel->boundingBox.min;
 
-            if (bounds.x < m_vecBoundsCheck.x)
+            if (bounds.x > m_vecBoundsCheck.x)
                 return false;
 
-            if (bounds.y < m_vecBoundsCheck.y)
+            if (bounds.y > m_vecBoundsCheck.y)
                 return false;
 
-            if (bounds.z < m_vecBoundsCheck.z)
+            if (bounds.z > m_vecBoundsCheck.z)
                 return false;
         }
 
