@@ -29,8 +29,9 @@ class ChunkRandomizer : public Randomizer<ChunkRandomizer>
                 if (!modelInfo)
                     continue;
 
-                Rainbomizer::Logger::LogMessage ("Model %d: %x", i,
-                                                 modelInfo->m_hashName);
+                Rainbomizer::Logger::LogMessage ("Model %d: %x, Type: %d", i,
+                                                 modelInfo->m_hashName,
+                                                 modelInfo->type);
             }
     }
 
@@ -48,19 +49,31 @@ class ChunkRandomizer : public Randomizer<ChunkRandomizer>
         f.ReadLines ([this] (std::string_view line) {
             if (line.length () < 2)
                 {
+                    Rainbomizer::Logger::LogMessage("");
                     m_Chunks.emplace_back ();
                     return;
                 }
 
             auto &chunkInfo = m_Chunks.back ().emplace_back ();
             chunkInfo.ParseLine (line);
+
+            Rainbomizer::Logger::LogMessage (
+                "%s: %d", line.data (),
+                ModelInfo::GetModelInfo (chunkInfo.modelId)->type);
         });
     }
 
     ChunkInfo *
     GetRandomChunkForModelId (CStreaming *p1, int modelId)
     {
-        if (modelId >= p1->m_texOffset || p1->ms_aInfoForModel[modelId].m_status != 0)
+        auto [modelInfo, streamInfo, texStreamInfo]
+            = ChunkInfo::GetModelDetails (modelId);
+
+        if (modelId >= p1->m_texOffset
+            || p1->ms_aInfoForModel[modelId].m_status != 0
+            || p1->ms_aInfoForModel[modelInfo.m_texlistSlot + p1->m_texOffset]
+                       .m_status
+                   != 0)
             return nullptr;
 
         for (auto &chunkGroup : m_Chunks)
@@ -83,7 +96,7 @@ class ChunkRandomizer : public Randomizer<ChunkRandomizer>
     RandomizeChunk (CStreaming *p1, int modelId)
     {
         ReadChunkInfo ();
-        auto randomChunk = GetRandomChunkForModelId(p1, modelId);
+        auto randomChunk = GetRandomChunkForModelId (p1, modelId);
 
         if (randomChunk)
             {

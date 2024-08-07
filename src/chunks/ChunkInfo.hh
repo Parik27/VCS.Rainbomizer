@@ -25,6 +25,15 @@ struct ChunkInfo
         virtual void FillFromModelId (uint32_t id) override;
     };
 
+    class SimpleExtraData : public ExtraData
+    {
+    public:
+        uint8_t numAtomics;
+
+        virtual void StoreInModelId (uint32_t id) override;
+        virtual void FillFromModelId (uint32_t id) override;
+    };
+
     uint32_t hash    = -1;
     uint32_t modelId = -1;
 
@@ -34,12 +43,25 @@ struct ChunkInfo
     uint32_t texCdSize = -1;
 
     CColModel *colModel         = nullptr;
-    bool  replaceCollision = true;
+    bool       replaceCollision = true;
 
     std::unique_ptr<ExtraData> extraData;
 
     void CreateExtraData (uint32_t modelId);
-    auto GetModelDetails (uint32_t id);
+
+    static auto
+    GetModelDetails (uint32_t id)
+    {
+        auto *streaming = CStreaming::sm_Instance.Get ();
+
+        auto &modelInfo  = *ModelInfo::GetModelInfo<CBaseModelInfo> (id);
+        auto &streamInfo = streaming->ms_aInfoForModel[id];
+        auto &texStreamInfo
+            = streaming->ms_aInfoForModel[modelInfo.m_texlistSlot
+                                          + streaming->m_texOffset];
+
+        return std::tie (modelInfo, streamInfo, texStreamInfo);
+    }
 
     void FillFromModelId (uint32_t id);
     void StoreInModelId (uint32_t id);

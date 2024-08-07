@@ -1,19 +1,6 @@
 #include "ChunkInfo.hh"
 #include "vcs/CModelInfo.hh"
 
-auto
-ChunkInfo::GetModelDetails (uint32_t id)
-{
-    auto *streaming = CStreaming::sm_Instance.Get ();
-
-    auto &modelInfo     = *ModelInfo::GetModelInfo<CBaseModelInfo> (id);
-    auto &streamInfo    = streaming->ms_aInfoForModel[id];
-    auto &texStreamInfo = streaming->ms_aInfoForModel[modelInfo.m_texlistSlot
-                                                      + streaming->m_texOffset];
-
-    return std::tie (modelInfo, streamInfo, texStreamInfo);
-}
-
 void
 ChunkInfo::StoreInModelId (uint32_t id)
 {
@@ -79,10 +66,18 @@ void
 ChunkInfo::CreateExtraData (uint32_t modelId)
 {
     auto model = ModelInfo::GetModelInfo (modelId);
-    if (model->type == MODEL_TYPE_VEHICLE)
-        extraData = std::make_unique<VehicleExtraData> ();
-    else
-        extraData = std::make_unique<ExtraData> ();
+    switch (model->type)
+        {
+        case MODEL_TYPE_VEHICLE:
+            extraData = std::make_unique<VehicleExtraData> ();
+            break;
+        case MODEL_TYPE_SIMPLE:
+        case MODEL_TYPE_WEAPON:
+        case MODEL_TYPE_TIME:
+            extraData = std::make_unique<SimpleExtraData> ();
+            break;
+        default: extraData = std::make_unique<ExtraData> (); break;
+        }
 }
 
 void
@@ -122,4 +117,18 @@ ChunkInfo::VehicleExtraData::FillFromModelId (uint32_t id)
     wheelScaleRear = model->m_wheelScaleRear;
 
     seatOffsetDistance = model->m_pHandlingData->m_fSeatOffsetDistance;
+}
+
+void
+ChunkInfo::SimpleExtraData::FillFromModelId (uint32_t id)
+{
+    auto *modelInfo = ModelInfo::GetModelInfo<CSimpleModelInfo> (id);
+    numAtomics      = modelInfo->m_numObjects;
+}
+
+void
+ChunkInfo::SimpleExtraData::StoreInModelId (uint32_t id)
+{
+    auto *modelInfo = ModelInfo::GetModelInfo<CSimpleModelInfo> (id);
+    modelInfo->m_numObjects = numAtomics;
 }
