@@ -100,14 +100,14 @@ class ScriptVehicleRandomizer : public Randomizer<ScriptVehicleRandomizer>
                 auto coords = reinterpret_cast<float *> (params);
 
                 if (missionId == 77 && params[0] == VEHICLE_BIPLANE) // The Colonel's Coke
-                    {
+                    { // on pavement from jetty to road
                         coords[1] = -559.0f;
                         coords[2] = 612.0f;
                         coords[3] = -100.0f;
                     }
 
                 if (missionId == 85 && params[0] == VEHICLE_BIPLANE) // Taking The Fall
-                    {
+                    { // behind Lance's helipad
                         coords[1] = -48.0f;
                         coords[2] = -1631.0f;
                         coords[3] = -100.0f;
