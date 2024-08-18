@@ -29,7 +29,7 @@ RandomIntExcept (int min, int max)
 }
 
 template <typename T>
-inline auto
+inline const auto
 GetRandomElement (T &&container)
 {
     auto it = std::ranges::begin (container);

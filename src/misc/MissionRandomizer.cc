@@ -8,6 +8,7 @@
 #include "vcs/CRunningScript.hh"
 #include "vcs/CPlayer.hh"
 #include "vcs/CPed.hh"
+#include "vcs/CStreaming.hh"
 #include "vcs/CVector.hh"
 #include <array>
 
@@ -23,7 +24,7 @@
 #include <vector>
 #include <map>
 
-class MissionRandomizer : public Randomizer<MissionRandomizer>
+class MissionRandomizer : public RandomizerWithDebugInterface<MissionRandomizer>
 {
     struct MissionInfo
     {
@@ -134,6 +135,8 @@ class MissionRandomizer : public Randomizer<MissionRandomizer>
     void
     OnMissionStart (CRunningScript *script)
     {
+        CallCommand<CREATE_OBJECT_NO_OFFSET> (7338, -935.f, -124.0f, 6.5f, Local{0});
+
         // Open bridges and hurricane gordy gone
         for (uint16_t i = 1562; i <= 1566; i++)
             CallCommand<DELETE_OBJECT> (Global{i});
@@ -237,13 +240,31 @@ class MissionRandomizer : public Randomizer<MissionRandomizer>
     }
 
 public:
+
+    void
+    DrawDebug ()
+    {
+#ifdef ENABLE_DEBUG_MENU
+        if (OriginalMission == nullptr || RandomMission == nullptr)
+            {
+                ImGui::TextColored (ImVec4 (1, 0, 0, 1),
+                                    "No mission randomized yet");
+                return;
+            }
+
+        ImGui::LabelText ("Original Mission", "%d %s", OriginalMission->id,
+                          OriginalMission->gxtName);
+        ImGui::LabelText ("Random Mission", "%d %s", RandomMission->id,
+                          RandomMission->gxtName);
+#endif
+    }
+
     MissionRandomizer ()
     {
         RB_C_DO_CONFIG ("MissionRandomizer", ForcedMission);
         Missions.reserve (64);
 
         InitialiseMissionsArray ();
-        InitialiseMissionsMap(10);
 
         RandomizationSeedEvent::Add (
             [] (int seed) { Get ().InitialiseMissionsMap (seed); });

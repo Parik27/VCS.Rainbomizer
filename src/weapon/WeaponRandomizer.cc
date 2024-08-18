@@ -51,6 +51,10 @@ class WeaponRandomizer : public Randomizer<WeaponRandomizer>
 
             OriginalWeapon = original;
             RandomWeapon   = random;
+
+            Rainbomizer::Logger::LogMessage (
+                "Storing weapon: %d -> %d (mission = %d)", original, random,
+                Mission);
         }
 
         bool
@@ -103,8 +107,11 @@ class WeaponRandomizer : public Randomizer<WeaponRandomizer>
 
         if (ForcedWeapon != -1)
             result.Weapon = ForcedWeapon;
-        
-        return CPed__GiveWeapon (ped, result.Weapon, ammo, p4);
+
+        return CPed__GiveWeapon (ped, result.Weapon,
+                                 result.OverrideAmmo > 0 ? result.OverrideAmmo
+                                                         : ammo,
+                                 p4);
     }
 
     template <auto &CWeapon__FireWeapon>
@@ -153,6 +160,13 @@ class WeaponRandomizer : public Randomizer<WeaponRandomizer>
     static void
     RandomizeSelectedWeapon (CPed *ped, int slot)
     {
+        if (ped == FindPlayerPed ())
+            {
+                Rainbomizer::Logger::LogMessage (
+                    "SetActiveWeaponSlot (%p, %d)\nStack: %s", ped, slot,
+                    PPSSPPUtils::GetStackTrace ().data ());
+            }
+
         static std::array<uint32_t, 10> usedSlots;
 
         size_t numSlots = 0;

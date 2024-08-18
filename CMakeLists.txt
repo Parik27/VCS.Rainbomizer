@@ -5,7 +5,13 @@ add_subdirectory(psp)
 add_subdirectory(kernel)
 
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
-  src/*.cc
+  src/weapon/*.cc
+  src/vehicle/*.cc
+  src/ped/*.cc
+  src/misc/*.cc
+  src/core/*.cc
+  src/chunks/*.cc
+  src/main.cc
   lib/*.cc
   #crt0_prx2.c
 )
@@ -20,6 +26,12 @@ add_custom_command(
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 23)
 
+option(ENABLE_DEBUG_MENU "Enables an imgui-menu for debugging purposes")
+
+if (ENABLE_DEBUG_MENU)
+  include(cmake/DebugImgui.cmake)
+endif()
+
 # explanation for compile flags:
 # -mno-gpopt: we have two different gp values in game functions
 # and in the prx module. We must not use gp ourselves.
@@ -31,6 +43,7 @@ target_compile_options(${PROJECT_NAME} PRIVATE
   -mno-gpopt
   -mpreferred-stack-boundary=4
 )
+
 target_link_options(${PROJECT_NAME} PRIVATE
   -specs=${PSPDEV}/psp/sdk/lib/prxspecs
   -Wl,-q,-T${PROJECT_SOURCE_DIR}/linkfile.prx
@@ -43,4 +56,4 @@ target_link_options(${PROJECT_NAME} PRIVATE
   -Wl,--gc-sections
 )
 target_include_directories(${PROJECT_NAME} PUBLIC lib psp src)
-target_link_libraries(${PROJECT_NAME} PRIVATE psp_thirteenag_utils)
+target_link_libraries(${PROJECT_NAME} PRIVATE psp_thirteenag_utils pspgu pspge)

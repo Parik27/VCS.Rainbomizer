@@ -11,6 +11,10 @@
 #define RAINBOMIZER_BUILD_SHORT "Release v1.0"
 #endif
 
+#ifdef ENABLE_DEBUG_MENU
+#include <debug/logger.hh>
+#endif
+
 namespace Rainbomizer {
 
 /*******************************************************/
@@ -72,6 +76,11 @@ Logger::LogMessage (const char *format, ...)
     va_start (args, format);
     unsigned int size = vfprintf (file, format, args) + 1;
     va_end (args);
+
+#ifdef ENABLE_DEBUG_MENU
+    va_start (args, format);
+    LoggerDebugInterface::PublishLogMessage (format, args);
+#endif
 
     fputc ('\n', file);
     fflush (file);

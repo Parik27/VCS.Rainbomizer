@@ -49,6 +49,7 @@ WeaponPattern::ReadFlag (std::string_view flag)
     ReadFlag (flag, "min_y", m_RegionCheck.MinY);
     ReadFlag (flag, "max_x", m_RegionCheck.MaxX);
     ReadFlag (flag, "max_y", m_RegionCheck.MaxY);
+    ReadFlag (flag, "override_ammo", m_OverrideAmmo);
 }
 
 void
@@ -87,10 +88,10 @@ WeaponPattern::Read (const char *line)
         {
             auto split_view = std::ranges::split_view (i, '=');
 
-            if (std::ranges::distance(split_view) != 2)
+            if (std::ranges::distance (split_view) != 2)
                 continue;
 
-            auto it = split_view.begin();
+            auto it      = split_view.begin ();
             auto type_s  = std::string_view (*it);
             auto value_s = std::string_view (*++it);
 
@@ -103,11 +104,11 @@ WeaponPattern::Read (const char *line)
                 weights[weapon] = weight;
             });
 
-
-            Rainbomizer::Logger::LogMessage("%s", line);
-            for (auto [weight, idx] : std::views::zip(weights, std::views::iota(0)))
+            Rainbomizer::Logger::LogMessage ("%s", line);
+            for (auto [weight, idx] :
+                 std::views::zip (weights, std::views::iota (0)))
                 {
-                    Rainbomizer::Logger::LogMessage("%d = %f", idx, weight);
+                    Rainbomizer::Logger::LogMessage ("%d = %f", idx, weight);
                 }
         }
 
@@ -118,7 +119,8 @@ WeaponPattern::Read (const char *line)
 void
 WeaponPattern::GetRandom (Result &result)
 {
-    result.Weapon = m_Distribution (RandEngine ());
+    result.Weapon       = m_Distribution (RandEngine ());
+    result.OverrideAmmo = m_OverrideAmmo;
 }
 
 void
