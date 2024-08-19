@@ -137,11 +137,13 @@ class MissionRandomizer : public RandomizerWithDebugInterface<MissionRandomizer>
         if (RandomMission->id == MISSION_HAVANA_GOOD_TIME)
             CallCommand<UNKNOWN_ENABLE_BUILDING_SWAP_FOR_MODEL> (660173992, 0);
 
+/*
         // Player needs 8 rockets for the mission and rockets may not have been
         // unlocked yet.
         if (RandomMission->id == MISSION_TURN_ON_TUNE_IN_BUG_OUT)
             CallCommand<GIVE_WEAPON_TO_CHAR> (Global{782},
                                               int (WEAPON_ROCKETLAUNCHER), 8);
+*/
 
         // Open bridges and hurricane gordy gone
         for (uint16_t i = 1562; i <= 1566; i++)
@@ -175,6 +177,10 @@ class MissionRandomizer : public RandomizerWithDebugInterface<MissionRandomizer>
                                            OriginalMission->endPos.y,
                                            OriginalMission->endPos.z);
 
+        // Hostile Takeover | Set the flag to award % for unlocking Drugs type empire sites
+        if (RandomMission && RandomMission->id == MISSION_HOSTILE_TAKEOVER)
+            CTheScripts::GetGlobal<int> (657) = 1;
+
         OnMissionEnd (script);
         RandomMission   = nullptr;
         OriginalMission = nullptr;
@@ -195,14 +201,31 @@ class MissionRandomizer : public RandomizerWithDebugInterface<MissionRandomizer>
     }
 
     void
-    ProcessCodeSectionSkip (CRunningScript *script, size_t mission, size_t at,
+    ProcessCodeSectionSkip (CRunningScript *script, size_t target_mission, size_t at,
                             size_t to)
     {
-        if (RandomMission->id != mission)
-            return;
+        // Check if running the correct script
+        if (ThreadUtils::GetMissionIdFromThread(script) == target_mission) {
+            // Mission script is located in script space after the main script
+            if (script->m_bIsMission) {
+                at += CTheScripts::MainScriptSize;
+                to += CTheScripts::MainScriptSize;
+            } else { // Adjust global offset for other scripts
+                at -= 8;
+                to -= 8;
+            }
+    
+            if (script->m_pCurrentIP == at)
+                script->m_pCurrentIP = to;
+        }
+    }
 
-        if (script->m_pCurrentIP == CTheScripts::MainScriptSize + at)
-            script->m_pCurrentIP = CTheScripts::MainScriptSize + to;
+    void
+    SkipMissionCode (size_t conditional_mission, CRunningScript *script,
+                            size_t target_mission, size_t at, size_t to)
+    {
+        if (RandomMission && RandomMission->id == conditional_mission)
+            ProcessCodeSectionSkip(script, target_mission, at, to);
     }
 
     void
@@ -212,22 +235,25 @@ class MissionRandomizer : public RandomizerWithDebugInterface<MissionRandomizer>
             = CTheScripts::ScriptSpace[script->m_pCurrentIP]
               | (CTheScripts::ScriptSpace[script->m_pCurrentIP + 1] << 8);
 
-        ProcessCodeSectionSkip (script, MISSION_BLITZKRIEG, 10210, 10217);
-        ProcessCodeSectionSkip (script, MISSION_BLITZKRIEG_STRIKES_AGAIN, 9826,
-                                9833);
+        // O, Brothel, Where Art Thou? -> AMMUNAT | skip resetting Free Shotgun Status to 1
+        SkipMissionCode (MISSION_O_BROTHEL_WHERE_ART_THOU, script, -1, 161048, 161054);
+        // Turn on, Tune in, Bug out -> AMMUNAT | skip act3 condition for unlocking Rocket Launcher
+        SkipMissionCode (MISSION_TURN_ON_TUNE_IN_BUG_OUT, script, -1, 154718, 154730);
+        if (CTheScripts::GetGlobal<int> (130)) { // acts_completed != 0
+            // Blitzkrieg | skip insufficient empire sites scenario
+            SkipMissionCode (MISSION_BLITZKRIEG, script, MISSION_BLITZKRIEG, 10210, 10217);
+            // Blitzkrieg Strikes Again | skip insufficient empire sites scenario
+            SkipMissionCode (MISSION_BLITZKRIEG_STRIKES_AGAIN, script, MISSION_BLITZKRIEG_STRIKES_AGAIN, 9826, 9833);
+        }
 
+        if (script->m_bIsMission && RandomMission) {
         if (script->m_pCurrentIP == CTheScripts::MainScriptSize)
-            {
                 OnMissionStart (script);
-            }
         if (currentOpcode == REGISTER_MISSION_PASSED)
-            {
                 OnMissionPass (script);
-            }
         if (currentOpcode == TERMINATE_THIS_SCRIPT)
-            {
                 OnMissionFail (script);
-            }
+        }
     }
 
     template <auto &CRunningScript__ProcessOneCommand>
