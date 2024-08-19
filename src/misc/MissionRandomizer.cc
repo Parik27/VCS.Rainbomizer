@@ -239,7 +239,7 @@ class MissionRandomizer : public RandomizerWithDebugInterface<MissionRandomizer>
         SkipMissionCode (MISSION_O_BROTHEL_WHERE_ART_THOU, script, -1, 161048, 161054);
         // Turn on, Tune in, Bug out -> AMMUNAT | skip act3 condition for unlocking Rocket Launcher
         SkipMissionCode (MISSION_TURN_ON_TUNE_IN_BUG_OUT, script, -1, 154718, 154730);
-        if (CTheScripts::GetGlobal<int> (130)) { // acts_completed != 0
+        if (CTheScripts::GetGlobal<int> (130) == 0) { // acts_completed
             // Blitzkrieg | skip insufficient empire sites scenario
             SkipMissionCode (MISSION_BLITZKRIEG, script, MISSION_BLITZKRIEG, 10210, 10217);
             // Blitzkrieg Strikes Again | skip insufficient empire sites scenario
@@ -258,9 +258,9 @@ class MissionRandomizer : public RandomizerWithDebugInterface<MissionRandomizer>
 
     template <auto &CRunningScript__ProcessOneCommand>
     int
-    ProcessMissionScript (CRunningScript *script)
+    ProcessScript (CRunningScript *script)
     {
-        if (script->m_bIsMission && RandomMission)
+        if (script->m_bIsMission && RandomMission && std::exchange(DelayMissionScript, false))
             {
                 // wait 1 frame before starting the mission
                 // to allow init scripts to run properly
@@ -268,15 +268,12 @@ class MissionRandomizer : public RandomizerWithDebugInterface<MissionRandomizer>
                 // Just returning 1 here doesn't work because
                 // the game runs mission script twice in the
                 // same frame.
-                if (std::exchange (DelayMissionScript, false))
-                    {
-                        script->m_nWakeTime = CTimer::TimeInMilliseconds + 1;
-                        Rainbomizer::Logger::LogCritical (
-                            "Delaying prologue mission script");
-                        return 1;
-                    }
-                ProcessMissionRandomizerFSM (script);
+                script->m_nWakeTime = CTimer::TimeInMilliseconds + 1;
+                Rainbomizer::Logger::LogCritical (
+                    "Delaying prologue mission script");
+                return 1;
             }
+        ProcessMissionRandomizerFSM (script);
 
         return CRunningScript__ProcessOneCommand (script);
     }
@@ -315,7 +312,7 @@ public:
               uint32_t (class CRunningScript *, unsigned char *data,
                         int numParams, int *params));
 
-        HOOK_MEMBER (Jal, 0x8862524, ProcessMissionScript,
+        HOOK_MEMBER (Jal, 0x8862524, ProcessScript,
                      int (CRunningScript *));
 
         GameAddress<0x8ad2b44>::WriteInstructions (li (v0, 0), jr (ra));
