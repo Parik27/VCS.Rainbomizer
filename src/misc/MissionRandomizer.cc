@@ -4,13 +4,9 @@
 #include "memory/GameAddress.hh"
 #include "scm/Command.hh"
 #include "scm/Opcodes.hh"
-#include "vcs/CMatrix.hh"
 #include "vcs/CRunningScript.hh"
-#include "vcs/CPlayer.hh"
-#include "vcs/CPed.hh"
-#include "vcs/CStreaming.hh"
 #include "vcs/CVector.hh"
-#include <array>
+#include "vcs/eMissions.hh"
 
 #include <core/Randomizer.hh>
 #include <core/Config.hh>
@@ -135,7 +131,9 @@ class MissionRandomizer : public RandomizerWithDebugInterface<MissionRandomizer>
     void
     OnMissionStart (CRunningScript *script)
     {
-        CallCommand<CREATE_OBJECT_NO_OFFSET> (7338, -935.f, -124.0f, 6.5f, Local{0});
+        // Fix the factory for havana good time
+        if (RandomMission->id == MISSION_HAVANA_GOOD_TIME)
+            CallCommand<UNKNOWN_ENABLE_BUILDING_SWAP_FOR_MODEL> (660173992, 0);
 
         // Open bridges and hurricane gordy gone
         for (uint16_t i = 1562; i <= 1566; i++)
@@ -178,7 +176,7 @@ class MissionRandomizer : public RandomizerWithDebugInterface<MissionRandomizer>
     OnMissionFail (CRunningScript *script)
     {
         // Allow prologue to restart properly
-        if (OriginalMission->id == 8)
+        if (OriginalMission->id == MISSION_SOLDIER)
             {
                 CTheScripts::GetGlobal<int> (3) = 1;
             }
@@ -206,8 +204,9 @@ class MissionRandomizer : public RandomizerWithDebugInterface<MissionRandomizer>
             = CTheScripts::ScriptSpace[script->m_pCurrentIP]
               | (CTheScripts::ScriptSpace[script->m_pCurrentIP + 1] << 8);
 
-        ProcessCodeSectionSkip (script, 83, 10210, 10217);
-        ProcessCodeSectionSkip (script, 88, 9826, 9833);
+        ProcessCodeSectionSkip (script, MISSION_BLITZKRIEG, 10210, 10217);
+        ProcessCodeSectionSkip (script, MISSION_BLITZKRIEG_STRIKES_AGAIN, 9826,
+                                9833);
 
         if (script->m_pCurrentIP == CTheScripts::MainScriptSize)
             {
