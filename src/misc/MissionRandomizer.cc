@@ -5,7 +5,9 @@
 #include "scm/Command.hh"
 #include "scm/Opcodes.hh"
 #include "vcs/CRunningScript.hh"
+#include "vcs/CTimer.hh"
 #include "vcs/CVector.hh"
+#include "vcs/CWeaponInfo.hh"
 #include "vcs/eMissions.hh"
 
 #include <core/Randomizer.hh>
@@ -135,6 +137,12 @@ class MissionRandomizer : public RandomizerWithDebugInterface<MissionRandomizer>
         if (RandomMission->id == MISSION_HAVANA_GOOD_TIME)
             CallCommand<UNKNOWN_ENABLE_BUILDING_SWAP_FOR_MODEL> (660173992, 0);
 
+        // Player needs 8 rockets for the mission and rockets may not have been
+        // unlocked yet.
+        if (RandomMission->id == MISSION_TURN_ON_TUNE_IN_BUG_OUT)
+            CallCommand<GIVE_WEAPON_TO_CHAR> (Global{782},
+                                              int (WEAPON_ROCKETLAUNCHER), 8);
+
         // Open bridges and hurricane gordy gone
         for (uint16_t i = 1562; i <= 1566; i++)
             CallCommand<DELETE_OBJECT> (Global{i});
@@ -168,7 +176,7 @@ class MissionRandomizer : public RandomizerWithDebugInterface<MissionRandomizer>
                                            OriginalMission->endPos.z);
 
         OnMissionEnd (script);
-        RandomMission = nullptr;
+        RandomMission   = nullptr;
         OriginalMission = nullptr;
     }
 
@@ -182,7 +190,7 @@ class MissionRandomizer : public RandomizerWithDebugInterface<MissionRandomizer>
             }
 
         OnMissionEnd (script);
-        RandomMission = nullptr;
+        RandomMission   = nullptr;
         OriginalMission = nullptr;
     }
 
@@ -226,14 +234,23 @@ class MissionRandomizer : public RandomizerWithDebugInterface<MissionRandomizer>
     int
     ProcessMissionScript (CRunningScript *script)
     {
-        if (script->m_bIsMission && RandomMission) {
-            if (std::exchange(DelayMissionScript, false)) {
-                Rainbomizer::Logger::LogCritical (
-                    "Delaying prologue mission script");
-                return 1;
+        if (script->m_bIsMission && RandomMission)
+            {
+                // wait 1 frame before starting the mission
+                // to allow init scripts to run properly
+
+                // Just returning 1 here doesn't work because
+                // the game runs mission script twice in the
+                // same frame.
+                if (std::exchange (DelayMissionScript, false))
+                    {
+                        script->m_nWakeTime = CTimer::TimeInMilliseconds + 1;
+                        Rainbomizer::Logger::LogCritical (
+                            "Delaying prologue mission script");
+                        return 1;
+                    }
+                ProcessMissionRandomizerFSM (script);
             }
-            ProcessMissionRandomizerFSM (script);
-        }
 
         return CRunningScript__ProcessOneCommand (script);
     }
