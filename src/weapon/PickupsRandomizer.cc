@@ -101,7 +101,7 @@ class PickupsRandomizer : public Randomizer<PickupsRandomizer>
 public:
     template <auto &CPickups__GenerateNewOne>
     int
-    RandomizePickups (CVector *pos, int modelId, char arg3, int arg4, int arg5,
+    RandomizePickups (CVector *pos, int modelId, char type, int quantity, int rate,
                       bool arg6, char arg7)
     {
         WeaponPattern::Result result;
@@ -111,6 +111,9 @@ public:
             {
                 CWeaponInfo *info = CWeaponInfo::GetWeaponInfo (result.Weapon);
                 modelId           = info->nWeaponModel1;
+
+                if (result.OverrideAmmo > 0)
+                    quantity = result.OverrideAmmo;
             }
         else
             {
@@ -123,7 +126,7 @@ public:
                         }
             }
 
-        int ret = CPickups__GenerateNewOne (pos, modelId, arg3, arg4, arg5,
+        int ret = CPickups__GenerateNewOne (pos, modelId, type, quantity, rate,
                                             arg6, arg7);
         return ret;
     }

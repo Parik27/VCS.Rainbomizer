@@ -11,6 +11,11 @@
 #include "WeaponGroups.hh"
 #include "WeaponGroupList.hh"
 
+#ifdef ENABLE_DEBUG_MENU
+#include <debug/base.hh>
+#include <imgui.h>
+#endif
+
 // The number of groups are short enough and a map
 // would be dynamically allocated so just using a
 // static array and also I already wrote this code
@@ -176,7 +181,7 @@ WeaponPattern::Match (CPed *ped, int mission, int weaponType, int ammo)
     if (m_Ped == 0 && ped != FindPlayerPed ())
         return false;
 
-    if (m_Ped != -1 && ped && ped->m_nModelIndex != m_Ped)
+    if (m_Ped > 0 && ped && ped->m_nModelIndex != m_Ped)
         return false;
 
     // Region check
@@ -190,4 +195,42 @@ WeaponPattern::Match (CPed *ped, int mission, int weaponType, int ammo)
         }
 
     return true;
+}
+
+void
+WeaponPattern::DrawDebugInfo ()
+{
+#ifdef ENABLE_DEBUG_MENU
+    ImGui::TableNextColumn ();
+    ImGui::Text ("%d", m_Mission);
+    ImGui::TableNextColumn ();
+    ImGui::Text ("%d", m_Ammo);
+    ImGui::TableNextColumn ();
+    ImGui::Text ("%d", m_Ped);
+    ImGui::TableNextColumn ();
+    ImGui::Text ("%d %d %d %d", m_RegionCheck.MinX, m_RegionCheck.MinY,
+                 m_RegionCheck.MaxX, m_RegionCheck.MaxY);
+    ImGui::TableNextColumn ();
+    ImGui::Text ("%d", m_OverrideAmmo);
+#endif
+}
+
+void
+WeaponPatternManager::DrawDebugInfo ()
+{
+#ifdef ENABLE_DEBUG_MENU
+    ImGui::BeginTable ("Weapon Patterns", 6);
+    ImGui::TableSetupColumn ("Mission");
+    ImGui::TableSetupColumn ("Ammo");
+    ImGui::TableSetupColumn ("Ped");
+    ImGui::TableSetupColumn ("Region");
+    ImGui::TableSetupColumn ("Override Ammo");
+    ImGui::TableHeadersRow ();
+    for (auto &p : m_aPatterns)
+        {
+            ImGui::TableNextRow();
+            p.DrawDebugInfo ();
+        }
+    ImGui::EndTable ();
+#endif
 }

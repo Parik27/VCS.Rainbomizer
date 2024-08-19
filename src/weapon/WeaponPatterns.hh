@@ -40,6 +40,8 @@ public:
     void GetRandom (Result &result);
 
     void Read (const char *line);
+
+    void DrawDebugInfo ();
 };
 
 class WeaponPatternManager
@@ -50,4 +52,5 @@ public:
     void ReadPatterns (const char *file);
     bool GetRandomWeapon (CPed *ped, int weaponType, int ammo,
                           WeaponPattern::Result &pattern);
+    void DrawDebugInfo ();
 };
