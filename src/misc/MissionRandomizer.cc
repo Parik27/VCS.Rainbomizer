@@ -201,8 +201,8 @@ class MissionRandomizer : public RandomizerWithDebugInterface<MissionRandomizer>
     }
 
     void
-    ProcessCodeSectionSkip (CRunningScript *script, size_t target_mission, size_t at,
-                            size_t to)
+    ProcessCodeSectionSkip (CRunningScript *script, size_t target_mission, int at,
+                            int to)
     {
         // Check if running the correct script
         if (ThreadUtils::GetMissionIdFromThread(script) == target_mission) {
