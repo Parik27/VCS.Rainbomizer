@@ -145,7 +145,7 @@ class MissionRandomizer : public RandomizerWithDebugInterface<MissionRandomizer>
                                               int (WEAPON_ROCKETLAUNCHER), 8);
 */
 
-        // Open bridges and hurricane gordy gone
+        // Open bridges and hurricane Gordy gone
         for (uint16_t i = 1562; i <= 1566; i++)
             CallCommand<DELETE_OBJECT> (Global{i});
 
@@ -178,7 +178,7 @@ class MissionRandomizer : public RandomizerWithDebugInterface<MissionRandomizer>
                                            OriginalMission->endPos.z);
 
         // Hostile Takeover | Set the flag to award % for unlocking Drugs type empire sites
-        if (RandomMission && RandomMission->id == MISSION_HOSTILE_TAKEOVER)
+        if (OriginalMission && OriginalMission->id == MISSION_HOSTILE_TAKEOVER)
             CTheScripts::GetGlobal<int> (657) = 1;
 
         OnMissionEnd (script);
@@ -201,19 +201,15 @@ class MissionRandomizer : public RandomizerWithDebugInterface<MissionRandomizer>
     }
 
     void
-    ProcessCodeSectionSkip (CRunningScript *script, size_t target_mission, size_t at,
-                            size_t to)
+    ProcessCodeSectionSkip (CRunningScript *script, size_t target_mission, int at,
+                            int to)
     {
         // Check if running the correct script
         if (ThreadUtils::GetMissionIdFromThread(script) == target_mission) {
             // Mission script is located in script space after the main script
-            if (script->m_bIsMission) {
-                at += CTheScripts::MainScriptSize;
-                to += CTheScripts::MainScriptSize;
-            } else { // Adjust global offset for other scripts
-                at -= 8;
-                to -= 8;
-            }
+            // Their relative (local) offset is given in negative.
+            at = at < 0 ? CTheScripts::MainScriptSize - at : at - 8;
+            to = to < 0 ? CTheScripts::MainScriptSize - to : to - 8;
     
             if (script->m_pCurrentIP == at)
                 script->m_pCurrentIP = to;
@@ -241,9 +237,9 @@ class MissionRandomizer : public RandomizerWithDebugInterface<MissionRandomizer>
         SkipMissionCode (MISSION_TURN_ON_TUNE_IN_BUG_OUT, script, -1, 154718, 154730);
         if (CTheScripts::GetGlobal<int> (130) == 0) { // acts_completed
             // Blitzkrieg | skip insufficient empire sites scenario
-            SkipMissionCode (MISSION_BLITZKRIEG, script, MISSION_BLITZKRIEG, 10210, 10217);
+            SkipMissionCode (MISSION_BLITZKRIEG, script, MISSION_BLITZKRIEG, -10210, -10217);
             // Blitzkrieg Strikes Again | skip insufficient empire sites scenario
-            SkipMissionCode (MISSION_BLITZKRIEG_STRIKES_AGAIN, script, MISSION_BLITZKRIEG_STRIKES_AGAIN, 9826, 9833);
+            SkipMissionCode (MISSION_BLITZKRIEG_STRIKES_AGAIN, script, MISSION_BLITZKRIEG_STRIKES_AGAIN, -9826, -9833);
         }
 
         if (script->m_bIsMission && RandomMission) {
