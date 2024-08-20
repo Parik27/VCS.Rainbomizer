@@ -277,6 +277,9 @@ public:
         GameAddress<0x089da48c>::WriteInstructions(lwc1(f12, s0, 0x78c));
         GameAddress<0x089da494>::WriteInstructions(swc1(f12, s0, 0x25c));
 
+        // Fix for skimmer reversing (and AI not driving it)
+        GameAddress<0x088a4ac4>::WriteInstructions (li (a1, 0x0));
+
         ThreadUtils::Initialise ();
     }
 };

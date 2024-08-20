@@ -23,11 +23,11 @@
 #include <vcs/CDarkel.hh>
 #include <core/ThreadUtils.hh>
 
-class WeaponRandomizer : public Randomizer<WeaponRandomizer>
+class WeaponRandomizer : public RandomizerWithDebugInterface<WeaponRandomizer>
 {
-    inline static int ForcedWeapon = -1;
+    inline static int  ForcedWeapon            = -1;
     inline static bool DisableWeaponRandomizer = false;
-    inline static int RampageWeapon = -1;
+    inline static int  RampageWeapon           = -1;
 
     inline static WeaponPatternManager m_Patterns;
 
@@ -51,6 +51,10 @@ class WeaponRandomizer : public Randomizer<WeaponRandomizer>
 
             OriginalWeapon = original;
             RandomWeapon   = random;
+
+            Rainbomizer::Logger::LogMessage (
+                "Storing weapon: %d -> %d (mission = %d)", original, random,
+                Mission);
         }
 
         bool
@@ -67,9 +71,6 @@ class WeaponRandomizer : public Randomizer<WeaponRandomizer>
 
             auto originalInfo = CWeaponInfo::GetWeaponInfo (OriginalWeapon);
             auto randomInfo   = CWeaponInfo::GetWeaponInfo (RandomWeapon);
-
-            Rainbomizer::Logger::LogMessage (
-                "%d", CTheScripts::CurrentScript->m_pCurrentIP);
 
             Rainbomizer::Logger::LogMessage (
                 "Restoring weapon: %d -> %d (slot %d vs %d) %d", RandomWeapon,
@@ -103,8 +104,11 @@ class WeaponRandomizer : public Randomizer<WeaponRandomizer>
 
         if (ForcedWeapon != -1)
             result.Weapon = ForcedWeapon;
-        
-        return CPed__GiveWeapon (ped, result.Weapon, ammo, p4);
+
+        return CPed__GiveWeapon (ped, result.Weapon,
+                                 result.OverrideAmmo > 0 ? result.OverrideAmmo
+                                                         : ammo,
+                                 p4);
     }
 
     template <auto &CWeapon__FireWeapon>
@@ -153,6 +157,13 @@ class WeaponRandomizer : public Randomizer<WeaponRandomizer>
     static void
     RandomizeSelectedWeapon (CPed *ped, int slot)
     {
+        if (ped == FindPlayerPed ())
+            {
+                Rainbomizer::Logger::LogMessage (
+                    "SetActiveWeaponSlot (%p, %d)\nStack: %s", ped, slot,
+                    PPSSPPUtils::GetStackTrace ().data ());
+            }
+
         static std::array<uint32_t, 10> usedSlots;
 
         size_t numSlots = 0;
@@ -174,16 +185,16 @@ class WeaponRandomizer : public Randomizer<WeaponRandomizer>
 
     template <auto &CWeapon__FireInstantHitFromCar>
     static void
-    FireProjectilesDuringDriveby (CWeapon *weapon, CVehicle *veh,
-                                  bool left, bool right)
+    FireProjectilesDuringDriveby (CWeapon *weapon, CVehicle *veh, bool left,
+                                  bool right)
     {
 
-        if (WeaponsCommon::IsProjectile(eWeapon(weapon->Type)))
+        if (WeaponsCommon::IsProjectile (eWeapon (weapon->Type)))
             {
-                CPed* ped = FindPlayerPed();
+                CPed *ped = FindPlayerPed ();
 
                 static CVector pos;
-                uint32_t type = weapon->Type;
+                uint32_t       type = weapon->Type;
 
                 if (weapon->Type == WEAPON_ROCKETLAUNCHER)
                     type = WEAPON_ROCKET;
@@ -199,16 +210,16 @@ class WeaponRandomizer : public Randomizer<WeaponRandomizer>
                 else
                     pos += ped->m_matrix.forward * 3;
 
-                CProjectileInfo::AddProjectile (3.0f, FindPlayerPed (),
-                                                type, &pos, false);
+                CProjectileInfo::AddProjectile (3.0f, FindPlayerPed (), type,
+                                                &pos, false);
             }
 
         CWeapon__FireInstantHitFromCar (weapon, veh, left, right);
     }
 
- template<auto& CPickups__Update>
- static void
- SkipWeaponRandomizationForPickups ()
+    template <auto &CPickups__Update>
+    static void
+    SkipWeaponRandomizationForPickups ()
     {
         DisableWeaponRandomizer = true;
         CPickups__Update ();
@@ -259,7 +270,7 @@ class WeaponRandomizer : public Randomizer<WeaponRandomizer>
         static void
         Impl (int ped, int weaponType)
         {
-            if (ped == CTheScripts::GetGlobal<int>(782))
+            if (ped == CTheScripts::GetGlobal<int> (782))
                 {
                     Return (100);
                 }
@@ -268,7 +279,20 @@ class WeaponRandomizer : public Randomizer<WeaponRandomizer>
         }
     };
 
+    template<auto &CRunningScript__Process>
+    static void FixCurrentScriptPointer (CRunningScript* script)
+    {
+        CRunningScript__Process (script);
+        CTheScripts::CurrentScript.Get () = nullptr;
+    }
+
 public:
+    void
+    DrawDebug ()
+    {
+        m_Patterns.DrawDebugInfo ();
+    }
+
     WeaponRandomizer ()
     {
         bool EnableCustomDriveBy = false;
@@ -311,6 +335,8 @@ public:
 
         HOOK (Opcode, GET_AMMO_IN_CHAR_WEAPON, AmmoCheckFix::Hook,
               int (CRunningScript *));
+
+        HOOK (Jal, 0x08869b00, FixCurrentScriptPointer, void (CRunningScript*));
 
 #ifdef MELEE_DEBUG
         HOOK (Jal, 0x8a48038, DrawMeleeDebugSphere,

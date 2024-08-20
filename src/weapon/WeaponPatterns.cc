@@ -11,6 +11,11 @@
 #include "WeaponGroups.hh"
 #include "WeaponGroupList.hh"
 
+#ifdef ENABLE_DEBUG_MENU
+#include <debug/base.hh>
+#include <imgui.h>
+#endif
+
 // The number of groups are short enough and a map
 // would be dynamically allocated so just using a
 // static array and also I already wrote this code
@@ -49,6 +54,7 @@ WeaponPattern::ReadFlag (std::string_view flag)
     ReadFlag (flag, "min_y", m_RegionCheck.MinY);
     ReadFlag (flag, "max_x", m_RegionCheck.MaxX);
     ReadFlag (flag, "max_y", m_RegionCheck.MaxY);
+    ReadFlag (flag, "override_ammo", m_OverrideAmmo);
 }
 
 void
@@ -87,10 +93,10 @@ WeaponPattern::Read (const char *line)
         {
             auto split_view = std::ranges::split_view (i, '=');
 
-            if (std::ranges::distance(split_view) != 2)
+            if (std::ranges::distance (split_view) != 2)
                 continue;
 
-            auto it = split_view.begin();
+            auto it      = split_view.begin ();
             auto type_s  = std::string_view (*it);
             auto value_s = std::string_view (*++it);
 
@@ -103,11 +109,11 @@ WeaponPattern::Read (const char *line)
                 weights[weapon] = weight;
             });
 
-
-            Rainbomizer::Logger::LogMessage("%s", line);
-            for (auto [weight, idx] : std::views::zip(weights, std::views::iota(0)))
+            Rainbomizer::Logger::LogMessage ("%s", line);
+            for (auto [weight, idx] :
+                 std::views::zip (weights, std::views::iota (0)))
                 {
-                    Rainbomizer::Logger::LogMessage("%d = %f", idx, weight);
+                    Rainbomizer::Logger::LogMessage ("%d = %f", idx, weight);
                 }
         }
 
@@ -118,7 +124,8 @@ WeaponPattern::Read (const char *line)
 void
 WeaponPattern::GetRandom (Result &result)
 {
-    result.Weapon = m_Distribution (RandEngine ());
+    result.Weapon       = m_Distribution (RandEngine ());
+    result.OverrideAmmo = m_OverrideAmmo;
 }
 
 void
@@ -174,7 +181,7 @@ WeaponPattern::Match (CPed *ped, int mission, int weaponType, int ammo)
     if (m_Ped == 0 && ped != FindPlayerPed ())
         return false;
 
-    if (m_Ped != -1 && ped && ped->m_nModelIndex != m_Ped)
+    if (m_Ped > 0 && ped && ped->m_nModelIndex != m_Ped)
         return false;
 
     // Region check
@@ -188,4 +195,42 @@ WeaponPattern::Match (CPed *ped, int mission, int weaponType, int ammo)
         }
 
     return true;
+}
+
+void
+WeaponPattern::DrawDebugInfo ()
+{
+#ifdef ENABLE_DEBUG_MENU
+    ImGui::TableNextColumn ();
+    ImGui::Text ("%d", m_Mission);
+    ImGui::TableNextColumn ();
+    ImGui::Text ("%d", m_Ammo);
+    ImGui::TableNextColumn ();
+    ImGui::Text ("%d", m_Ped);
+    ImGui::TableNextColumn ();
+    ImGui::Text ("%d %d %d %d", m_RegionCheck.MinX, m_RegionCheck.MinY,
+                 m_RegionCheck.MaxX, m_RegionCheck.MaxY);
+    ImGui::TableNextColumn ();
+    ImGui::Text ("%d", m_OverrideAmmo);
+#endif
+}
+
+void
+WeaponPatternManager::DrawDebugInfo ()
+{
+#ifdef ENABLE_DEBUG_MENU
+    ImGui::BeginTable ("Weapon Patterns", 6);
+    ImGui::TableSetupColumn ("Mission");
+    ImGui::TableSetupColumn ("Ammo");
+    ImGui::TableSetupColumn ("Ped");
+    ImGui::TableSetupColumn ("Region");
+    ImGui::TableSetupColumn ("Override Ammo");
+    ImGui::TableHeadersRow ();
+    for (auto &p : m_aPatterns)
+        {
+            ImGui::TableNextRow();
+            p.DrawDebugInfo ();
+        }
+    ImGui::EndTable ();
+#endif
 }

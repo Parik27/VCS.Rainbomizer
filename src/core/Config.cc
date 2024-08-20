@@ -14,6 +14,10 @@
 #include "Logger.hh"
 #include <string>
 
+#ifdef ENABLE_DEBUG_MENU
+#include <debug/config.hh>
+#endif
+
 /*******************************************************/
 ConfigManager::ConfigManager (const std::string &file)
 {
@@ -70,10 +74,10 @@ void
 ConfigManager::ReadValue (const std::string &tableName, const std::string &key,
                           T &out, bool tmp)
 {
+#ifndef NO_CPPTOML
+
     if (!m_pConfig)
         return;
-
-#ifndef NO_CPPTOML
 
     if (tableName == "")
         {
@@ -85,6 +89,11 @@ ConfigManager::ReadValue (const std::string &tableName, const std::string &key,
 
     if (table && table->contains (key))
         out = table->get_as<T> (key).value_or (out);
+#endif
+
+#ifdef ENABLE_DEBUG_MENU
+    if (!tmp)
+        ConfigDebugInterface::AddConfigOption (tableName, key, &out);
 #endif
 
 #ifdef DEBUG_CONFIG_OPTIONS

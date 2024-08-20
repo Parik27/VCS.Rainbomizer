@@ -19,6 +19,8 @@ class WeaponPattern
         int MinX = -1, MinY = -1, MaxX = -1, MaxY = -1;
     } m_RegionCheck;
 
+    int m_OverrideAmmo = -1;
+
     template <typename T>
     inline constexpr void ReadFlag (std::string_view data,
                                     std::string_view flagName, T &out);
@@ -30,6 +32,7 @@ public:
     struct Result
     {
         int Weapon;
+        int OverrideAmmo;
     };
 
     bool Match (CPed *ped, int mission, int weaponType, int ammo);
@@ -37,6 +40,8 @@ public:
     void GetRandom (Result &result);
 
     void Read (const char *line);
+
+    void DrawDebugInfo ();
 };
 
 class WeaponPatternManager
@@ -47,4 +52,5 @@ public:
     void ReadPatterns (const char *file);
     bool GetRandomWeapon (CPed *ped, int weaponType, int ammo,
                           WeaponPattern::Result &pattern);
+    void DrawDebugInfo ();
 };

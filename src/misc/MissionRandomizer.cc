@@ -4,12 +4,11 @@
 #include "memory/GameAddress.hh"
 #include "scm/Command.hh"
 #include "scm/Opcodes.hh"
-#include "vcs/CMatrix.hh"
 #include "vcs/CRunningScript.hh"
-#include "vcs/CPlayer.hh"
-#include "vcs/CPed.hh"
+#include "vcs/CTimer.hh"
 #include "vcs/CVector.hh"
-#include <array>
+#include "vcs/CWeaponInfo.hh"
+#include "vcs/eMissions.hh"
 
 #include <core/Randomizer.hh>
 #include <core/Config.hh>
@@ -23,7 +22,7 @@
 #include <vector>
 #include <map>
 
-class MissionRandomizer : public Randomizer<MissionRandomizer>
+class MissionRandomizer : public RandomizerWithDebugInterface<MissionRandomizer>
 {
     struct MissionInfo
     {
@@ -134,6 +133,16 @@ class MissionRandomizer : public Randomizer<MissionRandomizer>
     void
     OnMissionStart (CRunningScript *script)
     {
+        // Fix the factory for havana good time
+        if (RandomMission->id == MISSION_HAVANA_GOOD_TIME)
+            CallCommand<UNKNOWN_ENABLE_BUILDING_SWAP_FOR_MODEL> (660173992, 0);
+
+        // Player needs 8 rockets for the mission and rockets may not have been
+        // unlocked yet.
+        if (RandomMission->id == MISSION_TURN_ON_TUNE_IN_BUG_OUT)
+            CallCommand<GIVE_WEAPON_TO_CHAR> (Global{782},
+                                              int (WEAPON_ROCKETLAUNCHER), 8);
+
         // Open bridges and hurricane gordy gone
         for (uint16_t i = 1562; i <= 1566; i++)
             CallCommand<DELETE_OBJECT> (Global{i});
@@ -167,7 +176,7 @@ class MissionRandomizer : public Randomizer<MissionRandomizer>
                                            OriginalMission->endPos.z);
 
         OnMissionEnd (script);
-        RandomMission = nullptr;
+        RandomMission   = nullptr;
         OriginalMission = nullptr;
     }
 
@@ -175,13 +184,13 @@ class MissionRandomizer : public Randomizer<MissionRandomizer>
     OnMissionFail (CRunningScript *script)
     {
         // Allow prologue to restart properly
-        if (OriginalMission->id == 8)
+        if (OriginalMission->id == MISSION_SOLDIER)
             {
                 CTheScripts::GetGlobal<int> (3) = 1;
             }
 
         OnMissionEnd (script);
-        RandomMission = nullptr;
+        RandomMission   = nullptr;
         OriginalMission = nullptr;
     }
 
@@ -203,8 +212,9 @@ class MissionRandomizer : public Randomizer<MissionRandomizer>
             = CTheScripts::ScriptSpace[script->m_pCurrentIP]
               | (CTheScripts::ScriptSpace[script->m_pCurrentIP + 1] << 8);
 
-        ProcessCodeSectionSkip (script, 83, 10210, 10217);
-        ProcessCodeSectionSkip (script, 88, 9826, 9833);
+        ProcessCodeSectionSkip (script, MISSION_BLITZKRIEG, 10210, 10217);
+        ProcessCodeSectionSkip (script, MISSION_BLITZKRIEG_STRIKES_AGAIN, 9826,
+                                9833);
 
         if (script->m_pCurrentIP == CTheScripts::MainScriptSize)
             {
@@ -224,26 +234,53 @@ class MissionRandomizer : public Randomizer<MissionRandomizer>
     int
     ProcessMissionScript (CRunningScript *script)
     {
-        if (script->m_bIsMission && RandomMission) {
-            if (std::exchange(DelayMissionScript, false)) {
-                Rainbomizer::Logger::LogCritical (
-                    "Delaying prologue mission script");
-                return 1;
+        if (script->m_bIsMission && RandomMission)
+            {
+                // wait 1 frame before starting the mission
+                // to allow init scripts to run properly
+
+                // Just returning 1 here doesn't work because
+                // the game runs mission script twice in the
+                // same frame.
+                if (std::exchange (DelayMissionScript, false))
+                    {
+                        script->m_nWakeTime = CTimer::TimeInMilliseconds + 1;
+                        Rainbomizer::Logger::LogCritical (
+                            "Delaying prologue mission script");
+                        return 1;
+                    }
+                ProcessMissionRandomizerFSM (script);
             }
-            ProcessMissionRandomizerFSM (script);
-        }
 
         return CRunningScript__ProcessOneCommand (script);
     }
 
 public:
+
+    void
+    DrawDebug ()
+    {
+#ifdef ENABLE_DEBUG_MENU
+        if (OriginalMission == nullptr || RandomMission == nullptr)
+            {
+                ImGui::TextColored (ImVec4 (1, 0, 0, 1),
+                                    "No mission randomized yet");
+                return;
+            }
+
+        ImGui::LabelText ("Original Mission", "%d %s", OriginalMission->id,
+                          OriginalMission->gxtName);
+        ImGui::LabelText ("Random Mission", "%d %s", RandomMission->id,
+                          RandomMission->gxtName);
+#endif
+    }
+
     MissionRandomizer ()
     {
         RB_C_DO_CONFIG ("MissionRandomizer", ForcedMission);
         Missions.reserve (64);
 
         InitialiseMissionsArray ();
-        InitialiseMissionsMap(10);
 
         RandomizationSeedEvent::Add (
             [] (int seed) { Get ().InitialiseMissionsMap (seed); });

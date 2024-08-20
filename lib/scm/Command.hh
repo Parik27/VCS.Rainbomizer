@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/Logger.hh"
+#include "hooks/Hooks.hh"
 #include "memory/GameAddress.hh"
 #include "scm/Opcodes.hh"
 #include "vcs/CRunningScript.hh"
@@ -197,7 +198,7 @@ public:
     {
         auto script           = CTheScripts::CurrentScript;
         auto buffer           = concatenate (GenerateArgumentBuffer (params)...,
-                                             std::array<uint8_t, NumReturn * 3>{0});
+                                             std::array<uint8_t, NumReturn * 3>{});
         auto returnParamsAddr = buffer.data () + buffer.size () - NumReturn * 3;
 
         memcpy (returnParamsAddr,
@@ -262,7 +263,11 @@ public:
 
         return 0;
     }
-};
 
-template <typename Class, typename... Params>
-class ScriptCommandHook<0, Class, Params...>;
+    template<eCommandId Command>
+    static void
+    Install ()
+    {
+        HOOK(Opcode, Command, Hook, int (CRunningScript*))
+    }
+};
