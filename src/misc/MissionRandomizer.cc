@@ -177,9 +177,11 @@ class MissionRandomizer : public RandomizerWithDebugInterface<MissionRandomizer>
                                            OriginalMission->endPos.y,
                                            OriginalMission->endPos.z);
 
+/*
         // Hostile Takeover | Set the flag to award % for unlocking Drugs type empire sites
         if (OriginalMission && OriginalMission->id == MISSION_HOSTILE_TAKEOVER)
             CTheScripts::GetGlobal<int> (657) = 1;
+*/
 
         OnMissionEnd (script);
         RandomMission   = nullptr;
