@@ -5,6 +5,7 @@
 #include "psputils.h"
 #include "vcs/CPlayer.hh"
 #include "vcs/CRunningScript.hh"
+#include "vcs/CTimer.hh"
 #include <core/Randomizer.hh>
 #include <hooks/Hooks.hh>
 #include <thread>
@@ -37,6 +38,7 @@ class AutoSave : public Randomizer<AutoSave>
         if (State == AUTOSAVE_AUTOSAVING
             && param->mode == PSP_UTILITY_SAVEDATA_LISTSAVE)
             {
+                CTheScripts::GetGlobal<int> (4) = 0;
                 State            = AUTOSAVE_WAIT_FOR_MISSION_PASS;
                 param->mode      = PSP_UTILITY_SAVEDATA_AUTOSAVE;
                 param->focus     = PSP_UTILITY_SAVEDATA_FOCUS_LASTEMPTY;
@@ -90,14 +92,20 @@ class AutoSave : public Randomizer<AutoSave>
                 if (progressMade || PPSSPPUtils::CheckKeyUp<NKCODE_F6> ())
                     {
                         State         = AUTOSAVE_WAIT_TO_PREVENT_PACB;
-                        AutosaveTimer = sceKernelGetSystemTimeLow () + 1000000;
+                        AutosaveTimer = CTimer::TimeInMilliseconds + 6000;
                         CallCommand<DO_FADE> (1000, 0);
                     }
                 break;
 
             case AUTOSAVE_WAIT_TO_PREVENT_PACB:
-                if (sceKernelGetSystemTimeLow () > AutosaveTimer)
+                if (CTimer::TimeInMilliseconds > AutosaveTimer)
                     {
+                        Rainbomizer::Logger::LogMessage (
+                            "Autosaving... $ONMISSION = %d, $ACTSPASSED = %d",
+                            CTheScripts::GetGlobal<int> (789),
+                            CTheScripts::GetGlobal<int> (130)
+                                                         );
+
                         DoAutosave ();
                         CallCommand<DO_FADE> (1000, 1);
                         CallCommand<PLAY_MISSION_PASSED_TUNE> (1);

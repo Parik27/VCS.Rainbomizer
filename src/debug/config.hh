@@ -12,7 +12,13 @@ class ConfigDebugInterface : public DebugInterface
 {
 public:
     using Type        = std::variant<int *, std::string *, bool *, double *>;
-    using ConfigGroup = std::map<std::string, Type>;
+
+    struct ConfigGroup
+    {
+        std::map<std::string, Type> rawConfigOptions;
+        std::map<std::string, std::pair<void (*) (void *), void*>>
+            customizedConfigOptions;
+    };
 
 private:
     static auto &
@@ -22,12 +28,12 @@ private:
         return sm_ConfigGroups;
     }
 
-    static ConfigDebugInterface               sm_Instance;
+    static ConfigDebugInterface sm_Instance;
 
     void
     DrawConfigGroup (ConfigGroup &group)
     {
-        for (auto &i : group)
+        for (auto &i : group.rawConfigOptions)
             {
                 ImGui::Columns (2);
 
@@ -54,6 +60,22 @@ private:
 
                 ImGui::Columns ();
             }
+
+        for (auto &[name, data] : group.customizedConfigOptions)
+            {
+                ImGui::Columns (2);
+                ImGui::Text ("%s", name.c_str ());
+                ImGui::NextColumn ();
+
+                ImGui::PushID (name.c_str ());
+
+                auto &[func, ptr] = data;
+                func (ptr);
+                ImGui::PopID();
+                ImGui::NextColumn ();
+
+                ImGui::Columns ();
+            }
     }
 
     void
@@ -76,7 +98,16 @@ public:
     AddConfigOption (const std::string &tableName, const std::string &key,
                      T *data)
     {
-        GetConfigOptions ()[tableName][key] = data;
+        GetConfigOptions ()[tableName].rawConfigOptions[key] = data;
+    }
+
+    template <typename T>
+    static void
+    AddConfigOption (const std::string &tableName, const std::string &key,
+                     T *data, void (*func) (T *))
+    {
+        GetConfigOptions ()[tableName].customizedConfigOptions[key]
+            = std::make_pair (reinterpret_cast<void (*) (void *)> (func), data);
     }
 
     const char *

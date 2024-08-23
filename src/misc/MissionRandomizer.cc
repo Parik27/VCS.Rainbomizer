@@ -2,11 +2,13 @@
 #include "core/Logger.hh"
 #include "core/ThreadUtils.hh"
 #include "memory/GameAddress.hh"
+#include "ppsspp/Keyboard.hh"
 #include "scm/Command.hh"
 #include "scm/Opcodes.hh"
 #include "vcs/CRunningScript.hh"
 #include "vcs/CTimer.hh"
 #include "vcs/CVector.hh"
+#include "vcs/CVehicle.hh"
 #include "vcs/CWeaponInfo.hh"
 #include "vcs/eMissions.hh"
 
@@ -22,8 +24,75 @@
 #include <vector>
 #include <map>
 
+#include <core/ConfigDebugHelpers.hh>
+
 class MissionRandomizer : public RandomizerWithDebugInterface<MissionRandomizer>
 {
+    inline static std::array sm_MissionValueList = {
+        std::make_pair ("None", -1),
+        std::make_pair ("Soldier", 8),
+        std::make_pair ("In The Air Tonight", 12),
+        std::make_pair ("Cleaning House", 42),
+        std::make_pair ("Conduct Unbecoming", 43),
+        std::make_pair ("Cholo Victory", 44),
+        std::make_pair ("Boomshine Blowout", 45),
+        std::make_pair ("Truck Stop", 46),
+        std::make_pair ("Marked Men", 47),
+        std::make_pair ("Shakedown", 48),
+        std::make_pair ("Fear the Repo", 49),
+        std::make_pair ("Waking Up the Neighbors", 50),
+        std::make_pair ("O, Brothel, Where Art Thou?", 51),
+        std::make_pair ("Got Protection?", 52),
+        std::make_pair ("When Funday Comes", 53),
+        std::make_pair ("Takin' Out the White-Trash", 54),
+        std::make_pair ("D.I.V.O.R.C.E.", 55),
+        std::make_pair ("To Victor, the Spoils", 56),
+        std::make_pair ("Hose the Hoes", 57),
+        std::make_pair ("Robbing the Cradle", 58),
+        std::make_pair ("Jive Drive", 59),
+        std::make_pair ("The Audition", 60),
+        std::make_pair ("Caught as an Act", 61),
+        std::make_pair ("Snitch Hitch", 62),
+        std::make_pair ("From Zero to Hero", 63),
+        std::make_pair ("Nice Package", 64),
+        std::make_pair ("Balls", 65),
+        std::make_pair ("Papi Don't Screech", 66),
+        std::make_pair ("Havana Good Time", 67),
+        std::make_pair ("Money for Nothing", 68),
+        std::make_pair ("Leap and Bound", 69),
+        std::make_pair ("The Bum Deal", 70),
+        std::make_pair ("The Mugshot Longshot", 71),
+        std::make_pair ("Hostile Takeover", 72),
+        std::make_pair ("Unfriendly Competition", 73),
+        std::make_pair ("High Wire", 74),
+        std::make_pair ("Burning Bridges", 75),
+        std::make_pair ("Accidents Will Happen", 76),
+        std::make_pair ("The Colonel's Coke", 77),
+        std::make_pair ("Kill Phil", 78),
+        std::make_pair ("Say Cheese", 79),
+        std::make_pair ("Kill Phil: Part 2", 80),
+        std::make_pair ("So Long Schlong", 81),
+        std::make_pair ("Brawn of the Dead", 82),
+        std::make_pair ("Blitzkrieg", 83),
+        std::make_pair ("Turn on, Tune in, Bug out", 84),
+        std::make_pair ("Taking the Fall", 85),
+        std::make_pair ("White Lies", 86),
+        std::make_pair ("Where it Hurts Most", 87),
+        std::make_pair ("Blitzkrieg Strikes Again", 88),
+        std::make_pair ("Lost and Found", 89),
+        std::make_pair ("Light My Pyre", 90),
+        std::make_pair ("Home's on the Range", 91),
+        std::make_pair ("Purple Haze", 92),
+        std::make_pair ("Farewell To Arms", 93),
+        std::make_pair ("Steal the Deal", 94),
+        std::make_pair ("The Exchange", 95),
+        std::make_pair ("Domo Arigato Domestoboto", 96),
+        std::make_pair ("Over the Top", 97),
+        std::make_pair ("Last Stand", 98),
+    };
+
+    using MissionId = EnumConfigOption<int, sm_MissionValueList>;
+
     struct MissionInfo
     {
         int8_t  id;
@@ -40,7 +109,7 @@ class MissionRandomizer : public RandomizerWithDebugInterface<MissionRandomizer>
 
     bool DelayMissionScript = false;
     int Seed;
-    int ForcedMission = -1;
+    MissionId ForcedMission = -1;
 
     MissionInfo *
     GetMissionInfoForId (uint8_t id)
@@ -172,6 +241,7 @@ class MissionRandomizer : public RandomizerWithDebugInterface<MissionRandomizer>
             memcpy (gxtName, OriginalMission->gxtName, 8);
 
         // Teleport player to the original mission end position
+        ResetPlayerInterior ();
         CallCommand<SET_CHAR_COORDINATES> (Global{782},
                                            OriginalMission->endPos.x,
                                            OriginalMission->endPos.y,
@@ -276,6 +346,18 @@ class MissionRandomizer : public RandomizerWithDebugInterface<MissionRandomizer>
         return CRunningScript__ProcessOneCommand (script);
     }
 
+    void
+    ResetPlayerInterior ()
+    {
+        // Need to set player to -1 so game doesn't try to fade and set player
+        // pos
+        int origPlayer                    = CTheScripts::GetGlobal<int> (782);
+        CTheScripts::GetGlobal<int> (782) = -1;
+        CommandCaller::CallGameFunction (0x20751 - 0x8, 0, 0);
+        CTheScripts::GetGlobal<int> (782) = origPlayer;
+
+    }
+
 public:
 
     void
@@ -307,8 +389,8 @@ public:
             [] (int seed) { Get ().InitialiseMissionsMap (seed); });
 
         HOOK_MEMBER (Jal, (0x08abc41c), RandomizeMission,
-              uint32_t (class CRunningScript *, unsigned char *data,
-                        int numParams, int *params));
+                     uint32_t (class CRunningScript *, unsigned char *data,
+                               int numParams, int *params));
 
         HOOK_MEMBER (Jal, 0x8862524, ProcessScript,
                      int (CRunningScript *));

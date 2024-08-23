@@ -1,4 +1,5 @@
 #include "debug/imgui/Backend.hh"
+#include "ppsspp/KeyCodes.h"
 #include "pspthreadman.h"
 #include <algorithm>
 #include <array>
@@ -24,10 +25,10 @@ static std::array keyTranslation = {
     std::make_pair (ImGuiKey_Space, NKCODE_SPACE),
     std::make_pair (ImGuiKey_Enter, NKCODE_ENTER),
     std::make_pair (ImGuiKey_Escape, NKCODE_BACK),
-    std::make_pair (ImGuiMod_Shift, NKCODE_SHIFT_LEFT),
-    std::make_pair (ImGuiMod_Shift, NKCODE_SHIFT_RIGHT),
-    std::make_pair (ImGuiMod_Ctrl, NKCODE_CTRL_LEFT),
-    std::make_pair (ImGuiMod_Ctrl, NKCODE_CTRL_RIGHT),
+    std::make_pair (ImGuiKey_LeftShift, NKCODE_SHIFT_LEFT),
+    std::make_pair (ImGuiKey_RightShift, NKCODE_SHIFT_RIGHT),
+    std::make_pair (ImGuiKey_LeftCtrl, NKCODE_CTRL_LEFT),
+    std::make_pair (ImGuiKey_RightCtrl, NKCODE_CTRL_RIGHT),
 };
 
 static std::array inputTranslation = {
@@ -97,8 +98,19 @@ ProcessInput ()
 
         io.AddMousePosEvent (x, y);
 
-        io.AddMouseButtonEvent (
-            0, PPSSPPUtils::CheckKeyDown<NKCODE_EXT_MOUSEBUTTON_1> ());
+        for (int i = NKCODE_EXT_MOUSEBUTTON_1; i <= NKCODE_EXT_MOUSEBUTTON_5;
+             i++)
+            {
+                io.AddMouseButtonEvent (i - NKCODE_EXT_MOUSEBUTTON_1,
+                                        PPSSPPUtils::CheckKeyDown (
+                                            InputKeyCode (i)));
+            }
+
+        if (PPSSPPUtils::CheckKeyDown (NKCODE_EXT_MOUSEWHEEL_UP))
+            io.AddMouseWheelEvent (0.0f, 1.0f);
+        if (PPSSPPUtils::CheckKeyDown (NKCODE_EXT_MOUSEWHEEL_DOWN))
+            io.AddMouseWheelEvent (0.0f, -1.0f);
+
     }
 
     // keyboard
@@ -107,6 +119,14 @@ ProcessInput ()
             {
                 io.AddKeyEvent (imguiKey, PPSSPPUtils::CheckKeyDown (nkKey));
             }
+
+        io.AddKeyEvent (ImGuiMod_Shift,
+                        PPSSPPUtils::CheckKeyDown (NKCODE_SHIFT_LEFT)
+                            || PPSSPPUtils::CheckKeyDown (NKCODE_SHIFT_RIGHT));
+
+        io.AddKeyEvent (ImGuiMod_Ctrl,
+                        PPSSPPUtils::CheckKeyDown (NKCODE_CTRL_LEFT)
+                            || PPSSPPUtils::CheckKeyDown (NKCODE_CTRL_RIGHT));
 
         static char lastKey = 0;
         bool        shift   = PPSSPPUtils::CheckKeyDown (NKCODE_SHIFT_LEFT)

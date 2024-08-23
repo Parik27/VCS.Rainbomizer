@@ -17,7 +17,10 @@
 #include <array>
 
 #include "WeaponPatterns.hh"
+#include "scm/Command.hh"
+#include "scm/Opcodes.hh"
 #include "vcs/CModelInfo.hh"
+#include "vehicle/Common.hh"
 
 #include <utils/ContainerUtils.hh>
 #include <utils/Random.hh>
@@ -64,14 +67,8 @@ class PickupsRandomizer : public Randomizer<PickupsRandomizer>
                                              PICKUP_SMG,
                                              PICKUP_INFORMATION,
                                              PICKUP_ADRENALINE,
-                                             PICKUP_MOVIE,
                                              PICKUP_BUY_VEHICLE,
-                                             PICKUP_KEYCARD,
-                                             PICKUP_GD_DILDO,
-                                             PICKUP_NDC_DRUGPACKET,
                                              PICKUP_GD_BRIEFCASE_RED,
-                                             PICKUP_GD_BRIEFCASE_BLUE,
-                                             PICKUP_GD_BRIEFCASE_BROWN,
                                              PICKUP_PINATA_MAN,
                                              PICKUP_MEGADAMAGE,
                                              PICKUP_REGENHEALTH,
@@ -122,6 +119,9 @@ public:
                     if (model == modelId)
                         {
                             modelId = GetRandomElement (m_Pickups);
+                            if (ForcedPickup != -1)
+                              modelId = ForcedPickup;
+
                             break;
                         }
             }
@@ -176,14 +176,43 @@ public:
     static bool
     FixCollectedPickups (int modelId, int p2)
     {
-        if (modelId == PICKUP_RACEGOOD)
+        switch (modelId)
             {
+            case PICKUP_GD_BRIEFCASE_RED:
+              if (FindPlayerPed())
+                CallCommand<ADD_SCORE>(Global{782}, RandomInt(1000, 5000));
+              break;
+
+              case PICKUP_BUY_VEHICLE: {
+                  if (!FindPlayerPed ())
+                      break;
+
+                  auto pos = FindPlayerPed ()->m_matrix.pos;
+                  int  veh = VehicleCommon::GetRandomUsableVehicle ();
+                  CallCommand<GET_CLOSEST_CAR_NODE> (pos.x, pos.y, pos.z,
+                                                     Local{0}, Local{1},
+                                                     Local{2});
+                  CStreaming::RequestModel (veh, 0);
+                  CStreaming::LoadAllRequestedModels (false);
+
+                  if (!CStreaming::HasModelLoaded (veh))
+                      break;
+
+                  CallCommand<CREATE_CAR> (veh, Local{0}, Local{1}, Local{2},
+                                           Local{3});
+                  CallCommand<MARK_CAR_AS_NO_LONGER_NEEDED> (Local{3});
+                  break;
+              }
+
+            case PICKUP_RACEGOOD:
                 CVehicle *vehicle = FindPlayerVehicle ();
                 if (vehicle)
                     vehicle->m_fHealth += 1000;
 
                 // Return here to prevent crashing
                 return false;
+
+
             }
         return CPickups__GivePlayerGoodiesWithPickUpMI (modelId, p2);
     }
