@@ -261,6 +261,9 @@ public:
         // Fix for skimmer reversing (and AI not driving it)
         GameAddress<0x088a4ac4>::WriteInstructions (li (a1, 0x0));
 
+        // Fix for photographing peds inside vehicles for Mugshot Longshot
+        GameAddress<0x08a4ea10>::WriteInstructions (li (t1, 0x0));
+
         ThreadUtils::Initialise ();
     }
 };
