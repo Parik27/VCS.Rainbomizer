@@ -91,11 +91,6 @@ ConfigManager::ReadValue (const std::string &tableName, const std::string &key,
         out = table->get_as<T> (key).value_or (out);
 #endif
 
-#ifdef ENABLE_DEBUG_MENU
-    if (!tmp)
-        ConfigDebugInterface::AddConfigOption (tableName, key, &out);
-#endif
-
 #ifdef DEBUG_CONFIG_OPTIONS
     std::ostringstream ss;
     ss << "\nConfig option: " << tableName << "." << key;
@@ -116,10 +111,39 @@ ConfigManager::ReadValue (const std::string &tableName, const std::string &key,
 #endif
 }
 
+template <typename T>
+void
+ConfigManager::AddDebugInput (const std::string &tableName,
+                              const std::string &key, T &value)
+{
+
+#ifdef ENABLE_DEBUG_MENU
+    ConfigDebugInterface::AddConfigOption (tableName, key, &value);
+#endif
+}
+
+template <typename T>
+void
+ConfigManager::AddDebugInput (const std::string &tableName,
+                              const std::string &key, T &value,
+                              void (*func) (T *))
+{
+#ifdef ENABLE_DEBUG_MENU
+    ConfigDebugInterface::AddConfigOption (tableName, key, &value, func);
+#endif
+}
+
 #define READ_VALUE_ADD_TYPE(type)                                              \
     template void ConfigManager::ReadValue<type> (const std::string &,         \
                                                   const std::string &, type &, \
-                                                  bool);
+                                                  bool);                       \
+    template void ConfigManager::AddDebugInput<type> (const std::string &,     \
+                                                      const std::string &,     \
+                                                      type &);                 \
+    template void ConfigManager::AddDebugInput<type> (const std::string &,     \
+                                                      const std::string &,     \
+                                                      type &,                  \
+                                                      void (*func) (type *));
 
 READ_VALUE_ADD_TYPE (bool)
 READ_VALUE_ADD_TYPE (int)

@@ -87,8 +87,7 @@ EncodeArgument (Global global)
 constexpr auto
 EncodeArgument (Local local)
 {
-    return std::array<uint8_t, 2>{uint8_t ((local.idx >> 8) + 0x6D),
-                                  uint8_t (local.idx & 0xFF)};
+    return std::array {uint8_t (local.idx + 0xD)};
 }
 
 
@@ -141,13 +140,33 @@ public:
         callerThread.m_pCurrentIP -= int32_t (CTheScripts::ScriptSpace.Get ());
 
         callerThread.ProcessOneCommand ();
+
+    }
+
+    template <typename... Args>
+    static void
+    CallGameFunction (int32_t offset, Args... args)
+    {
+        callerThread.m_pCurrentIP = offset;
+        callerThread.m_nSP = 0;
+
+        Local local{0};
+        (..., (GetLocal<Args> (local) = args, local.idx++));
+        int ret;
+        do
+            {
+                ret = callerThread.ProcessOneCommand ();
+                if (callerThread.GetCurrentOpcode() == RETURN && callerThread.m_nSP == 0)
+                    break;
+            }
+        while (ret == 0);
     }
 
     template <typename T>
     static T &
     GetLocal (Local local)
     {
-        return *(T*) &callerThread.GetLocalVariable (local.idx);
+        return *(T *) &callerThread.GetLocalVariable (local.idx);
     }
 
     static bool
