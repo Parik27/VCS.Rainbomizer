@@ -264,6 +264,10 @@ public:
         // Fix for photographing peds inside vehicles for Mugshot Longshot
         GameAddress<0x08a4ea10>::WriteInstructions (li (t1, 0x0));
 
+        // Allow all vehicles to be picked up with rope
+        GameAddress<0x0893fa90>::Nop ();
+        GameAddress<0x008bada10>::Write (0.0f);
+
         ThreadUtils::Initialise ();
     }
 };
