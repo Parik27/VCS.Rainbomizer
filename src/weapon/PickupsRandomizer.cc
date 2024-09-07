@@ -137,8 +137,7 @@ public:
                   int playerInFocus, int p5, int p6)
     {
         if (pickup->m_modelIndex == PICKUP_REGENHEALTH
-            || pickup->m_modelIndex == PICKUP_MEGADAMAGE
-            || pickup->m_modelIndex == PICKUP_INVISIBLE)
+                || pickup->m_modelIndex == PICKUP_MEGADAMAGE)
             {
                 static struct PowerupParam
                 {
@@ -153,14 +152,12 @@ public:
                 static_assert (sizeof (PowerupParam) == 16);
 
                 GameAddress<0x8bb0578>::Write (true);
-                param.pupTime = 255;
+                param.pupTime = 30;
 
                 if (pickup->m_modelIndex == PICKUP_REGENHEALTH)
                     param.pupType = 2;
                 if (pickup->m_modelIndex == PICKUP_MEGADAMAGE)
                     param.pupType = 1;
-                if (pickup->m_modelIndex == PICKUP_INVISIBLE)
-                    param.pupType = 4;
 
                 ((void (*) (PowerupParam *, uint32_t, uint32_t)) (
                     GAMEADDR (0x8a0b5a8))) (&param, 0, 0);
@@ -177,32 +174,38 @@ public:
     FixCollectedPickups (int modelId, int p2)
     {
         switch (modelId)
-            {
+        {
             case PICKUP_GD_BRIEFCASE_RED:
-              if (FindPlayerPed())
-                CallCommand<ADD_SCORE>(Global{782}, RandomInt(1000, 5000));
-              break;
+                if (FindPlayerPed())
+                    CallCommand<ADD_SCORE>(Global{782}, RandomInt(500, 3000));
+                break;
 
-              case PICKUP_BUY_VEHICLE: {
-                  if (!FindPlayerPed ())
-                      break;
+            case PICKUP_BUY_VEHICLE:
+            {
+                if (!FindPlayerPed ())
+                    break;
 
-                  auto pos = FindPlayerPed ()->m_matrix.pos;
-                  int  veh = VehicleCommon::GetRandomUsableVehicle ();
-                  CallCommand<GET_CLOSEST_CAR_NODE> (pos.x, pos.y, pos.z,
-                                                     Local{0}, Local{1},
-                                                     Local{2});
-                  CStreaming::RequestModel (veh, 0);
-                  CStreaming::LoadAllRequestedModels (false);
+                auto pos = FindPlayerPed ()->m_matrix.pos;
+                int  veh = VehicleCommon::GetRandomUsableVehicle ();
+                CallCommand<GET_CLOSEST_CAR_NODE> (pos.x, pos.y, pos.z,
+                                                    Local{0}, Local{1},
+                                                    Local{2});
+                CStreaming::RequestModel (veh, 0);
+                CStreaming::LoadAllRequestedModels (false);
 
-                  if (!CStreaming::HasModelLoaded (veh))
-                      break;
+                if (!CStreaming::HasModelLoaded (veh))
+                    break;
 
-                  CallCommand<CREATE_CAR> (veh, Local{0}, Local{1}, Local{2},
-                                           Local{3});
-                  CallCommand<MARK_CAR_AS_NO_LONGER_NEEDED> (Local{3});
-                  break;
-              }
+                CallCommand<CREATE_CAR> (veh, Local{0}, Local{1}, Local{2},
+                                        Local{3});
+                CallCommand<MARK_CAR_AS_NO_LONGER_NEEDED> (Local{3});
+                break;
+            }
+
+            case PICKUP_INVISIBLE:
+                if (FindPlayerPed())
+                    CallCommand<SET_EVERYONE_IGNORE_PLAYER> (Global{782}, 1);
+                break;
 
             case PICKUP_RACEGOOD:
                 CVehicle *vehicle = FindPlayerVehicle ();
@@ -212,8 +215,7 @@ public:
                 // Return here to prevent crashing
                 return false;
 
-
-            }
+        }
         return CPickups__GivePlayerGoodiesWithPickUpMI (modelId, p2);
     }
 
