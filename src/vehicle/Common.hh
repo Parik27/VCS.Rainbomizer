@@ -140,7 +140,8 @@ public:
     static auto
     AllUsableVehicles ()
     {
-        return std::views::iota (int (VEHICLE_6ATV), VEHICLE_AIRTRAIN)
+        return std::views::iota (int (VEHICLE_FIRST_VEHICLE),
+                                      VEHICLE_LAST_VEHICLE)
                | std::views::filter (
                    [] (int i) { return !IsBadVehicle (eVehicle (i)); });
     }
@@ -157,7 +158,8 @@ public:
     static int
     GetRandomUsableVehicle ()
     {
-        return RandomIntExcept<BadVehicles> (VEHICLE_6ATV, VEHICLE_AIRTRAIN);
+        return RandomIntExcept<BadVehicles> (VEHICLE_FIRST_VEHICLE,
+                                             VEHICLE_LAST_VEHICLE);
     }
 
     static int
