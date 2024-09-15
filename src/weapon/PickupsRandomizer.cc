@@ -29,52 +29,52 @@ class PickupsRandomizer : public Randomizer<PickupsRandomizer>
 {
     static constexpr std::array m_Pickups = {PICKUP_BRIBE,
                                              PICKUP_HEALTH,
-                                             PICKUP_ARMOUR,
-                                             PICKUP_MICRO_SMG,
-                                             PICKUP_KNIFE,
+                                             PICKUP_BODYARMOUR,
+                                             PICKUP_UZI,
+                                             PICKUP_KNIFECUR,
                                              PICKUP_AK47,
-                                             PICKUP_PISTOL,
-                                             PICKUP_AXE,
-                                             PICKUP_BRASS_KNUCKLES,
-                                             PICKUP_BUTTERFLY_KNIFE,
-                                             PICKUP_BASEBALL_BAT,
-                                             PICKUP_SHOTGUN,
+                                             PICKUP_BERETTA,
+                                             PICKUP_HANDAXE,
+                                             PICKUP_BRASSKNUCKLE,
+                                             PICKUP_BUTT_KNIFE,
+                                             PICKUP_BAT,
+                                             PICKUP_CHROMEGUN,
                                              PICKUP_GRENADE,
-                                             PICKUP_GAFF_HOOK,
-                                             PICKUP_MACHETTE,
-                                             PICKUP_MAC_10,
-                                             PICKUP_NIGHTSTICK,
+                                             PICKUP_GAFF,
+                                             PICKUP_MACHETE,
+                                             PICKUP_INGRAMSL,
+                                             PICKUP_NITESTICK,
                                              PICKUP_BINOCULARS,
                                              PICKUP_MOLOTOV,
-                                             PICKUP_SCORPION,
-                                             PICKUP_REMOTE_EXPLOSIVE,
-                                             PICKUP_ASSAULT_RIFLE,
+                                             PICKUP_SKORPION,
+                                             PICKUP_BOMB,
+                                             PICKUP_M16,
                                              PICKUP_KATANA,
-                                             PICKUP_FLAMETHROWER,
+                                             PICKUP_FLAME,
                                              PICKUP_PYTHON,
                                              PICKUP_M249,
                                              PICKUP_MINIGUN,
                                              PICKUP_CAMERA,
                                              PICKUP_LANDMINE,
                                              PICKUP_SEAMINE,
-                                             PICKUP_GOLF_CLUB,
+                                             PICKUP_GOLFCLUB,
                                              PICKUP_SNIPER,
-                                             PICKUP_COMBAT_SNIPER,
-                                             PICKUP_RLAUNCHER,
-                                             PICKUP_COMBAT_SHOTGUN,
-                                             PICKUP_STUBBY_SHOTGUN,
-                                             PICKUP_CHAINSAW,
-                                             PICKUP_SMG,
-                                             PICKUP_INFORMATION,
+                                             PICKUP_LASER,
+                                             PICKUP_ROCKETLA,
+                                             PICKUP_SHOTGSPA,
+                                             PICKUP_BUDDYSHOT,
+                                             PICKUP_CHNSAW,
+                                             PICKUP_MPLNG,
+                                             PICKUP_INFO,
                                              PICKUP_ADRENALINE,
                                              PICKUP_BUY_VEHICLE,
                                              PICKUP_GD_BRIEFCASE_RED,
                                              PICKUP_PINATA_MAN,
                                              PICKUP_MEGADAMAGE,
-                                             PICKUP_REGENHEALTH,
+                                             PICKUP_REGENERATOR,
                                              PICKUP_INVISIBLE,
-                                             PICKUP_RACEBAD,
-                                             PICKUP_RACEGOOD};
+                                             PICKUP_BAD_CAR,
+                                             PICKUP_GOOD_CAR};
 
     inline static int  ForcedPickup   = -1;
     inline static bool EnablePowerups = true;
@@ -136,8 +136,8 @@ public:
     PickupPicked (class CPickup *pickup, class CPed *player, bool inVeh,
                   int playerInFocus, int p5, int p6)
     {
-        if (pickup->m_modelIndex == PICKUP_REGENHEALTH
-                || pickup->m_modelIndex == PICKUP_MEGADAMAGE)
+        if (pickup->m_modelIndex == PICKUP_REGENERATOR
+            || pickup->m_modelIndex == PICKUP_MEGADAMAGE)
             {
                 static struct PowerupParam
                 {
@@ -154,7 +154,7 @@ public:
                 GameAddress<0x8bb0578>::Write (true);
                 param.pupTime = 30;
 
-                if (pickup->m_modelIndex == PICKUP_REGENHEALTH)
+                if (pickup->m_modelIndex == PICKUP_REGENERATOR)
                     param.pupType = 2;
                 if (pickup->m_modelIndex == PICKUP_MEGADAMAGE)
                     param.pupType = 1;
@@ -207,7 +207,7 @@ public:
                     CallCommand<SET_EVERYONE_IGNORE_PLAYER> (Global{782}, 1);
                 break;
 
-            case PICKUP_RACEGOOD:
+            case PICKUP_GOOD_CAR:
                 CVehicle *vehicle = FindPlayerVehicle ();
                 if (vehicle)
                     vehicle->m_fHealth += 1000;
