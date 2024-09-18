@@ -195,7 +195,7 @@ public:
 };
 
 template <uint16_t Opcode, bool BackupScriptArgs = false, typename... Args>
-void
+bool
 CallCommand (Args &&...args)
 {
     if constexpr (BackupScriptArgs)
@@ -205,6 +205,8 @@ CallCommand (Args &&...args)
         }
     else
         CommandCaller::Call<Opcode> (std::forward<Args> (args)...);
+
+    return CommandCaller::GetResult ();
 }
 
 template <size_t NumReturn, typename Class, typename... Params>

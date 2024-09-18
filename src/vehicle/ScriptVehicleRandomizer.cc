@@ -213,6 +213,17 @@ class ScriptVehicleRandomizer : public Randomizer<ScriptVehicleRandomizer>
         vehicle->m_nModelIndex = oldMid;
     }
 
+    struct AttachedObjectFix
+        : public ScriptCommandHook<0, AttachedObjectFix, int, int, float, float,
+                                   float>
+    {
+        static void
+        Impl (int object, int car, float x, float y, float z)
+        {
+            Call (object, car, x, y, z + 10);
+            // CallCommand<SORT_OUT_OBJECT_COLLISION_WITH_CAR> (object, car);
+        }
+    };
 public:
     ScriptVehicleRandomizer ()
     {
@@ -254,6 +265,7 @@ public:
         HOOK (Jal, 0x8a49344, FixHeliAutoaim,
               void (CPed *, CVehicle *, CVector *, CVector *));
 
+        AttachedObjectFix::Install<ATTACH_OBJECT_TO_CAR> ();
         // m_fGasPedal fix for planes
         GameAddress<0x089da48c>::WriteInstructions(lwc1(f12, s0, 0x78c));
         GameAddress<0x089da494>::WriteInstructions(swc1(f12, s0, 0x25c));

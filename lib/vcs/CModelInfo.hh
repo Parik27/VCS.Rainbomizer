@@ -76,12 +76,19 @@ public:
     dword       vertices;
     dword       triangles;
     dword       trianglePlanes;
+
+    const CVector
+    GetBounds () const
+    {
+        return boundingBox.max - boundingBox.min;
+    }
 };
 
 class CBaseModelInfo
 {
 public:
-    char       unknown[8];
+    uint32_t   unknown1;
+    uint32_t   unknown2;
     uint32_t   m_hashName;
     void      *modelChunk;
     eModelType type;
@@ -180,6 +187,22 @@ public:
     uint8_t        m_numComponents;
     uint32_t       unk6;
     uint32_t       unk7;
+
+    void
+    AddPrimaryMaterial (RslMaterial *material)
+    {
+        for (size_t i = 0; i < 30; i++)
+            {
+                if (m_materials1[i] == material)
+                    return;
+
+                if (!m_materials1[i])
+                    {
+                        m_materials1[i] = material;
+                        break;
+                    }
+            }
+    }
 };
 
 class ModelInfo
