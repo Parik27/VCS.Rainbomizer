@@ -4,6 +4,7 @@
 #include "memory/GameAddress.hh"
 #include "ppsspp/Keyboard.hh"
 #include "scm/Command.hh"
+#include "scm/Globals.hh"
 #include "scm/Opcodes.hh"
 #include "vcs/CRunningScript.hh"
 #include "vcs/CTimer.hh"
@@ -143,7 +144,7 @@ class MissionRandomizer : public RandomizerWithDebugInterface<MissionRandomizer>
                         RandomMission   = GetMissionInfoForId (*mission);
 
                         CallCommand<SET_CHAR_COORDINATES> (
-                            Global{782}, RandomMission->startPos.x,
+                            Global{GLOBAL_PLAYER_CHAR}, RandomMission->startPos.x,
                             RandomMission->startPos.y,
                             RandomMission->startPos.z);
 
@@ -242,17 +243,10 @@ class MissionRandomizer : public RandomizerWithDebugInterface<MissionRandomizer>
 
         // Teleport player to the original mission end position
         ResetPlayerInterior ();
-        CallCommand<SET_CHAR_COORDINATES> (Global{782},
+        CallCommand<SET_CHAR_COORDINATES> (Global{GLOBAL_PLAYER_CHAR},
                                            OriginalMission->endPos.x,
                                            OriginalMission->endPos.y,
                                            OriginalMission->endPos.z);
-
-/*
-        // Hostile Takeover | Set the flag to award % for unlocking Drugs type empire sites
-        if (OriginalMission && OriginalMission->id == MISSION_HOSTILE_TAKEOVER)
-            CTheScripts::GetGlobal<int> (657) = 1;
-*/
-
         OnMissionEnd (script);
         RandomMission   = nullptr;
         OriginalMission = nullptr;
@@ -264,7 +258,7 @@ class MissionRandomizer : public RandomizerWithDebugInterface<MissionRandomizer>
         // Allow prologue to restart properly
         if (OriginalMission->id == MISSION_SOLDIER)
             {
-                CTheScripts::GetGlobal<int> (3) = 1;
+                CTheScripts::GetGlobal<int> (GLOBAL_SAVING) = 1;
             }
 
         OnMissionEnd (script);
@@ -303,32 +297,59 @@ class MissionRandomizer : public RandomizerWithDebugInterface<MissionRandomizer>
             = CTheScripts::ScriptSpace[script->m_pCurrentIP]
               | (CTheScripts::ScriptSpace[script->m_pCurrentIP + 1] << 8);
 
-        // O, Brothel, Where Art Thou? -> AMMUNAT | skip resetting Free Shotgun Status to 1
-        SkipMissionCode (MISSION_O_BROTHEL_WHERE_ART_THOU, script, -1, 161048, 161054);
-        // Turn on, Tune in, Bug out -> AMMUNAT | skip act3 condition for unlocking Rocket Launcher
-        SkipMissionCode (MISSION_TURN_ON_TUNE_IN_BUG_OUT, script, -1, 154718, 154730);
-        if (CTheScripts::GetGlobal<int> (130) == 0) { // acts_completed
-            // Blitzkrieg | skip insufficient empire sites scenario
-            SkipMissionCode (MISSION_BLITZKRIEG, script, MISSION_BLITZKRIEG, -10210, -10217);
-            // Blitzkrieg Strikes Again | skip insufficient empire sites scenario
-            SkipMissionCode (MISSION_BLITZKRIEG_STRIKES_AGAIN, script, MISSION_BLITZKRIEG_STRIKES_AGAIN, -9826, -9833);
-        }
+        // O, Brothel, Where Art Thou? -> AMMUNAT | skip resetting Free Shotgun
+        // Status to 1
+        SkipMissionCode (MISSION_O_BROTHEL_WHERE_ART_THOU, script, -1, 161048,
+                         161054);
+        // Turn on, Tune in, Bug out -> AMMUNAT | skip act3 condition for
+        // unlocking Rocket Launcher
+        SkipMissionCode (MISSION_TURN_ON_TUNE_IN_BUG_OUT, script, -1, 154718,
+                         154730);
 
-        if (script->m_bIsMission && RandomMission) {
-        if (script->m_pCurrentIP == CTheScripts::MainScriptSize)
-                OnMissionStart (script);
-        if (currentOpcode == REGISTER_MISSION_PASSED)
-                OnMissionPass (script);
-        if (currentOpcode == TERMINATE_THIS_SCRIPT)
-                OnMissionFail (script);
-        }
+        if (CTheScripts::GetGlobal<int> (GLOBAL_ACTS_COMPLETED) == 0)
+            {
+                // Blitzkrieg | skip insufficient empire sites scenario
+                SkipMissionCode (MISSION_BLITZKRIEG, script, MISSION_BLITZKRIEG,
+                                 -10210, -10217);
+                // Blitzkrieg Strikes Again | skip insufficient empire sites
+                // scenario
+                SkipMissionCode (MISSION_BLITZKRIEG_STRIKES_AGAIN, script,
+                                 MISSION_BLITZKRIEG_STRIKES_AGAIN, -9826,
+                                 -9833);
+            }
+
+        if (script->m_bIsMission && RandomMission)
+            {
+                if (script->m_pCurrentIP == CTheScripts::MainScriptSize)
+                    OnMissionStart (script);
+                if (currentOpcode == REGISTER_MISSION_PASSED)
+                    OnMissionPass (script);
+                if (currentOpcode == TERMINATE_THIS_SCRIPT)
+                    OnMissionFail (script);
+            }
+    }
+
+    bool
+    DeleteLanceGarage (CRunningScript *script)
+    {
+        using namespace std::string_view_literals;
+        if (script->m_szName == "ga_laga"sv)
+            {
+                if (CallCommand<DOES_OBJECT_EXIST> (
+                        script->GetLocalVariable (2)))
+                    CallCommand<DELETE_OBJECT> (script->GetLocalVariable (2));
+                return true;
+            }
+
+        return false;
     }
 
     template <auto &CRunningScript__ProcessOneCommand>
     int
     ProcessScript (CRunningScript *script)
     {
-        if (script->m_bIsMission && RandomMission && std::exchange(DelayMissionScript, false))
+        if (script->m_bIsMission && RandomMission
+            && std::exchange (DelayMissionScript, false))
             {
                 // wait 1 frame before starting the mission
                 // to allow init scripts to run properly
@@ -341,7 +362,11 @@ class MissionRandomizer : public RandomizerWithDebugInterface<MissionRandomizer>
                     "Delaying prologue mission script");
                 return 1;
             }
+
         ProcessMissionRandomizerFSM (script);
+
+        if (DeleteLanceGarage (script))
+            return 1;
 
         return CRunningScript__ProcessOneCommand (script);
     }
@@ -351,11 +376,11 @@ class MissionRandomizer : public RandomizerWithDebugInterface<MissionRandomizer>
     {
         // Need to set player to -1 so game doesn't try to fade and set player
         // pos
-        int origPlayer                    = CTheScripts::GetGlobal<int> (782);
-        CTheScripts::GetGlobal<int> (782) = -1;
-        CommandCaller::CallGameFunction (0x20751 - 0x8, 0, 0);
-        CTheScripts::GetGlobal<int> (782) = origPlayer;
+        int origPlayer = CTheScripts::GetGlobal<int> (GLOBAL_PLAYER_CHAR);
 
+        CTheScripts::GetGlobal<int> (GLOBAL_PLAYER_CHAR) = -1;
+        CommandCaller::CallGameFunction (0x20751 - 0x8, 0, 0);
+        CTheScripts::GetGlobal<int> (GLOBAL_PLAYER_CHAR) = origPlayer;
     }
 
 public:

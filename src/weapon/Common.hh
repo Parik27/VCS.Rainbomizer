@@ -29,7 +29,8 @@ public:
     static int
     GetRandomUsableWeapon ()
     {
-        return RandomIntExcept<BadWeapons> (WEAPON_UNARMED, WEAPON_BINOCULARS);
+        return RandomIntExcept<BadWeapons> (WEAPON_FIRST_WEAPON,
+                                            WEAPON_LAST_WEAPON);
     }
 
     static constexpr bool
