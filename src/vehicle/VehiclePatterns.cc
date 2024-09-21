@@ -80,6 +80,9 @@ ScriptVehiclePattern::ReadFlag (std::string_view flag)
 
     if (flag == "DontMoveBovver")
         m_Flags.m_bDontMoveBovver = true;
+
+    if (flag == "HackedCoords" || flag == "HackedBiplaneCoords")
+        m_Flags.m_bHackedCoords = true;
 }
 
 void
@@ -169,6 +172,8 @@ ScriptVehiclePattern::GetRandom (Result &result) const
 
     if (m_ForcedVehicle != -1)
         result.vehId = m_ForcedVehicle;
+
+    result.hackedCoords = m_Flags.m_bHackedCoords;
 
     result.boundsCheck = &m_vecBoundsCheck;
 
