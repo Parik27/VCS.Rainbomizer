@@ -5,13 +5,23 @@
 #include <ctime>
 #include <pspsdk.h>
 
+#include <core/Events.hh>
+
 /*******************************************************/
-std::mt19937 &
+RainbomizerRandomizationEngine &
 RandEngine ()
 {
-    static std::mt19937 engine{(unsigned int) sceKernelLibcTime (NULL)};
+    static RainbomizerRandomizationEngine engine;
 
     return engine;
+}
+
+RainbomizerRandomizationEngine::RainbomizerRandomizationEngine ()
+{
+    randomEngine.seed ((unsigned int) sceKernelLibcTime (NULL));
+
+    RandomizationSeedEvent::Add (
+        [] (int seed) { RandEngine ().configSeed = seed; });
 }
 
 /*******************************************************/

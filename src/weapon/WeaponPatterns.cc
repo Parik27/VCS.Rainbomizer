@@ -132,19 +132,21 @@ void
 WeaponPatternManager::ReadPatterns (const char *file)
 {
     auto f = Rainbomizer::Common::GetRainbomizerDataFile (file);
-    f.ReadLines ([this] (const char *line) {
+    f.ReadLines ([this] (std::string_view line) {
         WeaponPattern pattern;
-        pattern.Read (line);
+        pattern.Read (line.data ());
         m_aPatterns.push_back (std::move (pattern));
     });
 }
 
 bool
 WeaponPatternManager::GetRandomWeapon (CPed *ped, int weaponType, int ammo,
-                                       WeaponPattern::Result &pattern)
+                                       WeaponPattern::Result &pattern,
+                                       bool                   deterministic)
 {
     int currentMission = -2;
 
+    size_t idx = 0;
     for (auto &p : m_aPatterns)
         {
             if (CTheScripts::CurrentScript)
@@ -153,9 +155,15 @@ WeaponPatternManager::GetRandomWeapon (CPed *ped, int weaponType, int ammo,
 
             if (p.Match (ped, currentMission, weaponType, ammo))
                 {
+                    RainbomizerRandomizationEngine::RandomizerBlock block{
+                        deterministic, idx, ped ? ped->m_nModelIndex : 0,
+                        weaponType, ammo};
+
                     p.GetRandom (pattern);
                     return true;
                 }
+
+            idx++;
         }
 
     pattern.Weapon = weaponType;
@@ -219,6 +227,28 @@ void
 WeaponPatternManager::DrawDebugInfo ()
 {
 #ifdef ENABLE_DEBUG_MENU
+
+    if (ImGui::Button ("Test"))
+        {
+            for (auto &pat : m_aPatterns)
+                {
+                    size_t Weapons[WEAPON_NUM_WEAPONS] = {};
+                    for (size_t i = 0; i < 1000000; i++)
+                        {
+                            WeaponPattern::Result result;
+                            pat.GetRandom (result);
+
+                            Weapons[result.Weapon]++;
+                        }
+
+                    for (size_t i = 0; i < WEAPON_NUM_WEAPONS; i++)
+                        {
+                            Rainbomizer::Logger::LogMessage ("%lu = %lu", i,
+                                                             Weapons[i]);
+                        }
+                }
+        }
+
     ImGui::BeginTable ("Weapon Patterns", 6);
     ImGui::TableSetupColumn ("Mission");
     ImGui::TableSetupColumn ("Ammo");

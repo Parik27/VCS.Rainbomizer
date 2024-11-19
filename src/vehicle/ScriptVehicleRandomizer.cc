@@ -8,6 +8,7 @@
 #include <core/Logger.hh>
 #include <core/Randomizer.hh>
 #include <core/Config.hh>
+#include <core/ConfigDebugHelpers.hh>
 
 #include <hooks/Hooks.hh>
 
@@ -32,9 +33,13 @@
 
 class ScriptVehicleRandomizer : public Randomizer<ScriptVehicleRandomizer>
 {
+    using VehicleId = EnumConfigOption<int, s_VehicleNames>;
+
     VehiclePatternManager m_Patterns;
-    int ForcedVehicle = -1;
-    bool LogAllPatterns = false;
+    VehicleId             ForcedVehicle  = -1;
+    bool                  LogAllPatterns = false;
+    bool                  UseSeed        = false;
+    inline static double  HeliHeight     = 50.0;
 
     void
     LogPatterns ()
@@ -61,7 +66,8 @@ class ScriptVehicleRandomizer : public Randomizer<ScriptVehicleRandomizer>
                                      CVector{std::bit_cast<float> (params[1]),
                                              std::bit_cast<float> (params[2]),
                                              std::bit_cast<float> (params[3])},
-                                     result);
+                                     result, UseSeed);
+
 
         int originalVehicle = params[0];
         int newVehicle = ForcedVehicle == -1 ? result.vehId : ForcedVehicle;
@@ -105,13 +111,18 @@ class ScriptVehicleRandomizer : public Randomizer<ScriptVehicleRandomizer>
     }
 
     template <auto &CAutomobile__CAutomobile>
-    static CVehicle* 
-    CreateRandomizedCab (CVehicle *vehicle, int modelId,
-                                  uint8_t createdBy, uint32_t a4)
+    static CVehicle *
+    CreateRandomizedCab (CVehicle *vehicle, int modelId, uint8_t createdBy,
+                         uint32_t a4)
     {
         int originalVehicle = modelId;
-        while ((modelId = VehicleCommon::GetRandomUsableVehicle ()),
-            CVehicleModelInfo::GetMaximumNumberOfPassengersFromNumberOfDoors(modelId) + 1 < 4);
+        while (
+            (modelId = VehicleCommon::GetRandomUsableVehicle ()),
+            CVehicleModelInfo::GetMaximumNumberOfPassengersFromNumberOfDoors (
+                modelId)
+                    + 1
+                < 4)
+            ;
 
         if (!VehicleCommon::AttemptToLoadVehicle (modelId))
             modelId = originalVehicle;
@@ -189,8 +200,8 @@ class ScriptVehicleRandomizer : public Randomizer<ScriptVehicleRandomizer>
         script->CollectParams (&currentIp, 1, &model);
 
         if (model > 0
-            && ModelInfo::GetModelInfo<CBaseModelInfo> (model)->type == 6 &&
-            model < CStreaming::sm_Instance->m_texOffset)
+            && ModelInfo::GetModelInfo<CBaseModelInfo> (model)->type == 6
+            && model < CStreaming::sm_Instance->m_texOffset)
             {
                 script->m_bNotFlag = !script->m_bNotFlag;
                 return CTheScripts::ScriptCommands[BUILD_WORLD_GEOMETRY]
@@ -227,7 +238,8 @@ class ScriptVehicleRandomizer : public Randomizer<ScriptVehicleRandomizer>
 public:
     ScriptVehicleRandomizer ()
     {
-        RB_C_DO_CONFIG("ScriptVehicleRandomizer", ForcedVehicle, LogAllPatterns);
+        RB_C_DO_CONFIG ("ScriptVehicleRandomizer", ForcedVehicle,
+                        LogAllPatterns, HeliHeight, UseSeed);
 
         m_Patterns.ReadPatterns ("VehiclePatterns.txt");
         HOOK_MEMBER (Jal, (0x08aec324), RandomizeVehicle,

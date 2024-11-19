@@ -12,6 +12,8 @@ ChunkInfo::StoreInModelId (uint32_t id)
     texStreamInfo.m_cdPosn = texCdPosn;
     texStreamInfo.m_cdSize = texCdSize;
 
+    modelInfo.unknown1 = modelId;
+
     if (replaceCollision)
         modelInfo.m_pColModel = colModel;
 
@@ -33,8 +35,10 @@ ChunkInfo::ParseLine (std::string_view line)
         }
     else
         {
-            Rainbomizer::Logger::LogMessage ("%d not found: %s", hash,
-                                             modelName.data ());
+            Rainbomizer::Logger::LogMessage ("%d not found: %*s %d", hash,
+                                             modelName.size(),
+                                             modelName.data (),
+                                             modelName.size());
         }
 
     ParseFlags (split_view);
@@ -78,6 +82,8 @@ ChunkInfo::CreateExtraData (uint32_t modelId)
             break;
         default: extraData = std::make_unique<ExtraData> (); break;
         }
+
+    extraData->SetParent (this);
 }
 
 void
@@ -97,7 +103,7 @@ ChunkInfo::VehicleExtraData::StoreInModelId (uint32_t id)
     vehicleModelInfo->m_wheelScaleRear = wheelScaleRear;
 
     vehicleModelInfo->m_pHandlingData->m_fSeatOffsetDistance
-        = seatOffsetDistance;
+        = std::max (seatOffsetDistance, 1.0f);
 }
 
 void

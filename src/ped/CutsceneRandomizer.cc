@@ -24,16 +24,16 @@ class CutsceneRandomizer : public Randomizer<CutsceneRandomizer>
         auto modelsFile = Rainbomizer::Common::GetRainbomizerDataFile (
             "CutsceneModels.txt");
 
-        modelsFile.ReadLines ([this] (const char *line) {
-            if (strlen (line) < 2)
+        modelsFile.ReadLines ([this] (std::string_view line) {
+            if (line.size() < 2)
                 {
                     Rainbomizer::Logger::LogMessage ("New group");
                     m_Models.push_back ({});
                     return;
                 }
 
-            Rainbomizer::Logger::LogMessage ("Pushing: %s", line);
-            m_Models.back ().push_back (line);
+            Rainbomizer::Logger::LogMessage ("Pushing: %s", line.data());
+            m_Models.back ().emplace_back (line.data ());
         });
     }
 

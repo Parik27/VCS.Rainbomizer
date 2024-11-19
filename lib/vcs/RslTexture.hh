@@ -25,6 +25,22 @@ struct RslMatrix
     float pad2;
     RslV3 pos;
     float pad3;
+
+    void
+    Scale (float x, float y, float z)
+    {
+        right.x *= x;
+        up.x *= x;
+        at.x *= x;
+
+        right.y *= y;
+        up.y *= y;
+        at.y *= y;
+
+        right.z *= z;
+        up.z *= z;
+        at.z *= z;
+    }
 };
 
 enum eRslObjectType

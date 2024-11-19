@@ -7,7 +7,15 @@ struct ChunkInfo
 {
     class ExtraData
     {
+    protected:
+        ChunkInfo* parent = nullptr;
+
     public:
+        void SetParent (ChunkInfo* parent)
+        {
+            this->parent = parent;
+        }
+
         virtual ~ExtraData () = default;
         virtual void StoreInModelId (uint32_t id){};
         virtual void FillFromModelId (uint32_t id){};

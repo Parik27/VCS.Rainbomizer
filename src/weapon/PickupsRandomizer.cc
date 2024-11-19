@@ -78,6 +78,7 @@ class PickupsRandomizer : public Randomizer<PickupsRandomizer>
 
     inline static int  ForcedPickup   = -1;
     inline static bool EnablePowerups = true;
+    inline static bool UseSeed        = true;
 
     WeaponPatternManager m_Patterns;
 
@@ -92,16 +93,20 @@ class PickupsRandomizer : public Randomizer<PickupsRandomizer>
         auto     weaponModel = static_cast<CWeaponModelInfo *> (modelInfo);
         uint32_t weaponId    = weaponModel->GetWeaponId ();
 
-        return m_Patterns.GetRandomWeapon (nullptr, weaponId, 0, result);
+        return m_Patterns.GetRandomWeapon (nullptr, weaponId, 0, result,
+                                           UseSeed);
     }
 
 public:
     template <auto &CPickups__GenerateNewOne>
     int
-    RandomizePickups (CVector *pos, int modelId, char type, int quantity, int rate,
-                      bool arg6, char arg7)
+    RandomizePickups (CVector *pos, int modelId, char type, int quantity,
+                      int rate, bool arg6, char arg7)
     {
-        WeaponPattern::Result result;
+        WeaponPattern::Result                           result;
+        RainbomizerRandomizationEngine::RandomizerBlock block{UseSeed, modelId,
+                                                              pos->x, pos->y,
+                                                              pos->z};
 
         // Attempt to randomize a weapon pickup
         if (RandomizeWeaponPickup (modelId, result))
@@ -120,7 +125,7 @@ public:
                         {
                             modelId = GetRandomElement (m_Pickups);
                             if (ForcedPickup != -1)
-                              modelId = ForcedPickup;
+                                modelId = ForcedPickup;
 
                             break;
                         }
@@ -128,6 +133,7 @@ public:
 
         int ret = CPickups__GenerateNewOne (pos, modelId, type, quantity, rate,
                                             arg6, arg7);
+
         return ret;
     }
 
@@ -179,30 +185,31 @@ public:
         switch (modelId)
             {
             case PICKUP_GD_BRIEFCASE_RED:
-              if (FindPlayerPed())
-                CallCommand<ADD_SCORE>(Global{782}, RandomInt(1000, 5000));
-              break;
+                if (FindPlayerPed ())
+                    CallCommand<ADD_SCORE> (Global{782},
+                                            RandomInt (1000, 5000));
+                break;
 
-              case PICKUP_BUY_VEHICLE: {
-                  if (!FindPlayerPed ())
-                      break;
+                case PICKUP_BUY_VEHICLE: {
+                    if (!FindPlayerPed ())
+                        break;
 
-                  auto pos = FindPlayerPed ()->m_matrix.pos;
-                  int  veh = VehicleCommon::GetRandomUsableVehicle ();
-                  CallCommand<GET_CLOSEST_CAR_NODE> (pos.x, pos.y, pos.z,
-                                                     Local{0}, Local{1},
-                                                     Local{2});
-                  CStreaming::RequestModel (veh, 0);
-                  CStreaming::LoadAllRequestedModels (false);
+                    auto pos = FindPlayerPed ()->m_matrix.pos;
+                    int  veh = VehicleCommon::GetRandomUsableVehicle ();
+                    CallCommand<GET_CLOSEST_CAR_NODE> (pos.x, pos.y, pos.z,
+                                                       Local{0}, Local{1},
+                                                       Local{2});
+                    CStreaming::RequestModel (veh, 0);
+                    CStreaming::LoadAllRequestedModels (false);
 
-                  if (!CStreaming::HasModelLoaded (veh))
-                      break;
+                    if (!CStreaming::HasModelLoaded (veh))
+                        break;
 
-                  CallCommand<CREATE_CAR> (veh, Local{0}, Local{1}, Local{2},
-                                           Local{3});
-                  CallCommand<MARK_CAR_AS_NO_LONGER_NEEDED> (Local{3});
-                  break;
-              }
+                    CallCommand<CREATE_CAR> (veh, Local{0}, Local{1}, Local{2},
+                                             Local{3});
+                    CallCommand<MARK_CAR_AS_NO_LONGER_NEEDED> (Local{3});
+                    break;
+                }
 
             case PICKUP_GOOD_CAR:
                 CVehicle *vehicle = FindPlayerVehicle ();
@@ -211,15 +218,14 @@ public:
 
                 // Return here to prevent crashing
                 return false;
-
-
             }
         return CPickups__GivePlayerGoodiesWithPickUpMI (modelId, p2);
     }
 
     PickupsRandomizer ()
     {
-        RB_C_DO_CONFIG ("PickupRandomizer", ForcedPickup, EnablePowerups);
+        RB_C_DO_CONFIG ("PickupRandomizer", ForcedPickup, EnablePowerups,
+                        UseSeed);
 
         HOOK_MEMBER (Jmp, (0x088f5a3c), RandomizePickups,
                      int (CVector *, int, char, int, int, bool, char));

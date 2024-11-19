@@ -20,6 +20,7 @@
 class ParkedVehicleRandomizer : public Randomizer<ParkedVehicleRandomizer>
 {
     int ForcedVehicle = -1;
+    bool UseSeed = false;
 #ifndef DONT_USE_MAP
     std::map<CCarGenerator*, int> m_LoadingCarGens;
 #endif
@@ -30,6 +31,10 @@ public:
     RandomizeParkedVehicle (CCarGenerator *gen)
     {
         int origModel = gen->m_nModelId;
+
+        RainbomizerRandomizationEngine::RandomizerBlock block{
+            UseSeed, gen->m_nModelId, gen->x, gen->y, gen->z
+        };
 
         if (CStreaming::sm_Instance->m_numVehiclesLoaded < 15)
             gen->m_nModelId = ForcedVehicle == -1
@@ -59,7 +64,7 @@ public:
 
     ParkedVehicleRandomizer ()
     {
-        RB_C_DO_CONFIG ("ParkedVehicleRandomizer", ForcedVehicle);
+        RB_C_DO_CONFIG ("ParkedVehicleRandomizer", ForcedVehicle, UseSeed);
         HOOK_MEMBER (Jal, (0x8aed784), RandomizeParkedVehicle, void(CCarGenerator *));
     }
 };

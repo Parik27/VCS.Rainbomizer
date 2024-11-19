@@ -114,7 +114,8 @@ class VehiclePatternManager
 public:
     void ReadPatterns (const char *file);
     void GetRandomVehicle (eVehicle original, CRunningScript *script,
-                           const CVector &pos, ScriptVehiclePattern::Result &result);
+                           const CVector &pos, ScriptVehiclePattern::Result &result,
+                           bool deterministic);
 
     void LogAllPatterns ();
 };

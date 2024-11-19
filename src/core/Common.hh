@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/Logger.hh"
 #include <cstdio>
 #include <cstring>
 #include <string>
@@ -53,6 +54,8 @@ public:
         return f;
     }
 
+    // Reads lines from the file and calls the function with each line
+    // Line is guaranteed to be null terminated
     template <typename F, int32_t BUFFER_SIZE = 512>
     void
     ReadLines (F &&f)
@@ -63,9 +66,29 @@ public:
         char buffer[BUFFER_SIZE];
         while (fgets (buffer, sizeof (buffer), file))
             {
-                buffer[strcspn (buffer, "\r")] = '\0';
-                buffer[strcspn (buffer, "\n")] = '\0';
-                f (buffer);
+                size_t start = 0;
+                size_t end   = 0;
+
+                // Remove leading and trailing whitespace
+                size_t i = 0;
+                while (buffer[i] != '\0')
+                    {
+                        if (buffer[start] == ' ' || buffer[start] == '\t')
+                            start++;
+
+                        if (buffer[i] == '\n' || buffer[i] == '\r')
+                            {
+                                break;
+                            }
+
+                        if (buffer[i] != ' ' && buffer[i] != '\t')
+                            end = i;
+
+                        i++;
+                    }
+
+                buffer[end + 1] = '\0';
+                f (std::string_view(buffer + start, end - start + 1));
             }
     }
 };

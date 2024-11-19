@@ -135,15 +135,16 @@ ScriptVehiclePattern::LogPattern () const
     static char patternLog[4096] = {};
     patternLog[0]                = '\0';
 
-    Rainbomizer::Logger::LogMessage("== %s ==", m_OriginalLine.c_str());
+    Rainbomizer::Logger::LogMessage ("== %s ==", m_OriginalLine.c_str ());
 
-    for (auto i : VehicleCommon::AllUsableVehicles() | std::views::filter (patternFilter))
+    for (auto i : VehicleCommon::AllUsableVehicles ()
+                      | std::views::filter (patternFilter))
         {
             auto *info = ModelInfo::GetModelInfo<CVehicleModelInfo> (i);
             sprintf (patternLog, "%s %s", patternLog, info->m_sName);
         }
 
-    Rainbomizer::Logger::LogMessage("Allowed: %s", patternLog);
+    Rainbomizer::Logger::LogMessage ("Allowed: %s", patternLog);
 }
 
 void
@@ -258,8 +259,7 @@ ScriptVehiclePattern::IsValidVehicleForPattern (eVehicle id) const
     // Bounds check
     if (model->m_pColModel)
         {
-            auto bounds = model->m_pColModel->boundingBox.max
-                          - model->m_pColModel->boundingBox.min;
+            const auto bounds = model->m_pColModel->GetBounds ();
 
             if (bounds.x > m_vecBoundsCheck.x)
                 return false;
@@ -280,12 +280,12 @@ VehiclePatternManager::ReadPatterns (const char *file)
     m_aPatterns.clear ();
     auto f = Rainbomizer::Common::GetRainbomizerDataFile (file, "r");
 
-    f.ReadLines ([this] (const char *line) {
-        if (line[0] == '#' || strlen (line) < 10)
+    f.ReadLines ([this] (std::string_view line) {
+        if (line[0] == '#' || line.length () < 10)
             return;
 
         ScriptVehiclePattern pattern;
-        pattern.Read (line);
+        pattern.Read (line.data ());
 
         m_aPatterns.push_back (std::move (pattern));
     });
@@ -298,18 +298,29 @@ void
 VehiclePatternManager::GetRandomVehicle (eVehicle                      original,
                                          CRunningScript               *script,
                                          const CVector                &pos,
-                                         ScriptVehiclePattern::Result &result)
+                                         ScriptVehiclePattern::Result &result,
+                                         bool deterministic)
 {
     auto model
         = ModelInfo::GetModelInfo<CVehicleModelInfo> (original)->m_hashName;
 
     size_t patternId = 0;
+
+    RainbomizerRandomizationEngine::RandomizerBlock block{
+        deterministic, original, pos.x, pos.y, pos.z
+    };
+
     for (const auto &i : m_aPatterns)
         {
             if (i.Match (model, pos, script))
                 {
                     Rainbomizer::Logger::LogMessage (
                         "Vehicle %d matched pattern %zu", original, patternId);
+
+                    RainbomizerRandomizationEngine::RandomizerBlock block{
+                        deterministic, patternId
+                    };
+
                     i.GetRandom (result);
                     return;
                 }

@@ -28,6 +28,7 @@ class WeaponRandomizer : public RandomizerWithDebugInterface<WeaponRandomizer>
     inline static int  ForcedWeapon            = -1;
     inline static bool DisableWeaponRandomizer = false;
     inline static int  RampageWeapon           = -1;
+    inline static bool UseSeed                 = false;
 
     inline static WeaponPatternManager m_Patterns;
 
@@ -97,7 +98,7 @@ class WeaponRandomizer : public RandomizerWithDebugInterface<WeaponRandomizer>
 
         // We store only the matched patterns so as to not override
         // the equip manager
-        bool store = m_Patterns.GetRandomWeapon (ped, weaponType, ammo, result);
+        bool store = m_Patterns.GetRandomWeapon (ped, weaponType, ammo, result, UseSeed);
 
         if (store)
             m_PlayerEquipMgr.Store (ped, weaponType, result.Weapon);
@@ -297,7 +298,7 @@ public:
     {
         bool EnableCustomDriveBy = false;
 
-        RB_C_DO_CONFIG ("WeaponRandomizer", ForcedWeapon, EnableCustomDriveBy)
+        RB_C_DO_CONFIG ("WeaponRandomizer", ForcedWeapon, EnableCustomDriveBy, UseSeed)
 
         HOOK (Jmp, (0x0891b7dc), RandomizeWeapon,
               int (class CPed *, int, int, bool));

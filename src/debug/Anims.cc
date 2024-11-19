@@ -1,10 +1,12 @@
 #include "core/Logger.hh"
+#include "ppsspp/Keyboard.hh"
 #include "scm/Opcodes.hh"
 #include <core/Randomizer.hh>
 #include <GhidraTypes.hh>
 #include <core/Events.hh>
 #include <memory/GameAddress.hh>
 #include <hooks/Hooks.hh>
+#include <set>
 #include <utils/Random.hh>
 #include <vcs/CStreaming.hh>
 #include <scm/Command.hh>
@@ -97,22 +99,24 @@ struct CAnimBlendAssociation {
     undefined field29_0x43;
 };
 
-class AnimDebugger : public Randomizer<AnimDebugger>
+class AnimDebugger : public RandomizerWithDebugInterface<AnimDebugger>
 {
+    std::map<int, std::set<std::string>> m_animGroups;
+
     void
     PrintAnimAssocDefinitions ()
     {
         static GameVariable<CAnimManager *, 0x08bb380c> g_AnimManager;
-	auto data = g_AnimManager->Data;
+        auto data = g_AnimManager->Data;
 
         for (size_t i = 10; i < data->m_numAnimBlocks - 70; i++)
             {
-                CStreaming::RequestModel(CStreaming::sm_Instance->m_anmOffset + i);
+                CStreaming::RequestModel (CStreaming::sm_Instance->m_anmOffset
+                                          + i);
                 Rainbomizer::Logger::LogMessage ("Loading block: %d", i);
 
-                CStreaming::LoadAllRequestedModels(false);
+                CStreaming::LoadAllRequestedModels (false);
             }
-
 
         for (size_t i = 0; i < data->numAssocGroups; i++)
             {
@@ -125,84 +129,113 @@ class AnimDebugger : public Randomizer<AnimDebugger>
                 for (size_t i = 0; i < group.m_numAssociations; i++)
                     {
                         auto &assoc = group.m_aAssociationArray[i];
-                        Rainbomizer::Logger::LogMessage ("\t\t%s %d", assoc.hierarchy->name, data->associations[group.m_idOffset + i].id);
+                        Rainbomizer::Logger::LogMessage (
+                            "\t\t%s %d", assoc.hierarchy->name,
+                            data->associations[group.m_idOffset + i].id);
                     }
             }
-        
-        // for (auto assoc : data->associations)
-	//   {
-	//     Rainbomizer::Logger::LogMessage ("AnimAssoc: %s %d", assoc.name, assoc.id);
-	//   }
 
-	// for (auto group : data->m_aAnimAssocDefinitions)
-	//   {
-	//     Rainbomizer::Logger::LogMessage ("AnimGroup: %s %s %d %d", group.groupname, group.blockName, group.animBase, group.numAnims);
-	//   }
+        // for (auto assoc : data->associations)
+        //   {
+        //     Rainbomizer::Logger::LogMessage ("AnimAssoc: %s %d", assoc.name,
+        //     assoc.id);
+        //   }
+
+        // for (auto group : data->m_aAnimAssocDefinitions)
+        //   {
+        //     Rainbomizer::Logger::LogMessage ("AnimGroup: %s %s %d %d",
+        //     group.groupname, group.blockName, group.animBase,
+        //     group.numAnims);
+        //   }
     }
 
-  template<auto &CAimBlendAssocGroup__GetAnimation>
-  static CAnimBlendAssociation* AnimCrashFix (CAnimBlendAssocGroup* group, int id)
-  {
-      static GameVariable<CAnimManager *, 0x08bb380c> g_AnimManager;
-      int offset = id - g_AnimManager->Data->associations[group->m_idOffset].id;
+    template <auto &CAimBlendAssocGroup__GetAnimation>
+    static CAnimBlendAssociation *
+    AnimCrashFix (CAnimBlendAssocGroup *group, int id)
+    {
+        static GameVariable<CAnimManager *, 0x08bb380c> g_AnimManager;
+        int                                             offset
+            = id - g_AnimManager->Data->associations[group->m_idOffset].id;
 
-      std::vector<CAnimBlendAssociation*> associations;
+        std::vector<CAnimBlendAssociation *> associations;
 
-      CallCommand<REQUEST_ANIMATION>("LAN_C1");
+        //CallCommand<REQUEST_ANIMATION>("LAN_C1");
 
-      using namespace std::literals;
+        using namespace std::literals;
 
-      bool enabled = true;
+        bool enabled = true;
 
-      if (id == 4)
-          id = 252;
 
-      else if (id == 5)
-          id = 253;
-
-      else if (id == 6)
-          id = 250;
-
-      else
-          enabled = false;
-
-      for (size_t i = 0; i < g_AnimManager->Data->numAssocGroups && enabled; i++)
-          {
-
-              auto &group = g_AnimManager->Data->m_aAnimAssocGroups[i];
-
-              // if (g_AnimManager->Data->m_aAnimAssocDefinitions[group.m_grpId]
-              //         .groupname
-              //     != "LAN_C1"sv)
-              //     continue;
-
-              auto offset = id - g_AnimManager->Data->associations[group.m_idOffset].id;
-
-              if (offset < group.m_numAssociations && offset >= 0)
-                  {
-                      // Rainbomizer::Logger::LogMessage ("Assoc name: %s", group.m_aAssociationArray[offset].hierarchy->name);
-                      associations.push_back(&group.m_aAssociationArray[offset]);
-                  }
-          }
-
-        if (associations.size() > 0)
+        for (size_t i = 0; i < g_AnimManager->Data->numAssocGroups &&
+        enabled; i++)
             {
-                return GetRandomElement (associations);
+
+                auto &group = g_AnimManager->Data->m_aAnimAssocGroups[i];
+
+                // if
+                //(g_AnimManager->Data->m_aAnimAssocDefinitions[group.m_grpId]
+                //         .groupname
+                //     != "LAN_C1"sv)
+                //     continue;
+
+                auto offset = id -
+                g_AnimManager->Data->associations[group.m_idOffset].id;
+
+                if (offset < group.m_numAssociations && offset >= 0)
+                    {
+                        // Rainbomizer::Logger::LogMessage ("Assoc name: %s",
+                        // group.m_aAssociationArray[offset].hierarchy->name);
+                        associations.push_back(&group.m_aAssociationArray[offset]);
+                    }
             }
 
-      if (offset < group->m_numAssociations && offset >= 0)
-        {
-            return &group->m_aAssociationArray[offset];
-        }
+          if (associations.size() > 0)
+              {
+                  //return GetRandomElement (associations);
+              }
+
+        if (id >= 257 && id <= 261)
+            Rainbomizer::Logger::LogMessage (
+                "%d %s", id, PPSSPPUtils::GetStackTrace ().data ());
+
+        Get ().m_animGroups[id].insert (std::string(PPSSPPUtils::GetStackTrace ()));
+
+        if (offset < group->m_numAssociations && offset >= 0)
+            {
+                return &group->m_aAssociationArray[offset];
+            }
 
       return &group->m_aAssociationArray[0];
-  }
+    }
 
 public:
     AnimDebugger ()
     {
-      // HOOK (Jmp, 0x088e2798, AnimCrashFix, void(CAnimBlendAssocGroup*, int));
+        HOOK (Jmp, 0x088e2798, AnimCrashFix,
+              void (CAnimBlendAssocGroup *, int));
+
         RandomizationSeedEvent::Add (
             [] (int) { Get ().PrintAnimAssocDefinitions (); });
+    }
+
+    void
+    DrawDebug ()
+    {
+        ImGui::Begin ("AnimDebugger");
+
+        for (auto &group : m_animGroups)
+            {
+                // collapsing header
+                if (ImGui::CollapsingHeader (
+                        std::to_string (group.first).c_str ()))
+                    {
+                        for (auto &stack : group.second)
+                            {
+                                ImGui::Text ("%s", stack.c_str ());
+                            }
+                    }
+            }
+
+        ImGui::End ();
     }
 };

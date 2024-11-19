@@ -44,12 +44,14 @@ ModelFun::NodesArrayFix (CElementModelInfo *info, RslElementGroup *group)
         case VEHICLE_TYPE_BMX: numNodes = 11; break;
         }
 
-    std::vector<bool> hasNodes (numNodes, false);
-    group->data->ForAllChildrenRecursive ([&hasNodes] (RslNode *node, ...) {
+    std::vector<RslNode *> nodeArray (numNodes, nullptr);
+    group->data->ForAllChildrenRecursive ([&nodeArray] (RslNode *node, ...) {
         if (node->nodeTreeId > 0)
             {
-                if (node->nodeTreeId < hasNodes.size ())
-                    hasNodes[node->nodeTreeId] = true;
+                if (node->nodeTreeId < nodeArray.size ())
+                    {
+                        nodeArray[node->nodeTreeId] = node;
+                    }
                 else
                     node->nodeTreeId = 0;
             }
@@ -57,11 +59,12 @@ ModelFun::NodesArrayFix (CElementModelInfo *info, RslElementGroup *group)
 
     for (size_t i = 1; i < numNodes; i++)
         {
-            if (hasNodes[i])
+            if (nodeArray[i])
                 continue;
 
             RslNode *node    = RslNodeCreate ();
             node->nodeTreeId = i;
+
             group->data->AddChildAtEnd (node);
         }
 }
