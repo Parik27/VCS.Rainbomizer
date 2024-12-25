@@ -47,8 +47,7 @@ struct ChunkInfo
 
     uint32_t cdPosn    = -1;
     uint32_t cdSize    = -1;
-    uint32_t texCdPosn = -1;
-    uint32_t texCdSize = -1;
+    uint32_t texSlot   = -1;
 
     CColModel *colModel         = nullptr;
     bool       replaceCollision = true;
@@ -64,11 +63,8 @@ struct ChunkInfo
 
         auto &modelInfo  = *ModelInfo::GetModelInfo<CBaseModelInfo> (id);
         auto &streamInfo = streaming->ms_aInfoForModel[id];
-        auto &texStreamInfo
-            = streaming->ms_aInfoForModel[modelInfo.m_texlistSlot
-                                          + streaming->m_texOffset];
 
-        return std::tie (modelInfo, streamInfo, texStreamInfo);
+        return std::tie (modelInfo, streamInfo);
     }
 
     void FillFromModelId (uint32_t id);

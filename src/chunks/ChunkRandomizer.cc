@@ -83,8 +83,6 @@ class ChunkRandomizer : public Randomizer<ChunkRandomizer>
         void
         ReadFlag (std::string_view line)
         {
-            Rainbomizer::Logger::LogMessage ("FLAG: %.*s", line.size(), line.data ());
-
             if (line == "OnLoad")
                 onlyOnLoad = true;
 
@@ -131,9 +129,10 @@ class ChunkRandomizer : public Randomizer<ChunkRandomizer>
                 if (!modelInfo || !streamInfo.m_cdSize)
                     continue;
 
-                Rainbomizer::Logger::LogMessage ("Model %d: %x, Type: %d", i,
-                                                 modelInfo->m_hashName,
-                                                 modelInfo->type);
+                Rainbomizer::Logger::LogMessage (
+                    "Model %d: %x, Type: %d, Texture: %d", i,
+                    modelInfo->m_hashName, modelInfo->type,
+                    modelInfo->m_texlistSlot);
             }
     }
 
@@ -171,8 +170,7 @@ class ChunkRandomizer : public Randomizer<ChunkRandomizer>
     ChunkInfo *
     GetRandomChunkForModelId (CStreaming *p1, int modelId)
     {
-        auto [modelInfo, streamInfo, texStreamInfo]
-            = ChunkInfo::GetModelDetails (modelId);
+        auto [modelInfo, streamInfo] = ChunkInfo::GetModelDetails (modelId);
 
         if (modelId >= p1->m_texOffset
             || p1->ms_aInfoForModel[modelId].m_status != 0

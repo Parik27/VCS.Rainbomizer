@@ -1,17 +1,18 @@
 #include "ChunkInfo.hh"
+#include "core/Logger.hh"
 #include "vcs/CModelInfo.hh"
 
 void
 ChunkInfo::StoreInModelId (uint32_t id)
 {
-    auto [modelInfo, streamInfo, texStreamInfo] = GetModelDetails (id);
+    auto [modelInfo, streamInfo] = GetModelDetails (id);
+
+    Rainbomizer::Logger::LogMessage("Randomizing chunk %d to %d", this->modelId, id);
 
     streamInfo.m_cdPosn = cdPosn;
     streamInfo.m_cdSize = cdSize;
 
-    texStreamInfo.m_cdPosn = texCdPosn;
-    texStreamInfo.m_cdSize = texCdSize;
-
+    modelInfo.m_texlistSlot = texSlot;
     modelInfo.unknown1 = modelId;
 
     if (replaceCollision)
@@ -35,7 +36,7 @@ ChunkInfo::ParseLine (std::string_view line)
         }
     else
         {
-            Rainbomizer::Logger::LogMessage ("%d not found: %*s %d", hash,
+            Rainbomizer::Logger::LogMessage ("%d not found: %.*s %d", hash,
                                              modelName.size(),
                                              modelName.data (),
                                              modelName.size());
@@ -46,13 +47,11 @@ ChunkInfo::ParseLine (std::string_view line)
 void
 ChunkInfo::FillFromModelId (uint32_t id)
 {
-    auto [modelInfo, streamInfo, texStreamInfo] = GetModelDetails (id);
+    auto [modelInfo, streamInfo] = GetModelDetails (id);
 
-    cdPosn = streamInfo.m_cdPosn;
-    cdSize = streamInfo.m_cdSize;
-
-    texCdPosn = texStreamInfo.m_cdPosn;
-    texCdSize = texStreamInfo.m_cdSize;
+    cdPosn  = streamInfo.m_cdPosn;
+    cdSize  = streamInfo.m_cdSize;
+    texSlot = modelInfo.m_texlistSlot;
 
     colModel = modelInfo.m_pColModel;
 
