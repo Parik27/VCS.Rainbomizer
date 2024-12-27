@@ -30,9 +30,12 @@ Features
 - :walking: **Ped Randomizer** - Randomizes all ambient, mission, and cutscene peds.
 - :video_game: **Player Randomizer** - Randomizes the player model into a different ped model.
 - 🏎️ **Parked Car Randomizer**: Randomizes vehicles parked around the map including boats and planes.
+- 🗿 **Chunk Randomizer** - Randomizes the model used by various in-game entities such as vehicles, peds, and objects.
 
 <span id="installation"></span>
 ## Installation
+
+Downloaded the latest version from the [Releases](https://github.com/Parik27/VCS.Rainbomizer/releases) page and then follow the instructions that apply to how you're playing the game:
 
 ### PPSSPP
 
