@@ -70,7 +70,7 @@ class ScriptVehicleRandomizer : public Randomizer<ScriptVehicleRandomizer>
 
 
         int originalVehicle = params[0];
-        int newVehicle = ForcedVehicle == -1 ? result.vehId : ForcedVehicle;
+        int newVehicle = ForcedVehicle == -1 ? result.vehId : ForcedVehicle.Get ();
 
         // Before loading the vehicle, inform chunk randomizer that
         // we need vehicles matching these bounds.

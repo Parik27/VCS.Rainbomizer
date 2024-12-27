@@ -47,6 +47,9 @@ struct CRGBA
 
 class ColourRandomizer : public Randomizer<ColourRandomizer>
 {
+    inline static bool RandomizeCarCols = true;
+    inline static bool RandomizePedCols = true;
+
     enum ColourizerFlags
     {
         REPLACE_COLOUR = 1, // replace the colour instead of modulating it
@@ -221,34 +224,40 @@ class ColourRandomizer : public Randomizer<ColourRandomizer>
   RandomizeVehCols (void *p1, ColourTable *p2)
   {
       ColourTable__Load (p1, p2);
-      for (auto &i : p2->pedCols)
-          {
-              i.r = RandomSize (0xFF);
-              i.g = RandomSize (0xFF);
-              i.b = RandomSize (0xFF);
-          }
+      
+      if (RandomizePedCols)
+      {
+            for (auto &i : p2->pedCols)
+            {
+                i.r = RandomSize (0xFF);
+                i.g = RandomSize (0xFF);
+                i.b = RandomSize (0xFF);
+            }
+      }
 
-      for (auto &i : p2->vehCols)
-          {
-              i.r = RandomSize (0xFF);
-              i.g = RandomSize (0xFF);
-              i.b = RandomSize (0xFF);
-          }
+      if (RandomizeCarCols)
+      {
+            for (auto &i : p2->vehCols)
+            {
+                i.r = RandomSize (0xFF);
+                i.g = RandomSize (0xFF);
+                i.b = RandomSize (0xFF);
+            }
+      }
   }
 
   public:
   ColourRandomizer ()
   {
-    bool EnableTextureFun = false;
-    bool RandomizeCarAndPedCols = true;
+    bool RandomizeHUDCols = false;
 
-    RB_C_DO_CONFIG ("ColourRandomizer", EnableTextureFun,
-                    RandomizeCarAndPedCols);
+    RB_C_DO_CONFIG ("ColourRandomizer", RandomizeHUDCols,
+                    RandomizeCarCols, RandomizePedCols);
 
-    if (EnableTextureFun)
+    if (RandomizeHUDCols)
       HOOK (Jal, 0x8a65fe8, TextureFun, RslTexture*(const char*));
 
-    if (RandomizeCarAndPedCols)
+    if (RandomizeCarCols || RandomizePedCols)
       HOOK (Jal, 0x08a53c74, RandomizeVehCols, void (void*, ColourTable*));
   }
 };
