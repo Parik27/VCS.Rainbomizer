@@ -35,7 +35,7 @@ Features
 <span id="installation"></span>
 ## Installation
 
-Downloaded the latest version from the [Releases](https://github.com/Parik27/VCS.Rainbomizer/releases) page and then follow the instructions that apply to how you're playing the game:
+Download the latest version from the [Releases](https://github.com/Parik27/VCS.Rainbomizer/releases) page and then follow the instructions that apply to how you're playing the game:
 
 ### PPSSPP
 
