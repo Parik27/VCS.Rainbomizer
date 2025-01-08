@@ -60,6 +60,7 @@ class ScriptVehicleRandomizer : public Randomizer<ScriptVehicleRandomizer>
             LogPatterns ();
 
         int ret = CollectParams (scr, p2, p3, params);
+        uint32_t missionId = ThreadUtils::GetMissionIdFromThread (scr);
 
         ScriptVehiclePattern::Result result{params[0]};
         m_Patterns.GetRandomVehicle (eVehicle (params[0]), scr,
@@ -100,10 +101,28 @@ class ScriptVehicleRandomizer : public Randomizer<ScriptVehicleRandomizer>
                 coords[3] += result.coords->z;
             }
 
+        if (result.hackedCoords)
+            {
+                auto coords = reinterpret_cast<float *> (params);
+
+                if (missionId == 77 && params[0] == VEHICLE_BIPLANE) // The Colonel's Coke
+                    { // on pavement from jetty to road
+                        coords[1] = -559.0f;
+                        coords[2] = 612.0f;
+                        coords[3] = -100.0f;
+                    }
+
+                if (missionId == 85 && params[0] == VEHICLE_BIPLANE) // Taking The Fall
+                    { // behind Lance's helipad
+                        coords[1] = -48.0f;
+                        coords[2] = -1631.0f;
+                        coords[3] = -100.0f;
+                    }
+            }
+
         Rainbomizer::Logger::LogMessage (
             "Vehicle spawn: [%s]:%x (mission = %d) (%f %f %f): %d -> %d",
-            scr->m_szName, scr->m_pCurrentIP,
-            ThreadUtils::GetMissionIdFromThread (scr),
+            scr->m_szName, scr->m_pCurrentIP, missionId,
             std::bit_cast<float> (params[1]), std::bit_cast<float> (params[2]),
             std::bit_cast<float> (params[3]), originalVehicle, params[0]);
 
